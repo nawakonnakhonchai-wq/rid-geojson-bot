@@ -9,7 +9,7 @@ def fetch_rid_realtime(basin="", province="", region="", rid="", date=""):
     พร้อมอัปเดตคีย์ข้อมูลล่าสุดปี 2026 และคำนวณ % ระดับน้ำให้โดยอัตโนมัติหากข้อมูลขาดหาย
     """
     # ลิงก์ API ของกรมชลประทาน พร้อมรองรับการใส่พารามิเตอร์ฟิลเตอร์
-    api_url = f"https://bigdata-api.rid.go.th/api/v1/ma/pier/all/get_pier_data?date={date}&basin={basin}&province={province}&region={region}&rid={rid}"
+    api_url = f"https://bigdata-api.rid.go.th/api/v1/ma/pier/all/get_pier_data?date=&basin=&province=&region=&rid="
     
     # เพิ่ม Headers เพื่อลดโอกาสโดนปฏิเสธการเชื่อมต่อจาก Server ภาครัฐ
     headers = {
