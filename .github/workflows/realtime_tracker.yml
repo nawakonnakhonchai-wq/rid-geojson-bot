@@ -2,51 +2,48 @@ name: RID Realtime Data Tracker
 
 on:
   schedule:
-    # สั่งให้ระบบรันอัตโนมัติทุกๆ 15 นาที (นาทีที่ 0, 15, 30, 45)
     - cron: '*/15 * * * *'
-  workflow_dispatch: # เปิดปุ่มกดรันแบบแมนนวลเพื่อทดสอบระบบได้เอง
+  workflow_dispatch:
+
+concurrency:
+  group: rid-tracker
+  cancel-in-progress: false
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # ให้สิทธิ์บอทในการแก้ไขและอัปโหลดไฟล์ในคลังข้อมูล
+      contents: write
 
     steps:
-    # 1. ดึงโค้ดจาก Repository ออกมาใช้งาน
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    # 2. จำลองระบบ Python 3.10 ขึ้นมาบนเครื่องเซิร์ฟเวอร์ GitHub
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    # 3. ติดตั้งไลบรารีที่โค้ดเรียกใช้งาน (รวมถึง dependencies ของ geopandas)
-    - name: Install Libraries
-      run: |
-        python -m pip install --upgrade pip
-        # อัปเดตให้ติดตั้ง pyogrio หรือไลบรารีช่วยเพื่อให้ geopandas บน ubuntu ทำงานได้ไม่เออเร่อ
-        pip install requests pandas geopandas shapely pyogrio
+      - name: Install Libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pandas geopandas shapely pyogrio
 
-    # 4. รันโค้ด Python เพื่อดึงและแปลงไฟล์ข้อมูล
-    # (หมายเหตุ: ตรวจสอบให้มั่นใจว่าไฟล์โค้ดของคุณชื่อ main.py ตรงกับบรรทัดนี้ครับ)
-    - name: Run Data Script
-      run: python main.py
+      - name: Run Data Script
+        run: python main.py
 
-    # 5. สั่งตรวจสอบไฟล์ หากมีการเปลี่ยนแปลงข้อมูลจริง ให้ทำการอัปเดตไฟล์กลับเข้าคลังข้อมูล
-    - name: Commit and Push Changes
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # ตรวจสอบว่าไฟล์ถูกสร้างขึ้นมาจริงไหมก่อนสั่ง Git ทำงาน เพื่อป้องกันบอทพัง
-        if [ -f rid_realtime.geojson ]; then
-          git add rid_realtime.geojson
-          # ถ้ามีข้อมูลเปลี่ยนแปลงจริง ให้ทำการ Commit และ Push
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update realtime data: $(date)" && git push)
-        else
-          echo "ไม่พบไฟล์ rid_realtime.geojson ระบบอาจดึงข้อมูลจาก API ไม่สำเร็จ"
-          exit 1
-        fi
+      - name: Daily Snapshot
+        run: python snapshot.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -f rid_realtime.geojson ]; then
+            git add rid_realtime.geojson history
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update realtime data: $(date)" && git push)
+          else
+            echo "ไม่พบไฟล์ rid_realtime.geojson ระบบอาจดึงข้อมูลจาก API ไม่สำเร็จ"
+            exit 1
+          fi
