@@ -84,3 +84,13 @@ wide["longitude"] = wide["longitude"].round(6)
 wide = wide.dropna(subset=[c for c in wide.columns if c.startswith("wl_d")], how="all")
 wide.reset_index().to_csv("history_wl_wide.csv", index=False, encoding="utf-8")
 print(f"history_wl_wide.csv {len(wide)} สถานี x {len(wide_dates)} วัน ({wide_dates[0]} ถึง {wide_dates[-1]})")
+
+# ---------- แบบยาว 30 วัน (เบา) สำหรับ Serial chart ที่แกน X เป็นวันที่จริง ----------
+# ใช้คู่กับ history_wl_wide.csv: แผนที่ใช้ไฟล์ wide (1 จุด/สถานี), กราฟใช้ไฟล์นี้
+# แล้ว filter ข้าม layer ด้วย station_code
+DAYS_30 = int(os.environ.get("CHART_DAYS", "30"))
+d30 = sorted(df["snapshot_date"].unique())[-DAYS_30:]
+c = out[df.loc[out.index, "snapshot_date"].isin(d30)]
+c = c[["station_code", "station_name", "latitude", "longitude", "date", "wl", "wl_pct"]]
+c.to_csv("history_wl_30d.csv", index=False, encoding="utf-8")
+print(f"history_wl_30d.csv {len(c)} แถว")

@@ -44,7 +44,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           if [ -f rid_realtime.geojson ]; then
-            git add rid_realtime.geojson history history_wl.csv history_wl_all.csv history_wl_wide.csv
+            git add rid_realtime.geojson history history_wl.csv history_wl_all.csv history_wl_wide.csv history_wl_30d.csv
             git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update realtime data: $(date)" && git push)
           else
             echo "ไม่พบไฟล์ rid_realtime.geojson ระบบอาจดึงข้อมูลจาก API ไม่สำเร็จ"
