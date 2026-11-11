@@ -168,6 +168,29 @@ span.chip-t:hover { background: var(--card); }
 .leaflet-container { font: inherit; }
 .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
 .leaflet-tooltip-top:before { border-top-color: var(--card); }
+/* การ์ด pop-up บนแผนที่ */
+.leaflet-tooltip.map-tip { padding: 0; border-radius: 14px; white-space: normal; box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+.mt { width: 240px; padding: 12px 14px 10px; font-size: 12px; line-height: 1.35; }
+.mt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.mt-name { font-size: 15px; font-weight: 700; }
+.mt-badge { display: inline-flex; align-items: center; gap: 5px; flex: none; font-size: 11px; font-weight: 600; padding: 2px 8px 2px 6px;
+  border-radius: 999px; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--text); }
+.mt-badge .dot { width: 8px; height: 8px; }
+.mt-sub { color: var(--muted); margin-top: 2px; }
+.mt-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 8px; }
+.mt-big { font-size: 26px; font-weight: 700; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.mt-big small { font-size: 14px; font-weight: 600; margin-left: 1px; }
+.mt-unit { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 6px; letter-spacing: 0; }
+.mt-trend { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 8px; background: var(--tile); }
+.mt-trend.up { color: var(--s-flood); } .mt-trend.down { color: var(--s-normal); } .mt-trend.flat { color: var(--muted); }
+.mt-gauge { position: relative; height: 8px; border-radius: 4px; background: var(--tile-hover); margin-top: 8px; }
+.mt-gauge i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+.mt-gauge b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--text); opacity: .55; border-radius: 1px; }
+.mt-scale { position: relative; height: 14px; font-size: 10px; color: var(--muted); }
+.mt-scale span { position: absolute; top: 2px; } .mt-scale span + span { transform: translateX(-50%); }
+.mt-foot { display: grid; gap: 3px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+.mt-foot div { display: flex; justify-content: space-between; gap: 10px; }
+.mt-foot span { color: var(--muted); } .mt-foot b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .seg.sm { padding: 2px; border-radius: 18px; }
 .seg.sm button { height: 30px; min-width: 34px; padding: 0 10px; font-size: 13px; border-radius: 15px; }
 .ctrl-row { display: flex; gap: 8px; flex-wrap: wrap; }

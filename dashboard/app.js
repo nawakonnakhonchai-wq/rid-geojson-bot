@@ -203,6 +203,30 @@
     } catch (e) { /* ยังไม่มีไฟล์แม่น้ำ */ }
   }
 
+
+  /* ---------- การ์ด pop-up บนแผนที่ ---------- */
+  const TREND_ICON = { "เพิ่มขึ้น": ["↑", "up"], "ลดลง": ["↓", "down"], "คงที่": ["→", "flat"] };
+  function tipCard({ name, sub, st, pct, unit, ref, trend, facts }) {
+    const c = color(st);
+    const badge = el("span", { class: "mt-badge" }, dotEl(c), st.label); badge.style.setProperty("--c", c);
+    const head = el("div", { class: "mt-head" }, el("div", { class: "mt-name" }, name), badge);
+    const big = el("div", { class: "mt-big" }, pct == null ? "–" : fmt(pct, 1), el("small", {}, "%"), el("span", { class: "mt-unit" }, unit));
+    const row = el("div", { class: "mt-row" }, big);
+    if (trend && TREND_ICON[trend]) {
+      const [ic, cls] = TREND_ICON[trend];
+      row.append(el("span", { class: "mt-trend " + cls }, ic + " " + trend));
+    }
+    // เกจ 0–120% มีขีดที่ 100%
+    const gauge = el("div", { class: "mt-gauge" });
+    const fill = el("i"); fill.style.width = Math.max(0, Math.min(120, pct || 0)) / 120 * 100 + "%"; fill.style.background = c;
+    const tick = el("b"); tick.style.left = 100 / 120 * 100 + "%";
+    gauge.append(fill, tick);
+    const scale = el("div", { class: "mt-scale" }, el("span", {}, "0"), el("span", { style: `left:${100 / 120 * 100}%` }, ref));
+    const foot = el("div", { class: "mt-foot" }, ...facts.filter(Boolean).map(([k, v]) => el("div", {}, el("span", {}, k), el("b", {}, v))));
+    return el("div", { class: "mt" }, head, el("div", { class: "mt-sub" }, sub), row, gauge, scale, foot);
+  }
+  const TIP_OPT = { direction: "top", offset: [0, -8], className: "map-tip", opacity: 1 };
+
   /* ---------- gauge (ภาพถังน้ำในการ์ดหลัก) ---------- */
   function gauge(pct, st, refLabel) {
     const W = 150, H = 140, top = 14, bot = H - 6, max = 125;
@@ -485,7 +509,12 @@
     for (const s of pts) {
       const st = stStatus(s.pct);
       const m = L.circleMarker([s.lat, s.lon], { radius: st.key === "flood" ? 7 : 5, color: ring, weight: 1.5, fillColor: color(st), fillOpacity: 1 })
-        .bindTooltip(() => el("div", {}, el("b", {}, s.name), el("br"), `${s.prov}${s.basin ? " · ลุ่มน้ำ" + s.basin : ""} · ${fmt(s.pct, 1)}% · ${s.trend}`), { direction: "top", offset: [0, -6] })
+        .bindTooltip(() => tipCard({
+          name: s.name, sub: [s.prov, s.basin && "ลุ่มน้ำ" + s.basin].filter(Boolean).join(" · "),
+          st, pct: s.pct, unit: "ของตลิ่ง", ref: "ตลิ่ง", trend: s.trend,
+          facts: [["ระดับน้ำ", fmt(s.wl) + " ม.รทก."],
+            s.diff != null && [s.diff >= 0 ? "สูงกว่าตลิ่ง" : "ต่ำกว่าตลิ่ง", fmt(Math.abs(s.diff)) + " ม."]],
+        }), TIP_OPT)
         .on("click", () => selectStation(s))
         .addTo(S.layer);
       S.markers.set(s.code, m);
@@ -821,7 +850,12 @@
       const m = L.circleMarker([d.lat, d.lon], {
         radius: d.large ? 5 + Math.min(10, Math.sqrt(d.cap || 0) / 12) : 4,
         color: ring, weight: 1.5, fillColor: color(st), fillOpacity: 1,
-      }).bindTooltip(() => el("div", {}, el("b", {}, d.name), el("br"), `${fmt(d.pct, 1)}% · ${fmt(d.vol, 1)} ล้าน ลบ.ม.`), { direction: "top", offset: [0, -6] })
+      }).bindTooltip(() => tipCard({
+          name: d.name, sub: [d.region, d.large ? "เขื่อนขนาดใหญ่" : "อ่างขนาดกลาง"].filter(Boolean).join(" · "),
+          st, pct: d.pct, unit: "ของระดับเก็บกักปกติ", ref: "เต็ม",
+          facts: [["ปริมาตร", `${fmt(d.vol, 0)} / ${fmt(d.normal, 0)} ล้าน ลบ.ม.`],
+            ["ไหลเข้า / ระบาย", `${fmt(d.inflow)} / ${fmt(d.outflow)}`]],
+        }), TIP_OPT)
         .on("click", () => selectDam(d))
         .addTo(D.layer);
       D.markers.set(d.id, m);
