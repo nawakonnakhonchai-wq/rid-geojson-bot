@@ -50,7 +50,7 @@
     { key: "low", label: "น้ำน้อย", test: () => true, css: "--s-low" },
   ];
   const ST = mkStatus("ล้นตลิ่ง", 70, 30);       // สถานีวัดน้ำ (% ตลิ่ง)
-  const DST = mkStatus("เกินความจุ", 80, 30);    // เขื่อน (% ความจุ)
+  const DST = mkStatus("เกินเก็บกักปกติ", 80, 30); // เขื่อน (% ของระดับเก็บกักปกติ)
   const statusIn = list => p => (p == null || isNaN(p)) ? NA : list.find(s => s.test(p));
   const stStatus = statusIn(ST), dStatus = statusIn(DST);
 
@@ -465,10 +465,15 @@
     const j = await fetch("data/dams.json" + bust).then(r => r.json());
     D.all = Object.entries(j.dams).map(([id, d]) => ({
       id, name: d.name || "", region: d.region || "", large: !!d.large,
-      cap: d.cap ?? null, vol: d.vol ?? null, pct: d.pct ?? null, dead: d.dead ?? null,
+      cap: d.cap ?? null, vol: d.vol ?? null, pct: d.pct ?? null, dead: d.dead ?? null, active: d.active ?? null,
       inflow: d.inflow ?? null, outflow: d.outflow ?? null,
       date: d.date || "", lat: d.lat ?? null, lon: d.lon ?? null,
     }));
+    // % ของกรมชลฯ เทียบกับ "ระดับเก็บกักปกติ" (= ใช้การได้ + ก้นอ่าง) ไม่ใช่ช่อง capacity
+    for (const d of D.all) {
+      d.normal = d.pct > 0 && d.vol > 0 ? d.vol * 100 / d.pct
+        : d.active ? d.active + (d.dead || 0) : d.cap;
+    }
     D.latest = D.all.reduce((m, d) => d.date > m ? d.date : m, "");
     $("damUpdated").textContent = D.latest ? "ข้อมูลล่าสุดวันที่ " + thDate(D.latest) : "";
     const regions = [...new Set(D.all.map(d => d.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
@@ -511,21 +516,21 @@
     const left = el("div", {},
       el("div", { class: "name" }, d.name),
       el("div", { class: "date" }, d.date ? "ข้อมูล" + thDateLong(d.date) + (d.date < D.latest ? " (ยังไม่อัปเดตวันล่าสุด)" : "") : ""),
-      gauge(d.pct, st, "ความจุ"));
+      gauge(d.pct, st, "เก็บกัก"));
     const big = el("div", { class: "big" }, d.pct == null ? "–" : fmt(d.pct, 1)); big.append(el("small", {}, "%"));
     const usable = d.vol != null && d.dead != null ? Math.max(0, d.vol - d.dead) : null;
     box.replaceChildren(chip, el("div", { class: "badge-st" }, dotEl(color(st)), st.label), left,
-      el("div", { class: "right" }, big, el("div", { class: "sub" }, `${fmt(d.vol, 0)} / ${fmt(d.cap, 0)} ล้าน ลบ.ม.`)),
+      el("div", { class: "right" }, big, el("div", { class: "sub" }, `${fmt(d.vol, 0)} / ${fmt(d.normal, 0)} ล้าน ลบ.ม.`)),
       el("div", { class: "left-bottom" }, usable != null ? `ใช้การได้ ${fmt(usable, 1)} ล้าน ลบ.ม.` : ""),
       el("div", { class: "desc" }, el("b", {}, `ไหลเข้า ${fmt(d.inflow)} · ระบาย ${fmt(d.outflow)}`), el("span", {}, "ล้าน ลบ.ม. ต่อวัน")));
   }
 
   function renderDamKpis() {
-    const w = D.list.filter(d => d.vol != null && d.cap);
-    const vol = w.reduce((a, d) => a + d.vol, 0), cap = w.reduce((a, d) => a + d.cap, 0);
+    const w = D.list.filter(d => d.vol != null && d.normal);
+    const vol = w.reduce((a, d) => a + d.vol, 0), cap = w.reduce((a, d) => a + d.normal, 0);
     const inflow = D.list.reduce((a, d) => a + (d.inflow || 0), 0), outflow = D.list.reduce((a, d) => a + (d.outflow || 0), 0);
     const tiles = [
-      tile("ปริมาตรน้ำรวม", cap ? fmt(vol / cap * 100, 0) : "–", "%", `${fmt(vol, 0)} / ${fmt(cap, 0)} ล้าน ลบ.ม.`),
+      tile("ปริมาตรน้ำรวม (เทียบเก็บกักปกติ)", cap ? fmt(vol / cap * 100, 0) : "–", "%", `${fmt(vol, 0)} / ${fmt(cap, 0)} ล้าน ลบ.ม.`),
       tile("ไหลเข้า / ระบาย", `${fmt(inflow, 1)} / ${fmt(outflow, 1)}`, "", "ล้าน ลบ.ม. ต่อวัน", null, true),
     ];
     for (const st of DST) {
@@ -536,49 +541,62 @@
     $("damKpis").replaceChildren(...tiles);
   }
 
-  // รางยาวเท่ากัน = ความจุสูงสุด (100%), แถบที่เติม = น้ำปัจจุบัน, ส่วนจางด้านซ้าย = น้ำก้นอ่าง
+  // รางยาวเท่ากัน = ระดับเก็บกักปกติ (100% ตามที่กรมชลฯ รายงาน), แถบสี = น้ำปัจจุบัน,
+  // ส่วนที่เกิน 100% แยกเป็นแถบสีแดงหลังเส้น "เต็ม"
   function renderDamBars() {
     const box = $("damBars");
     const key = $("barSort").value;
     const big = sortRows(D.list.filter(d => d.large && d.pct != null), key, false);
     $("damBarsCard").hidden = D.size === "medium";
-    if (!big.length) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีเขื่อนขนาดใหญ่ตามตัวกรอง")); return; }
-    const w = Math.max(280, box.clientWidth || 600), wide = w >= 560, rowH = 26;
-    const labW = Math.min(150, w * 0.32), valW = wide ? 168 : 48;
-    const H = big.length * rowH + 22, max = Math.max(100, ...big.map(d => d.pct));
+    if (!big.length) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีเขื่อนขนาดใหญ่ตามตัวกรอง")); $("barSummary").replaceChildren(); return; }
+    const over = big.filter(d => d.pct > 100);
+    const overMax = big.filter(d => d.cap && d.vol > d.cap);
+    const short = d => d.name.replace(/^เขื่อน/, "");
+    const sum = [];
+    if (over.length) {
+      sum.push(el("div", { class: "over" }, `▲ ${over.length} เขื่อน มีน้ำเกินระดับเก็บกักปกติ (เกิน 100%): `, el("b", {}, over.map(short).join(", "))));
+      sum.push(el("div", { class: "note" }, overMax.length
+        ? `⚠ เกินความจุสูงสุดของเขื่อนด้วย: ${overMax.map(short).join(", ")}`
+        : "ยังไม่มีเขื่อนใดเกินความจุสูงสุดของเขื่อน (ระดับเก็บกักสูงสุด)"));
+    } else sum.push(el("div", {}, "✓ ไม่มีเขื่อนขนาดใหญ่ที่น้ำเกินระดับเก็บกักปกติ"));
+    $("barSummary").replaceChildren(...sum);
+
+    const w = Math.max(280, box.clientWidth || 600), wide = w >= 640, rowH = 30, top = 20;
+    const labW = Math.min(150, w * 0.3), valW = wide ? 270 : 64;
+    const H = top + big.length * rowH + 4, max = Math.max(100, ...big.map(d => d.pct)) * 1.02;
     const x = v => labW + Math.max(0, v) / max * (w - labW - valW);
-    const svg = sv("svg", { viewBox: `0 0 ${w} ${H}`, role: "img", "aria-label": "ปริมาณน้ำปัจจุบันเทียบความจุ เขื่อนขนาดใหญ่" });
-    const text = cssVar("--text"), muted = cssVar("--muted"), track = cssVar("--tile-hover"), card = cssVar("--card");
-    for (const v of [0, 50, 100]) {
-      const t = sv("text", { x: x(v), y: H - 4, "text-anchor": "middle" }); t.textContent = v + "%"; svg.append(t);
-    }
+    const svg = sv("svg", { viewBox: `0 0 ${w} ${H}`, role: "img", "aria-label": "ปริมาณน้ำปัจจุบันเทียบระดับเก็บกักปกติ เขื่อนขนาดใหญ่" });
+    const text = cssVar("--text"), muted = cssVar("--muted"), track = cssVar("--tile-hover"), line = cssVar("--line"), card = cssVar("--card");
+    const red = cssVar("--s-flood");
+    const fx = x(100);
+    svg.append(sv("line", { x1: fx, x2: fx, y1: top - 4, y2: H, stroke: text, "stroke-width": 1.5, "stroke-dasharray": "4 3", opacity: ".7" }));
+    const ft = sv("text", { x: fx, y: 12, "text-anchor": "middle", style: `fill:${text};font-weight:600` }); ft.textContent = "เต็มระดับเก็บกักปกติ 100%"; svg.append(ft);
     big.forEach((d, i) => {
-      const y = i * rowH, g = sv("g", { tabindex: 0 }), c = color(dStatus(d.pct)), bh = rowH - 12;
+      const y = top + i * rowH, g = sv("g", { tabindex: 0 }), bh = rowH - 14, by = y + 7;
+      const isOver = d.pct > 100, c = color(dStatus(d.pct));
       g.append(sv("rect", { class: "hit", x: 0, y, width: w, height: rowH, rx: 8, fill: D.sel === d ? cssVar("--tile") : "transparent" }));
-      const lab = sv("text", { x: labW - 8, y: y + rowH / 2 + 4, "text-anchor": "end" }); lab.textContent = d.name.replace(/^เขื่อน/, ""); g.append(lab);
-      // ราง = ความจุสูงสุด
-      g.append(sv("rect", { x: labW, y: y + 6, width: x(100) - labW, height: bh, rx: 4, fill: track }));
-      // น้ำปัจจุบัน
-      const bw = Math.max(2, x(d.pct) - labW);
-      g.append(sv("rect", { x: labW, y: y + 6, width: bw, height: bh, rx: 4, fill: c }));
-      // น้ำก้นอ่าง (ส่วนที่ใช้การไม่ได้)
-      if (d.dead && d.cap) {
-        const dw = Math.min(bw, x(d.dead / d.cap * 100) - labW);
-        if (dw > 1) g.append(sv("rect", { x: labW, y: y + 6, width: dw, height: bh, rx: 4, fill: card, opacity: ".45" }));
-      }
-      // เส้นขอบความจุ 100%
-      g.append(sv("line", { x1: x(100), x2: x(100), y1: y + 3, y2: y + rowH - 3, stroke: muted, "stroke-width": 1.5 }));
-      const tx = Math.max(x(100), labW + bw) + 8;
-      const val = sv("text", { x: tx, y: y + rowH / 2 + 4, style: `fill:${text};font-weight:600` }); val.textContent = fmt(d.pct, 0) + "%"; g.append(val);
+      const lab = sv("text", { x: labW - 8, y: y + rowH / 2 + 4, "text-anchor": "end" }); lab.textContent = short(d); g.append(lab);
+      g.append(sv("rect", { x: labW, y: by, width: fx - labW, height: bh, rx: 4, fill: track, stroke: line }));
+      g.append(sv("rect", { x: labW, y: by, width: Math.max(2, x(Math.min(d.pct, 100)) - labW), height: bh, rx: 4, fill: c }));
+      if (isOver) g.append(sv("rect", { x: fx + 2, y: by - 2, width: Math.max(4, x(d.pct) - fx - 2), height: bh + 4, rx: 3, fill: red, stroke: card, "stroke-width": 1 }));
+      const tx = Math.max(fx, x(d.pct)) + 10, ty = y + rowH / 2 + 4;
+      const val = sv("text", { x: tx, y: ty, style: `fill:${text};font-weight:700` }); val.textContent = fmt(d.pct, 0) + "%"; g.append(val);
+      const diff = Math.abs(d.vol - d.normal);
       if (wide) {
-        const vv = sv("text", { x: tx + 40, y: y + rowH / 2 + 4 }); vv.textContent = `${fmt(d.vol, 0)} / ${fmt(d.cap, 0)}`; g.append(vv);
+        const note = sv("text", { x: tx + 44, y: ty, style: isOver ? `fill:${red};font-weight:600` : `fill:${muted}` });
+        note.textContent = isOver ? `▲ เกินระดับเก็บกักปกติ ${fmt(diff, 0)} ล้าน ลบ.ม.` : `รับน้ำได้อีก ${fmt(diff, 0)} ล้าน ลบ.ม.`;
+        g.append(note);
+      } else if (isOver) {
+        const note = sv("text", { x: tx + 40, y: ty, style: `fill:${red};font-weight:700` }); note.textContent = "▲"; g.append(note);
       }
       const usable = d.dead != null ? Math.max(0, d.vol - d.dead) : null;
       const rows = () => [
         { label: "น้ำปัจจุบัน", value: `${fmt(d.vol, 0)} ล้าน ลบ.ม. (${fmt(d.pct, 1)}%)`, color: c },
-        { label: "ความจุสูงสุด", value: fmt(d.cap, 0) + " ล้าน ลบ.ม." },
+        { label: "ระดับเก็บกักปกติ (100%)", value: fmt(d.normal, 0) + " ล้าน ลบ.ม." },
+        isOver ? { label: "เกินระดับเก็บกักปกติ", value: fmt(diff, 0) + " ล้าน ลบ.ม.", color: red }
+               : { label: "รับน้ำได้อีก", value: fmt(diff, 0) + " ล้าน ลบ.ม." },
+        { label: "ความจุสูงสุดของเขื่อน", value: d.cap ? fmt(d.cap, 0) + " ล้าน ลบ.ม." : "–" },
         { label: "น้ำใช้การได้", value: usable == null ? "–" : fmt(usable, 0) + " ล้าน ลบ.ม." },
-        { label: "น้ำก้นอ่าง", value: d.dead == null ? "–" : fmt(d.dead, 0) + " ล้าน ลบ.ม." },
         { label: "ไหลเข้า / ระบาย", value: `${fmt(d.inflow)} / ${fmt(d.outflow)}` },
       ];
       g.addEventListener("pointermove", e => showTip(e, d.name, rows()));
@@ -590,14 +608,12 @@
       svg.append(g);
     });
     box.replaceChildren(svg);
-    // คำอธิบาย
-    const sw = (bg, op) => { const i = el("i", { class: "sw" }); i.style.background = bg; if (op) i.style.opacity = op; return i; };
-    const deadSw = el("i", { class: "sw" }); deadSw.style.background = `linear-gradient(${card}73, ${card}73), ${color(DST[2])}`;
+    const sw = bg => { const i = el("i", { class: "sw" }); i.style.background = bg; return i; };
+    const trackSw = sw(track); trackSw.style.outline = `1px solid ${line}`;
     $("barLegend").replaceChildren(
-      el("span", {}, sw(track), "ความจุสูงสุด (100%)"),
-      el("span", {}, sw(color(DST[2])), "น้ำปัจจุบัน (สีตามสถานะ)"),
-      el("span", {}, deadSw, "น้ำก้นอ่าง (ใช้การไม่ได้)"),
-      ...(wide ? [el("span", {}, "ตัวเลข: น้ำปัจจุบัน / ความจุ (ล้าน ลบ.ม.)")] : []));
+      el("span", {}, trackSw, "ระดับเก็บกักปกติ (เต็ม = 100%)"),
+      el("span", {}, sw(color(DST[1])), "น้ำปัจจุบัน (สีตามสถานะ)"),
+      el("span", {}, sw(red), "ส่วนที่เกินระดับเก็บกักปกติ"));
   }
 
   function renderDamMap(fit) {
@@ -627,7 +643,7 @@
       const tr = el("tr", { class: D.sel === d ? "on" : "" },
         el("td", {}, d.name), el("td", { class: "hide-sm" }, d.region),
         el("td", { class: "num" }, dotEl(color(st)), " " + fmt(d.pct, 1)),
-        el("td", { class: "num" }, fmt(d.vol, 1)), el("td", { class: "num hide-sm" }, fmt(d.cap, 1)),
+        el("td", { class: "num" }, fmt(d.vol, 1)), el("td", { class: "num hide-sm" }, fmt(d.normal, 1)),
         el("td", { class: "num hide-sm" }, fmt(d.inflow)), el("td", { class: "num hide-sm" }, fmt(d.outflow)),
         el("td", { class: d.date && d.date < D.latest ? "stale" : "" }, d.date ? thDate(d.date) : "–"));
       tr.addEventListener("click", () => selectDam(d, { fly: true, top: true }));
@@ -646,7 +662,7 @@
     const h = D.hist.dams[d.id];
     if (!h || !h.pct.some(v => v != null)) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีข้อมูลย้อนหลังของแห่งนี้")); return; }
     lineChart(box, D.hist.dates, h.pct, {
-      refLabel: "ความจุ 100%", aria: "กราฟ % ความจุย้อนหลังของ " + d.name,
+      refLabel: "เก็บกักปกติ 100%", aria: "กราฟ % เทียบระดับเก็บกักปกติย้อนหลังของ " + d.name,
       rows: i => [
         { label: "% ความจุ", value: h.pct[i] == null ? "ไม่มีข้อมูล" : fmt(h.pct[i], 1) + "%", color: cssVar("--blue") },
         { label: "ปริมาตร", value: h.vol[i] == null ? "–" : fmt(h.vol[i], 1) + " ล้าน ลบ.ม." },
