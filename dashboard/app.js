@@ -89,6 +89,8 @@
       renderTrend();
       if (selected) renderDetail(selected);
     }).catch(() => { $("trendChart").textContent = "โหลดข้อมูลย้อนหลังไม่สำเร็จ"; });
+
+    Dams.load(bust).catch(err => { $("damUpdated").textContent = "โหลดข้อมูลเขื่อนไม่สำเร็จ: " + err.message; });
   }
 
   function legend(box, list, kind) {
@@ -278,21 +280,26 @@
     hit.addEventListener("pointerleave", () => { line.setAttribute("visibility", "hidden"); hideTip(); onMove(null); });
   }
 
-  function lineChart(box, dates, h) {
+  function lineChart(box, dates, h, opts = {}) {
     W = Math.max(280, box.clientWidth || 640);
     const H = 240;
+    const refLabel = opts.refLabel || "ตลิ่ง 100%";
+    const rows = opts.rows || (i => [
+      { label: "% ตลิ่ง", value: h.pct[i] == null ? "ไม่มีข้อมูล" : fmt(h.pct[i], 1) + "%", color: cssVar("--accent") },
+      { label: "ระดับน้ำ", value: h.wl[i] == null ? "–" : fmt(h.wl[i]) + " ม.รทก." },
+    ]);
     const vals = h.pct.filter(v => v != null);
     const lo = Math.min(0, ...vals), hi = Math.max(110, ...vals);
     const ticks = niceTicks(lo, hi);
     const x = i => PAD.l + i * (W - PAD.l - PAD.r) / Math.max(1, dates.length - 1);
     const y = v => H - PAD.b - (v - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]) * (H - PAD.t - PAD.b);
-    const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "กราฟ % ระดับน้ำเทียบตลิ่งย้อนหลัง" });
+    const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "กราฟ % ระดับน้ำเทียบตลิ่งย้อนหลัง" });
     const g = sv("g"); svg.append(g);
     yAxis(g, y, ticks, H, "%");
     xTicks(dates, x, g, H);
     // เส้นตลิ่ง 100%
     g.append(sv("line", { x1: PAD.l, x2: W - PAD.r, y1: y(100), y2: y(100), stroke: cssVar("--s-flood"), "stroke-width": 1, "stroke-dasharray": "4 3" }));
-    const bl = sv("text", { x: PAD.l + 4, y: y(100) - 4, "text-anchor": "start" }); bl.textContent = "ตลิ่ง 100%"; g.append(bl);
+    const bl = sv("text", { x: PAD.l + 4, y: y(100) - 4, "text-anchor": "start" }); bl.textContent = refLabel; g.append(bl);
     // เส้นข้อมูล (ขาดช่วงเมื่อไม่มีค่า)
     let d = "", pen = false;
     h.pct.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1); pen = true; });
@@ -308,10 +315,7 @@
       const v = h.pct[i];
       if (v != null) { dot.setAttribute("cx", x(i)); dot.setAttribute("cy", y(v)); dot.setAttribute("visibility", "visible"); }
       else dot.setAttribute("visibility", "hidden");
-      showTip(evt, thDate(dates[i]), [
-        { label: "% ตลิ่ง", value: v == null ? "ไม่มีข้อมูล" : fmt(v, 1) + "%", color: accent },
-        { label: "ระดับน้ำ", value: h.wl[i] == null ? "–" : fmt(h.wl[i]) + " ม.รทก." },
-      ]);
+      showTip(evt, thDate(dates[i]), rows(i));
     });
     box.replaceChildren(svg);
   }
@@ -359,6 +363,224 @@
     box.replaceChildren(svg);
   }
 
+  /* =================== เขื่อน / อ่างเก็บน้ำ =================== */
+  const Dams = (() => {
+    const DST = [
+      { key: "flood", label: "เกินความจุ", test: p => p > 100, css: "--s-flood" },
+      { key: "high", label: "น้ำมาก", test: p => p > 80, css: "--s-high" },
+      { key: "normal", label: "ปกติ", test: p => p > 30, css: "--s-normal" },
+      { key: "low", label: "น้ำน้อย", test: () => true, css: "--s-low" },
+    ];
+    const dStatus = p => (p == null || isNaN(p)) ? NA : DST.find(s => s.test(p));
+    let all = [], list = [], hist = null, sel = null, dmap, dlayer, dmarkers = new Map();
+    let dSort = "pct", dAsc = false, dShown = 30, latestDate = "";
+
+    async function load(bust) {
+      const j = await fetch("data/dams.json" + bust).then(r => r.json());
+      all = Object.entries(j.dams).map(([id, d]) => ({
+        id, name: d.name || "", region: d.region || "", large: !!d.large,
+        cap: d.cap ?? null, vol: d.vol ?? null, pct: d.pct ?? null,
+        active: d.active ?? null, dead: d.dead ?? null,
+        inflow: d.inflow ?? null, outflow: d.outflow ?? null,
+        date: d.date || "", lat: d.lat ?? null, lon: d.lon ?? null,
+      }));
+      latestDate = all.reduce((m, d) => d.date > m ? d.date : m, "");
+      $("damUpdated").textContent = latestDate ? "ข้อมูลล่าสุดวันที่ " + thDate(latestDate) : "";
+      const regions = [...new Set(all.map(d => d.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
+      for (const r of regions) $("dRegion").append(el("option", { value: r }, r));
+      legend($("damLegend"), [...DST, NA], "dot");
+      initMap();
+      apply();
+      fetch("data/dam_history.json" + bust).then(r => r.json()).then(h => { hist = h; if (sel) detail(sel); }).catch(() => {});
+    }
+
+    function apply() {
+      const r = $("dRegion").value, sz = $("dSize").value, q = $("dSearch").value.trim().toLowerCase();
+      list = all.filter(d => (!r || d.region === r) && (!sz || (sz === "large") === d.large) &&
+        (!q || d.name.toLowerCase().includes(q)));
+      dShown = 30;
+      kpis(); drawMap(); bars(); table();
+    }
+
+    function kpis() {
+      const box = $("damKpis"); box.replaceChildren();
+      const withData = list.filter(d => d.vol != null && d.cap);
+      const vol = withData.reduce((a, d) => a + d.vol, 0), cap = withData.reduce((a, d) => a + d.cap, 0);
+      const inflow = list.reduce((a, d) => a + (d.inflow || 0), 0), outflow = list.reduce((a, d) => a + (d.outflow || 0), 0);
+      const tile = (label, val, note, dot) => {
+        const t = el("div", { class: "kpi" }); const l = el("div", { class: "lab" });
+        if (dot) { const d = el("i", { class: "dot" }); d.style.background = dot; l.append(d); }
+        l.append(document.createTextNode(label));
+        t.append(l, el("div", { class: "val" }, val));
+        if (note) t.append(el("div", { class: "note" }, note));
+        box.append(t);
+      };
+      tile("ปริมาตรน้ำรวม", cap ? fmt(vol / cap * 100, 0) + "%" : "–", `${fmt(vol, 0)} / ${fmt(cap, 0)} ล้าน ลบ.ม.`);
+      tile("น้ำไหลเข้า / ระบาย", `${fmt(inflow, 1)} / ${fmt(outflow, 1)}`, "ล้าน ลบ.ม. ต่อวัน");
+      for (const st of DST) {
+        const c = list.filter(d => dStatus(d.pct).key === st.key).length;
+        tile(st.label, c.toLocaleString("th-TH"), `จาก ${list.length.toLocaleString("th-TH")} แห่ง`, color(st));
+      }
+    }
+
+    function initMap() {
+      if (typeof L === "undefined") { $("damMap").textContent = "โหลดแผนที่ไม่สำเร็จ"; return; }
+      dmap = L.map("damMap", { preferCanvas: true }).setView([13.5, 101], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(dmap);
+      dlayer = L.layerGroup().addTo(dmap);
+    }
+    function drawMap() {
+      if (!dmap) return;
+      dlayer.clearLayers(); dmarkers.clear();
+      const surface = cssVar("--surface");
+      const pts = list.filter(d => d.lat != null).sort((a, b) => (a.large - b.large) || ((a.cap || 0) - (b.cap || 0)));
+      for (const d of pts) {
+        const st = dStatus(d.pct);
+        const m = L.circleMarker([d.lat, d.lon], {
+          radius: d.large ? 4 + Math.min(10, Math.sqrt(d.cap || 0) / 12) : 4,
+          color: surface, weight: 1.5, fillColor: color(st), fillOpacity: 1,
+        }).addTo(dlayer);
+        m.bindTooltip(() => {
+          const t = el("div");
+          t.append(el("b", {}, d.name), el("br"), document.createTextNode(`${fmt(d.pct, 1)}% · ${fmt(d.vol, 1)} ล้าน ลบ.ม.`));
+          return t;
+        });
+        m.on("click", () => select(d, false));
+        dmarkers.set(d.id, m);
+      }
+      $("damCount").textContent = `${pts.length.toLocaleString("th-TH")} แห่ง`;
+      if (pts.length && $("dRegion").value) dmap.fitBounds(L.latLngBounds(pts.map(d => [d.lat, d.lon])), { padding: [20, 20], maxZoom: 10 });
+    }
+
+    // แท่งแนวนอน: % ความจุเขื่อนขนาดใหญ่
+    function bars() {
+      const box = $("damBars");
+      const big = list.filter(d => d.large && d.pct != null).sort((a, b) => b.pct - a.pct);
+      if (!big.length) { box.replaceChildren(el("p", { class: "muted" }, "ไม่มีเขื่อนขนาดใหญ่ตามตัวกรอง")); return; }
+      const w = Math.max(280, box.clientWidth || 600), rowH = 22, labW = Math.min(170, w * 0.38), valW = 52;
+      const H = big.length * rowH + 22;
+      const max = Math.max(110, ...big.map(d => d.pct));
+      const x = v => labW + Math.max(0, v) / max * (w - labW - valW);
+      const svg = sv("svg", { viewBox: `0 0 ${w} ${H}`, role: "img", "aria-label": "แผนภูมิแท่ง % ความจุเขื่อนขนาดใหญ่" });
+      for (const v of [0, 50, 100]) {
+        svg.append(sv("line", { class: v === 0 ? "baseline" : "gridline", x1: x(v), x2: x(v), y1: 0, y2: H - 18 }));
+        const t = sv("text", { x: x(v), y: H - 4, "text-anchor": "middle" }); t.textContent = v + "%"; svg.append(t);
+      }
+      const ink = cssVar("--ink"), ink2 = cssVar("--ink2");
+      big.forEach((d, i) => {
+        const y = i * rowH;
+        const g = sv("g", { tabindex: 0, style: "cursor:pointer" });
+        const lab = sv("text", { x: labW - 8, y: y + rowH / 2 + 4, "text-anchor": "end", fill: ink2, style: "fill:" + ink2 });
+        lab.textContent = d.name.replace(/^เขื่อน/, ""); g.append(lab);
+        const bw = Math.max(2, x(d.pct) - labW);
+        g.append(sv("rect", { x: labW, y: y + 4, width: bw, height: rowH - 8, rx: 3, fill: color(dStatus(d.pct)) }));
+        const val = sv("text", { x: labW + bw + 6, y: y + rowH / 2 + 4, style: "fill:" + ink }); val.textContent = fmt(d.pct, 0) + "%"; g.append(val);
+        g.append(sv("rect", { x: 0, y, width: w, height: rowH, fill: "transparent" }));
+        const tipRows = () => [
+          { label: "% ความจุ", value: fmt(d.pct, 1) + "%", color: color(dStatus(d.pct)) },
+          { label: "ปริมาตร", value: fmt(d.vol, 0) + " / " + fmt(d.cap, 0) + " ล้าน ลบ.ม." },
+          { label: "ไหลเข้า / ระบาย", value: fmt(d.inflow) + " / " + fmt(d.outflow) },
+        ];
+        g.addEventListener("pointermove", e => showTip(e, d.name, tipRows()));
+        g.addEventListener("pointerleave", hideTip);
+        g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); showTip({ clientX: r.left + labW, clientY: r.bottom }, d.name, tipRows()); });
+        g.addEventListener("blur", hideTip);
+        g.addEventListener("click", () => select(d, true));
+        svg.append(g);
+      });
+      box.replaceChildren(svg);
+    }
+
+    function table() {
+      const rows = [...list].sort((a, b) => {
+        const x = a[dSort], y = b[dSort];
+        if (x == null) return 1; if (y == null) return -1;
+        const c = typeof x === "string" ? x.localeCompare(y, "th") : x - y;
+        return dAsc ? c : -c;
+      });
+      const tb = document.querySelector("#damTbl tbody"); tb.replaceChildren();
+      for (const d of rows.slice(0, dShown)) {
+        const tr = el("tr"); if (sel && sel.id === d.id) tr.classList.add("sel");
+        const st = dStatus(d.pct);
+        const pctTd = el("td", { class: "num" });
+        const dot = el("i", { class: "dot", title: st.label }); dot.style.background = color(st); dot.style.marginRight = "6px";
+        pctTd.append(dot, document.createTextNode(fmt(d.pct, 1)));
+        const dateTd = el("td", {}, d.date ? thDate(d.date) : "–");
+        if (d.date && d.date < latestDate) dateTd.style.color = cssVar("--muted");
+        tr.append(el("td", {}, d.name), el("td", {}, d.region), pctTd,
+          el("td", { class: "num" }, fmt(d.vol, 1)), el("td", { class: "num" }, fmt(d.cap, 1)),
+          el("td", { class: "num" }, fmt(d.inflow)), el("td", { class: "num" }, fmt(d.outflow)), dateTd);
+        tr.addEventListener("click", () => select(d, true));
+        tb.append(tr);
+      }
+      $("damTableCount").textContent = `แสดง ${Math.min(dShown, rows.length).toLocaleString("th-TH")} จาก ${rows.length.toLocaleString("th-TH")}`;
+      $("damMore").hidden = dShown >= rows.length;
+      document.querySelectorAll("#damTbl th").forEach(th => {
+        th.classList.toggle("sorted", th.dataset.k === dSort);
+        th.classList.toggle("asc", th.dataset.k === dSort && dAsc);
+      });
+    }
+
+    function select(d, fly) {
+      sel = d; detail(d); table();
+      if (fly && dmap && d.lat != null) {
+        dmap.setView([d.lat, d.lon], Math.max(dmap.getZoom(), 9));
+        const m = dmarkers.get(d.id); if (m) m.openTooltip();
+      }
+      if (fly || window.innerWidth < 860) $("damDetail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function detail(d) {
+      $("damTitle").textContent = d.name;
+      const body = $("damBody"); body.replaceChildren(); body.classList.remove("muted");
+      const st = dStatus(d.pct);
+      const badge = el("span", { class: "badge" }); const dot = el("i", { class: "dot" }); dot.style.background = color(st);
+      badge.append(dot, document.createTextNode(st.label));
+      const head = el("p", { class: "muted" }, `${d.region} · ${d.large ? "เขื่อนขนาดใหญ่" : "อ่างขนาดกลาง"} · `); head.append(badge);
+      body.append(head);
+      const stats = el("div", { class: "stats" });
+      const stat = (lab, val) => { const x = el("div", {}, lab); x.prepend(el("b", {}, val)); stats.append(x); };
+      stat("% ความจุ", fmt(d.pct, 1) + "%");
+      stat("ปริมาตร (ล้าน ลบ.ม.)", fmt(d.vol, 1));
+      stat("ความจุ (ล้าน ลบ.ม.)", fmt(d.cap, 1));
+      if (d.vol != null && d.dead != null) stat("ใช้การได้ (ล้าน ลบ.ม.)", fmt(Math.max(0, d.vol - d.dead), 1));
+      stat("ไหลเข้า (ล้าน ลบ.ม./วัน)", fmt(d.inflow));
+      stat("ระบาย (ล้าน ลบ.ม./วัน)", fmt(d.outflow));
+      stat("ข้อมูลวันที่", d.date ? thDate(d.date) : "–");
+      body.append(stats);
+      body.append(el("h2", { style: "margin-bottom:8px" }, "% ความจุ ย้อนหลังรายวัน"));
+      const box = el("div", { class: "chart" }); body.append(box);
+      if (!hist) { box.textContent = "กำลังโหลดข้อมูลย้อนหลัง…"; return; }
+      const h = hist.dams[d.id];
+      if (!h || !h.pct.some(v => v != null)) { box.textContent = "ไม่มีข้อมูลย้อนหลังของแห่งนี้"; return; }
+      lineChart(box, hist.dates, h, {
+        refLabel: "ความจุ 100%", aria: "กราฟ % ความจุย้อนหลัง",
+        rows: i => [
+          { label: "% ความจุ", value: h.pct[i] == null ? "ไม่มีข้อมูล" : fmt(h.pct[i], 1) + "%", color: cssVar("--accent") },
+          { label: "ปริมาตร", value: h.vol[i] == null ? "–" : fmt(h.vol[i], 1) + " ล้าน ลบ.ม." },
+          { label: "ไหลเข้า / ระบาย", value: h.in[i] == null ? "–" : fmt(h.in[i]) + " / " + fmt(h.out[i]) },
+        ],
+      });
+    }
+
+    function redraw(theme) {
+      if (!all.length) return;
+      if (theme) { legend($("damLegend"), [...DST, NA], "dot"); kpis(); drawMap(); table(); }
+      bars(); if (sel) detail(sel);
+    }
+
+    ["dRegion", "dSize"].forEach(id => $(id).addEventListener("change", apply));
+    let deb; $("dSearch").addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(apply, 200); });
+    $("damMore").addEventListener("click", () => { dShown += 100; table(); });
+    document.querySelectorAll("#damTbl th").forEach(th => th.addEventListener("click", () => {
+      const k = th.dataset.k;
+      if (k === dSort) dAsc = !dAsc; else { dSort = k; dAsc = typeof all[0]?.[k] === "string"; }
+      table();
+    }));
+
+    return { load, redraw };
+  })();
+
   /* ---------- events ---------- */
   let rz, lastW = window.innerWidth;
   window.addEventListener("resize", () => {
@@ -367,6 +589,7 @@
       if (window.innerWidth === lastW) return;
       lastW = window.innerWidth;
       if (history) renderTrend(); if (selected) renderDetail(selected);
+      Dams.redraw();
     }, 200);
   });
   ["fProv", "fStatus", "fTrend"].forEach(id => $(id).addEventListener("change", apply));
@@ -384,6 +607,7 @@
     try { localStorage.setItem("theme", root.dataset.theme); } catch (e) { /* ignore */ }
     legend($("mapLegend"), [...STATUS, NA], "dot"); legend($("trendLegend"), STATUS, "dot");
     renderKpis(); renderMap(); renderTable(); if (history) renderTrend(); if (selected) renderDetail(selected);
+    Dams.redraw(true);
   });
   try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) { /* ignore */ }
 

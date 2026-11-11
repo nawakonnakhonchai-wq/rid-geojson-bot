@@ -69,7 +69,18 @@ select, input {
 .grid2 > .card { margin-bottom: 16px; }
 @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; gap: 0; } }
 
-#map { height: 460px; border-radius: 8px; z-index: 0; }
+.map { height: 460px; border-radius: 8px; z-index: 0; }
+@media (max-width: 860px) { .map { height: 360px; } }
+.section-h { margin: 32px 0 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.top { gap: 12px; }
+.top > div { flex: 1; }
+.nav { display: flex; gap: 4px; }
+.nav a { color: var(--ink); text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); }
+.nav a:hover { background: var(--border); }
+html { scroll-behavior: smooth; }
+#damBars svg text { font-size: 12px; }
+g[tabindex]:focus { outline: none; }
+g[tabindex]:focus rect:last-child, g[tabindex]:hover rect:last-child { fill: var(--border); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--ink2); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 

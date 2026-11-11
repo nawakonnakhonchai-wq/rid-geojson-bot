@@ -38,6 +38,10 @@ jobs:
       - name: Build Dashboard Data
         run: python build_dashboard_data.py
 
+      - name: Update Dam Data (from Dam_Daily)
+        continue-on-error: true
+        run: python build_dam_data.py
+
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"

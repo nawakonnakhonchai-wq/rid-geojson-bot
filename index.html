@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="dashboard/style.css">
 </head>
 <body>
-<header class="top">
+<header class="top" id="top">
   <div>
     <h1>สถานการณ์ระดับน้ำ</h1>
     <p class="sub">สถานีวัดน้ำกรมชลประทาน · <span id="updated">กำลังโหลด…</span></p>
   </div>
+  <nav class="nav"><a href="#top">ระดับน้ำ</a><a href="#dams">เขื่อน</a></nav>
   <button id="themeBtn" class="ghost" type="button" aria-label="สลับธีม">◐</button>
 </header>
 
@@ -40,7 +41,7 @@
 <section class="grid2">
   <div class="card">
     <div class="card-h"><h2>แผนที่สถานี</h2><span class="muted" id="mapCount"></span></div>
-    <div id="map" role="img" aria-label="แผนที่สถานีวัดน้ำ สีตามสถานะระดับน้ำ"></div>
+    <div id="map" class="map" role="img" aria-label="แผนที่สถานีวัดน้ำ สีตามสถานะระดับน้ำ"></div>
     <div class="legend" id="mapLegend"></div>
   </div>
   <div class="card" id="detail">
@@ -73,12 +74,63 @@
   <button id="moreBtn" class="ghost" type="button">แสดงเพิ่ม</button>
 </section>
 
-<section class="card" id="dams">
-  <div class="card-h"><h2>เขื่อน / อ่างเก็บน้ำ</h2></div>
-  <p class="muted">ยังไม่มีข้อมูลเขื่อน — จะเชื่อมต่อเมื่อเพิ่มสคริปต์ดึงข้อมูลเขื่อน</p>
+<header class="section-h" id="dams">
+  <h1>เขื่อนและอ่างเก็บน้ำ</h1>
+  <p class="sub">เขื่อนขนาดใหญ่และอ่างเก็บน้ำขนาดกลาง · <span id="damUpdated">กำลังโหลด…</span></p>
+</header>
+
+<section class="filters" aria-label="ตัวกรองเขื่อน">
+  <label>ภาค
+    <select id="dRegion"><option value="">ทุกภาค</option></select>
+  </label>
+  <label>ขนาด
+    <select id="dSize">
+      <option value="">ทั้งหมด</option>
+      <option value="large">เขื่อนขนาดใหญ่</option>
+      <option value="medium">อ่างขนาดกลาง</option>
+    </select>
+  </label>
+  <label class="grow">ค้นหาเขื่อน/อ่าง
+    <input id="dSearch" type="search" placeholder="ชื่อเขื่อนหรืออ่างเก็บน้ำ">
+  </label>
 </section>
 
-<footer class="muted">ที่มา: กรมชลประทาน (bigdata-swoc.rid.go.th) · เกณฑ์สถานะ: ≤30% น้ำน้อย, 30–70% ปกติ, 70–100% น้ำมาก, &gt;100% ล้นตลิ่ง</footer>
+<section class="kpis" id="damKpis" aria-label="สรุปเขื่อน"></section>
+
+<section class="grid2">
+  <div class="card">
+    <div class="card-h"><h2>แผนที่เขื่อนและอ่างเก็บน้ำ</h2><span class="muted" id="damCount"></span></div>
+    <div id="damMap" class="map" role="img" aria-label="แผนที่เขื่อน สีตาม % ความจุ"></div>
+    <div class="legend" id="damLegend"></div>
+  </div>
+  <div class="card" id="damDetail">
+    <div class="card-h"><h2 id="damTitle">เลือกเขื่อนบนแผนที่ แผนภูมิ หรือตาราง</h2></div>
+    <div id="damBody" class="muted">คลิกเพื่อดู % ความจุย้อนหลัง</div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h2>% ความจุ เขื่อนขนาดใหญ่</h2><span class="muted">เรียงจากมากไปน้อย</span></div>
+  <div id="damBars" class="chart"></div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h2>ตารางเขื่อนและอ่างเก็บน้ำ</h2><span class="muted" id="damTableCount"></span></div>
+  <div class="table-wrap">
+    <table id="damTbl">
+      <thead><tr>
+        <th data-k="name">ชื่อ</th><th data-k="region">ภาค</th>
+        <th data-k="pct" class="num">% ความจุ</th><th data-k="vol" class="num">ปริมาตร (ล้าน ลบ.ม.)</th>
+        <th data-k="cap" class="num">ความจุ</th><th data-k="inflow" class="num">ไหลเข้า</th>
+        <th data-k="outflow" class="num">ระบาย</th><th data-k="date">ข้อมูลวันที่</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button id="damMore" class="ghost" type="button">แสดงเพิ่ม</button>
+</section>
+
+<footer class="muted">ที่มา: กรมชลประทาน (bigdata-swoc.rid.go.th, app.rid.go.th/reservoir) ผ่าน repo Dam_Daily<br>เกณฑ์สถานีวัดน้ำ (% ตลิ่ง): ≤30 น้ำน้อย · 30–70 ปกติ · 70–100 น้ำมาก · &gt;100 ล้นตลิ่ง<br>เกณฑ์เขื่อน (% ความจุ): ≤30 น้ำน้อย · 30–80 ปกติ · 80–100 น้ำมาก · &gt;100 เกินความจุ</footer>
 
 <div id="tip" role="tooltip" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
