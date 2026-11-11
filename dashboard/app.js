@@ -536,30 +536,49 @@
     $("damKpis").replaceChildren(...tiles);
   }
 
+  // รางยาวเท่ากัน = ความจุสูงสุด (100%), แถบที่เติม = น้ำปัจจุบัน, ส่วนจางด้านซ้าย = น้ำก้นอ่าง
   function renderDamBars() {
     const box = $("damBars");
-    const big = sortRows(D.list.filter(d => d.large && d.pct != null), "pct", false);
+    const key = $("barSort").value;
+    const big = sortRows(D.list.filter(d => d.large && d.pct != null), key, false);
     $("damBarsCard").hidden = D.size === "medium";
     if (!big.length) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีเขื่อนขนาดใหญ่ตามตัวกรอง")); return; }
-    const w = Math.max(280, box.clientWidth || 600), rowH = 24, labW = Math.min(150, w * 0.36), valW = 46;
-    const H = big.length * rowH + 22, max = Math.max(110, ...big.map(d => d.pct));
+    const w = Math.max(280, box.clientWidth || 600), wide = w >= 560, rowH = 26;
+    const labW = Math.min(150, w * 0.32), valW = wide ? 168 : 48;
+    const H = big.length * rowH + 22, max = Math.max(100, ...big.map(d => d.pct));
     const x = v => labW + Math.max(0, v) / max * (w - labW - valW);
-    const svg = sv("svg", { viewBox: `0 0 ${w} ${H}`, role: "img", "aria-label": "แผนภูมิแท่ง % ความจุเขื่อนขนาดใหญ่" });
-    const text = cssVar("--text");
+    const svg = sv("svg", { viewBox: `0 0 ${w} ${H}`, role: "img", "aria-label": "ปริมาณน้ำปัจจุบันเทียบความจุ เขื่อนขนาดใหญ่" });
+    const text = cssVar("--text"), muted = cssVar("--muted"), track = cssVar("--tile-hover"), card = cssVar("--card");
     for (const v of [0, 50, 100]) {
-      svg.append(sv("line", { class: v === 0 ? "baseline" : "gridline", x1: x(v), x2: x(v), y1: 0, y2: H - 18, "pointer-events": "none" }));
       const t = sv("text", { x: x(v), y: H - 4, "text-anchor": "middle" }); t.textContent = v + "%"; svg.append(t);
     }
     big.forEach((d, i) => {
-      const y = i * rowH, g = sv("g", { tabindex: 0 });
-      g.append(sv("rect", { class: "hit", x: 0, y, width: w, height: rowH, rx: 8, fill: D.sel === d ? cssVar("--tile") : "transparent", opacity: ".8" }));
+      const y = i * rowH, g = sv("g", { tabindex: 0 }), c = color(dStatus(d.pct)), bh = rowH - 12;
+      g.append(sv("rect", { class: "hit", x: 0, y, width: w, height: rowH, rx: 8, fill: D.sel === d ? cssVar("--tile") : "transparent" }));
       const lab = sv("text", { x: labW - 8, y: y + rowH / 2 + 4, "text-anchor": "end" }); lab.textContent = d.name.replace(/^เขื่อน/, ""); g.append(lab);
+      // ราง = ความจุสูงสุด
+      g.append(sv("rect", { x: labW, y: y + 6, width: x(100) - labW, height: bh, rx: 4, fill: track }));
+      // น้ำปัจจุบัน
       const bw = Math.max(2, x(d.pct) - labW);
-      g.append(sv("rect", { x: labW, y: y + 5, width: bw, height: rowH - 10, rx: 4, fill: color(dStatus(d.pct)) }));
-      const val = sv("text", { x: labW + bw + 6, y: y + rowH / 2 + 4, style: `fill:${text}` }); val.textContent = fmt(d.pct, 0) + "%"; g.append(val);
+      g.append(sv("rect", { x: labW, y: y + 6, width: bw, height: bh, rx: 4, fill: c }));
+      // น้ำก้นอ่าง (ส่วนที่ใช้การไม่ได้)
+      if (d.dead && d.cap) {
+        const dw = Math.min(bw, x(d.dead / d.cap * 100) - labW);
+        if (dw > 1) g.append(sv("rect", { x: labW, y: y + 6, width: dw, height: bh, rx: 4, fill: card, opacity: ".45" }));
+      }
+      // เส้นขอบความจุ 100%
+      g.append(sv("line", { x1: x(100), x2: x(100), y1: y + 3, y2: y + rowH - 3, stroke: muted, "stroke-width": 1.5 }));
+      const tx = Math.max(x(100), labW + bw) + 8;
+      const val = sv("text", { x: tx, y: y + rowH / 2 + 4, style: `fill:${text};font-weight:600` }); val.textContent = fmt(d.pct, 0) + "%"; g.append(val);
+      if (wide) {
+        const vv = sv("text", { x: tx + 40, y: y + rowH / 2 + 4 }); vv.textContent = `${fmt(d.vol, 0)} / ${fmt(d.cap, 0)}`; g.append(vv);
+      }
+      const usable = d.dead != null ? Math.max(0, d.vol - d.dead) : null;
       const rows = () => [
-        { label: "% ความจุ", value: fmt(d.pct, 1) + "%", color: color(dStatus(d.pct)) },
-        { label: "ปริมาตร", value: `${fmt(d.vol, 0)} / ${fmt(d.cap, 0)}` },
+        { label: "น้ำปัจจุบัน", value: `${fmt(d.vol, 0)} ล้าน ลบ.ม. (${fmt(d.pct, 1)}%)`, color: c },
+        { label: "ความจุสูงสุด", value: fmt(d.cap, 0) + " ล้าน ลบ.ม." },
+        { label: "น้ำใช้การได้", value: usable == null ? "–" : fmt(usable, 0) + " ล้าน ลบ.ม." },
+        { label: "น้ำก้นอ่าง", value: d.dead == null ? "–" : fmt(d.dead, 0) + " ล้าน ลบ.ม." },
         { label: "ไหลเข้า / ระบาย", value: `${fmt(d.inflow)} / ${fmt(d.outflow)}` },
       ];
       g.addEventListener("pointermove", e => showTip(e, d.name, rows()));
@@ -571,6 +590,14 @@
       svg.append(g);
     });
     box.replaceChildren(svg);
+    // คำอธิบาย
+    const sw = (bg, op) => { const i = el("i", { class: "sw" }); i.style.background = bg; if (op) i.style.opacity = op; return i; };
+    const deadSw = el("i", { class: "sw" }); deadSw.style.background = `linear-gradient(${card}73, ${card}73), ${color(DST[2])}`;
+    $("barLegend").replaceChildren(
+      el("span", {}, sw(track), "ความจุสูงสุด (100%)"),
+      el("span", {}, sw(color(DST[2])), "น้ำปัจจุบัน (สีตามสถานะ)"),
+      el("span", {}, deadSw, "น้ำก้นอ่าง (ใช้การไม่ได้)"),
+      ...(wide ? [el("span", {}, "ตัวเลข: น้ำปัจจุบัน / ความจุ (ล้าน ลบ.ม.)")] : []));
   }
 
   function renderDamMap(fit) {
@@ -660,6 +687,7 @@
     D.shown = 30; renderDamTable();
   }, 200); });
   $("dRegion").addEventListener("change", () => { applyDams(); $("dRegion").blur(); });
+  $("barSort").addEventListener("change", renderDamBars);
   $("moreBtn").addEventListener("click", () => { S.shown += 100; renderTable(); });
   $("damMore").addEventListener("click", () => { D.shown += 100; renderDamTable(); });
   document.querySelectorAll("#tbl th").forEach(th => th.addEventListener("click", () => {
