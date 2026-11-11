@@ -757,21 +757,22 @@
     let items = [], act = -1;
     function close() { ul.hidden = true; inp.setAttribute("aria-expanded", "false"); act = -1; }
     function pick(row) { inp.value = row.name; close(); inp.blur(); choose(row); }
-    function open() {
-      const q = inp.value.trim().toLowerCase();
+    function open() { render(groups(inp.value.trim().toLowerCase()), inp.value.trim().toLowerCase()); }
+    function render(gs, q, ctx = {}) {
       items = [];
       const lis = [];
-      for (const { title, rows, limit } of groups(q)) {
+      if (ctx.msg) lis.push(el("li", { class: "empty" }, ctx.msg));
+      for (const { title, rows, limit } of gs) {
         if (!rows.length) continue;
         lis.push(el("li", { class: "grp", role: "presentation" }, `${title} (${nf(rows.length)})`));
         for (const row of rows.slice(0, limit)) {
-          const li = el("li", { role: "option", id: prefix + items.length }, ...option(row, q));
+          const li = el("li", { role: "option", id: prefix + items.length }, ...option(row, q, ctx));
           li.addEventListener("mousedown", e => { e.preventDefault(); pick(row); });
           items.push(row); lis.push(li);
         }
         if (rows.length > limit) lis.push(el("li", { class: "grp", role: "presentation" }, `…และอีก ${nf(rows.length - limit)} รายการ พิมพ์เพิ่มเพื่อค้นหา`));
       }
-      if (!items.length) lis.push(el("li", { class: "empty" }, "ไม่พบชื่อที่ค้นหา"));
+      if (!items.length && !ctx.msg) lis.push(el("li", { class: "empty" }, "ไม่พบชื่อที่ค้นหา"));
       ul.replaceChildren(...lis);
       ul.hidden = false; inp.setAttribute("aria-expanded", "true");
       setAct(q && items.length ? 0 : -1);
@@ -796,6 +797,72 @@
       else if (e.key === "Enter") { e.preventDefault(); const r = items[act >= 0 ? act : 0]; if (r) pick(r); }
       else if (e.key === "Escape") { close(); inp.blur(); }
     });
+    // ปิดรายการเมื่อคลิกนอกช่องค้นหา (กรณีเปิดจากปุ่ม "ใกล้ฉัน" ซึ่งไม่ได้โฟกัสช่อง)
+    document.addEventListener("pointerdown", e => { if (!ul.hidden && !inp.parentElement.contains(e.target)) close(); });
+    return {
+      show(gs, ctx) {
+        render(gs, "", ctx);
+        if (inp.getBoundingClientRect().top > innerHeight * 0.45) $(section).scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+      choose: pick,
+    };
+  }
+
+  /* ---------- ตำแหน่งปัจจุบัน ("ใกล้ฉัน") ---------- */
+  // ตำแหน่งใช้คำนวณบนเครื่องผู้ใช้เท่านั้น ไม่ได้ส่งหรือบันทึกที่ใด
+  const ME = { pos: null };
+  function kmBetween(a, b) {
+    const R = 6371, rad = x => x * Math.PI / 180;
+    const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  const fmtKm = k => k < 1 ? `${Math.round(k * 1000)} ม.` : `${fmt(k, k < 10 ? 1 : 0)} กม.`;
+  function locate() {
+    return new Promise((resolve, reject) => {
+      if (!("geolocation" in navigator)) return reject(new Error("เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง"));
+      navigator.geolocation.getCurrentPosition(
+        p => { ME.pos = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }; showMe(); resolve(ME.pos); },
+        e => reject(new Error(e.code === 1 ? "ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง — เปิดสิทธิ์ตำแหน่งให้เว็บนี้ในการตั้งค่าเบราว์เซอร์ แล้วลองใหม่"
+          : e.code === 3 ? "หาตำแหน่งไม่ทัน ลองใหม่อีกครั้ง (หรือออกไปที่โล่ง)" : "หาตำแหน่งไม่ได้ ลองใหม่อีกครั้ง")),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    });
+  }
+  function showMe() {
+    for (const m of maps) {
+      if (m._me) m._me.remove();
+      const blue = cssVar("--blue");
+      m._me = L.layerGroup([
+        L.circle([ME.pos.lat, ME.pos.lon], { radius: Math.min(ME.pos.acc || 0, 3000), color: blue, weight: 1, opacity: .4, fillOpacity: .08, interactive: false }),
+        L.circleMarker([ME.pos.lat, ME.pos.lon], { radius: 8, color: "#fff", weight: 3, fillColor: blue, fillOpacity: 1 }).bindTooltip("คุณอยู่ที่นี่", { direction: "top", offset: [0, -8] }),
+      ]).addTo(m);
+    }
+  }
+  function nearest(rows, n) {
+    return rows.filter(r => r.lat != null && r.lon != null)
+      .map(r => ({ r, km: kmBetween(ME.pos, r) })).sort((a, b) => a.km - b.km).slice(0, n);
+  }
+  function fitNear(m, near) {
+    if (!m || !near.length) return;
+    const pts = [[ME.pos.lat, ME.pos.lon], ...near.slice(0, 5).map(x => [x.r.lat, x.r.lon])];
+    m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 13 });
+  }
+  async function nearMe(btn, finder, rows, map, label, afterPick) {
+    btn.classList.add("busy"); btn.disabled = true;
+    try {
+      await locate();
+      const near = nearest(rows(), 10);
+      const dist = new Map(near.map(x => [x.r, x.km]));
+      finder.show([{ title: `${label}ใกล้คุณที่สุด`, rows: near.map(x => x.r), limit: 10 }], { dist });
+      if (near.length) {
+        afterPick(near[0].r);
+        fitNear(map(), near);   // แผนที่ซูมรอไว้ แต่ไม่เลื่อนหน้าไป เพื่อให้รายการใกล้ฉันยังอยู่บนจอ
+      }
+    } catch (e) {
+      finder.show([], { msg: e.message });
+    } finally {
+      btn.classList.remove("busy"); btn.disabled = false;
+    }
   }
   function hl(text, q, cls = "nm") {
     const span = el("span", { class: cls });
@@ -806,7 +873,7 @@
   }
 
   // สถานีวัดน้ำ: ค้นจากชื่อ รหัส หรือจังหวัด
-  makeFinder({
+  const stFinder = makeFinder({
     input: "stFind", list: "stFindList", prefix: "sf", section: "overview",
     groups: q => {
       if (!q) return [{ title: "% ตลิ่งสูงสุด", rows: sortRows(S.all.filter(s => s.pct != null), "pct", false), limit: 30 }];
@@ -818,8 +885,9 @@
         { title: "สถานีในจังหวัด", rows: sortRows(byProv, "pct", false), limit: 40 },
       ];
     },
-    option: (s, q) => [dotEl(color(stStatus(s.pct))), hl(s.name, q),
-      el("span", { class: "rg" }, hl(s.prov, q, "p"), " · ", hl(s.code || "", q, "p")),
+    option: (s, q, ctx) => [dotEl(color(stStatus(s.pct))), hl(s.name, q),
+      ctx.dist ? el("span", { class: "rg km" }, fmtKm(ctx.dist.get(s)))
+        : el("span", { class: "rg" }, hl(s.prov, q, "p"), " · ", hl(s.code || "", q, "p")),
       el("span", { class: "pc" }, s.pct == null ? "–" : fmt(s.pct, 0) + "%")],
     choose: s => {
       // ถ้าสถานีที่เลือกไม่อยู่ในตัวกรองปัจจุบัน ล้างตัวกรองก่อน
@@ -834,7 +902,7 @@
 
   // เขื่อน / อ่างเก็บน้ำ
   const stripDam = n => n.replace(/^(เขื่อน|อ่างเก็บน้ำ)\s*/, "");
-  makeFinder({
+  const damFinder = makeFinder({
     input: "damFind", list: "damFindList", prefix: "df", section: "dams",
     groups: q => {
       const all = D.all.filter(d => !q || d.name.toLowerCase().includes(q) || stripDam(d.name).toLowerCase().startsWith(q));
@@ -843,7 +911,8 @@
         { title: "อ่างเก็บน้ำขนาดกลาง", rows: sortRows(all.filter(d => !d.large), "name", true), limit: q ? 60 : 20 },
       ];
     },
-    option: (d, q) => [dotEl(color(dStatus(d.pct))), hl(d.name, q), el("span", { class: "rg" }, d.region),
+    option: (d, q, ctx) => [dotEl(color(dStatus(d.pct))), hl(d.name, q),
+      el("span", { class: "rg" + (ctx.dist ? " km" : "") }, ctx.dist ? fmtKm(ctx.dist.get(d)) : d.region),
       el("span", { class: "pc" }, d.pct == null ? "–" : fmt(d.pct, 0) + "%")],
     choose: d => {
       if (!D.list.includes(d)) {
@@ -856,6 +925,22 @@
     },
   });
 
+  // เลือกโดยไม่ซูมแผนที่ไปที่จุดเดียว (จะ fit ให้เห็นทั้งผู้ใช้และสถานีรอบๆ แทน)
+  const pickStationNear = s => {
+    if (!S.list.includes(s)) { $("fProv").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; applyStations(); }
+    selectStation(s);
+  };
+  const pickDamNear = d => {
+    if (!D.list.includes(d)) {
+      $("dRegion").value = ""; D.size = ""; D.st = "";
+      document.querySelectorAll("[data-size]").forEach(b => b.classList.toggle("on", b.dataset.size === ""));
+      applyDams();
+    }
+    selectDam(d);
+  };
+  $("stNear").addEventListener("click", () => nearMe($("stNear"), stFinder, () => S.all, () => S.map, "สถานี", pickStationNear));
+  $("damNear").addEventListener("click", () => nearMe($("damNear"), damFinder, () => D.all, () => D.map, "เขื่อน/อ่าง", pickDamNear));
+
   /* =================== ปุ่มและเหตุการณ์ =================== */
   const syncSeg = (attr, val) => document.querySelectorAll(`[${attr}]`).forEach(b => b.classList.toggle("on", b.getAttribute(attr) === val));
   const redrawAll = () => {
@@ -865,7 +950,7 @@
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.addEventListener("click", () => {
     document.documentElement.dataset.theme = b.dataset.themeBtn; store.set("rid-theme", b.dataset.themeBtn);
     syncSeg("data-theme-btn", b.dataset.themeBtn);
-    maps.forEach(setTiles); maps.forEach(riverLayer); redrawAll();
+    maps.forEach(setTiles); maps.forEach(riverLayer); if (ME.pos) showMe(); redrawAll();
   }));
   syncSeg("data-theme-btn", document.documentElement.dataset.theme);
   document.querySelectorAll("[data-rivers]").forEach(b => b.addEventListener("click", () => setRivers(!RIV.on)));
