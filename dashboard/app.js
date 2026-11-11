@@ -84,7 +84,7 @@
   function makeMap(id) {
     if (typeof L === "undefined") { $(id).replaceChildren(el("div", { class: "msg" }, "โหลดแผนที่ไม่สำเร็จ")); return null; }
     const m = L.map(id, { scrollWheelZoom: false, zoomSnap: 0.5, preferCanvas: true }).setView([13.2, 100.9], 6);
-    m._tiles = []; maps.push(m); setTiles(m);
+    m._tiles = []; maps.push(m); setTiles(m); riverLayer(m);
     return m;
   }
   function setTiles(m) {
@@ -102,6 +102,49 @@
   }
   function legend(box, list) {
     box.replaceChildren(...list.map(s => el("span", {}, dotEl(color(s)), s.label)));
+    if (RIV.data) {
+      const k = el("i", { class: "rk" }); k.style.background = cssVar("--blue");
+      box.append(el("span", { class: "riv-key" + (RIV.on ? "" : " off") }, k, "แม่น้ำสายหลัก"));
+    }
+  }
+
+  /* ---------- ชั้นเส้นทางแม่น้ำ ---------- */
+  const RIV = { data: null, on: store.get("rid-rivers") !== "0" };
+  function riverLayer(m) {
+    if (!RIV.data || !m) return;
+    if (!m.getPane("rivers")) m.createPane("rivers").style.zIndex = 390;
+    if (m._riv) m._riv.remove();
+    const blue = cssVar("--blue");
+    const base = f => ({ color: blue, weight: (f.properties.length_km || 0) >= 300 ? 2.6 : 1.6, opacity: .8, lineCap: "round" });
+    m._riv = L.geoJSON(RIV.data, {
+      pane: "rivers", renderer: L.canvas({ pane: "rivers", tolerance: 6 }),
+      filter: f => !!f.geometry, style: base,
+      onEachFeature: (f, lyr) => {
+        const p = f.properties;
+        lyr.bindTooltip(() => el("div", {}, el("b", {}, p.name), el("br"),
+          `ยาว ${fmt(p.length_km, 0)} กม. · ไหลผ่าน ${p.n_prov} จังหวัด`, el("br"),
+          el("span", { style: "color:var(--muted)" }, p.provinces)), { sticky: true });
+        lyr.on("mouseover", () => lyr.setStyle({ weight: base(f).weight + 2.5, opacity: 1 }));
+        lyr.on("mouseout", () => lyr.setStyle(base(f)));
+      },
+    });
+    if (RIV.on) m._riv.addTo(m);
+  }
+  function setRivers(on) {
+    RIV.on = on; store.set("rid-rivers", on ? "1" : "0");
+    document.querySelectorAll("[data-rivers]").forEach(b => b.classList.toggle("on", on));
+    document.querySelectorAll(".riv-key").forEach(k => k.classList.toggle("off", !on));
+    maps.forEach(m => { if (m._riv) on ? m._riv.addTo(m) : m._riv.remove(); });
+  }
+  async function loadRivers(bust) {
+    try {
+      const gj = await fetch("data/rivers.geojson" + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      RIV.data = gj;
+      document.querySelectorAll("[data-rivers]").forEach(b => { b.hidden = false; b.classList.toggle("on", RIV.on); });
+      maps.forEach(riverLayer);
+      if (S.all.length) legend($("mapLegend"), [...ST, NA]);
+      if (D.all.length) legend($("damLegend"), [...DST, NA]);
+    } catch (e) { /* ยังไม่มีไฟล์แม่น้ำ */ }
   }
 
   /* ---------- gauge (ภาพถังน้ำในการ์ดหลัก) ---------- */
@@ -594,9 +637,10 @@
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.addEventListener("click", () => {
     document.documentElement.dataset.theme = b.dataset.themeBtn; store.set("rid-theme", b.dataset.themeBtn);
     syncSeg("data-theme-btn", b.dataset.themeBtn);
-    maps.forEach(setTiles); redrawAll();
+    maps.forEach(setTiles); maps.forEach(riverLayer); redrawAll();
   }));
   syncSeg("data-theme-btn", document.documentElement.dataset.theme);
+  document.querySelectorAll("[data-rivers]").forEach(b => b.addEventListener("click", () => setRivers(!RIV.on)));
   document.querySelectorAll("[data-size]").forEach(b => b.addEventListener("click", () => {
     D.size = b.dataset.size; syncSeg("data-size", D.size); applyDams();
   }));
@@ -657,6 +701,7 @@
   })();
 
   const bust = "?t=" + Math.floor(Date.now() / 300000); // cache 5 นาที
+  loadRivers(bust);
   loadStations(bust).catch(err => { console.error(err); $("nowcard").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลสถานีไม่สำเร็จ")); });
   loadDams(bust).catch(err => { console.error(err); $("damNow").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลเขื่อนไม่สำเร็จ")); });
 })();

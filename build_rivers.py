@@ -38,16 +38,16 @@ def name_variants(name):
     return sorted(out)
 
 
-def overpass(query, tries=4):
+def overpass(query, tries=3):
     data = urllib.parse.urlencode({"data": query}).encode()
     for i in range(tries):
         req = urllib.request.Request(OVERPASS, data=data, headers={"User-Agent": "rid-geojson-bot river builder"})
         try:
-            with urllib.request.urlopen(req, timeout=200) as r:
+            with urllib.request.urlopen(req, timeout=700) as r:
                 return json.loads(r.read().decode("utf-8"))
         except Exception as e:  # 429 / 504 ฯลฯ รอแล้วลองใหม่
-            print(f"   overpass error ({e}), retry {i + 1}")
-            time.sleep(15 * (i + 1))
+            print(f"   overpass error ({e}), retry {i + 1}", flush=True)
+            time.sleep(30 * (i + 1))
     return {"elements": []}
 
 
@@ -83,52 +83,68 @@ def km(line):
 
 
 def main():
-    rows = json.loads(SRC.read_text(encoding="utf-8-sig"))
-    feats = []
+    rows = [{k.lstrip("\ufeff"): v for k, v in r.items()} for r in json.loads(SRC.read_text(encoding="utf-8-sig"))]
+    rivers = []
     for r in rows:
-        r = {k.lstrip("﻿"): v for k, v in r.items()}
-        name = r["River_Name"].strip()
         lat = [f(r["Start_Latitude"]), f(r["End_Latitude"])]
         lon = [f(r["Start_Longitude"]), f(r["End_Longitude"])]
-        bbox = (min(lat) - PAD, min(lon) - PAD, max(lat) + PAD, max(lon) + PAD)
-        names = "|".join(re.escape(n) for n in name_variants(name))
-        b = ",".join(f"{v:.4f}" for v in bbox)
-        q = (f'[out:json][timeout:180];('
-             f'way["waterway"~"^(river|stream|canal)$"]["name"~"^({names})$"]({b});'
-             f'way["waterway"~"^(river|stream|canal)$"]["name:th"~"^({names})$"]({b});'
-             f');out geom;')
-        res = overpass(q)
-        lines = []
-        for el in res.get("elements", []):
-            g = el.get("geometry")
-            if g and len(g) > 1:
-                lines.append(dp([(round(p["lon"], 5), round(p["lat"], 5)) for p in g], TOL))
-        lines = [[[round(x, 4), round(y, 4)] for x, y in ln] for ln in lines if len(ln) > 1]
+        name = r["River_Name"].strip()
+        rivers.append({"r": r, "name": name, "lat": lat, "lon": lon, "variants": set(name_variants(name)),
+                       "bbox": (min(lat) - PAD, min(lon) - PAD, max(lat) + PAD, max(lon) + PAD), "lines": []})
+
+    # ค้นครั้งเดียวทั้งประเทศ แล้วค่อยจับคู่ตามชื่อ + กรอบของแต่ละสาย
+    allnames = sorted(set().union(*(rv["variants"] for rv in rivers)))
+    rx = "|".join(re.escape(n) for n in allnames)
+    q = (f'[out:json][timeout:600][maxsize:1073741824];area["ISO3166-1"="TH"][admin_level=2]->.th;('
+         f'way["waterway"~"^(river|stream|canal)$"]["name"~"^({rx})$"](area.th);'
+         f'way["waterway"~"^(river|stream|canal)$"]["name:th"~"^({rx})$"](area.th);'
+         f');out geom;')
+    print(f"ค้น OSM {len(allnames)} ชื่อ ...", flush=True)
+    res = overpass(q)
+    els = res.get("elements", [])
+    print(f"ได้ {len(els)} เส้นจาก OSM", flush=True)
+
+    for el in els:
+        g = el.get("geometry")
+        if not g or len(g) < 2:
+            continue
+        tags = el.get("tags", {})
+        names = {tags.get("name", ""), tags.get("name:th", "")}
+        mid = g[len(g) // 2]
+        for rv in rivers:
+            b = rv["bbox"]
+            if rv["variants"] & names and b[0] <= mid["lat"] <= b[2] and b[1] <= mid["lon"] <= b[3]:
+                ln = dp([(round(p["lon"], 5), round(p["lat"], 5)) for p in g], TOL)
+                rv["lines"].append([[round(x, 4), round(y, 4)] for x, y in ln])
+
+    feats = []
+    for rv in rivers:
+        r, lines = rv["r"], [ln for ln in rv["lines"] if len(ln) > 1]
         osm_km = sum(km(ln) for ln in lines)
         md_km = f(r["Distance_KM"])
-        print(f"{name}: {len(lines)} เส้น, OSM {osm_km:.0f} กม. / กรมเจ้าท่า {md_km} กม.")
+        print(f"{rv['name']}: {len(lines)} เส้น, OSM {osm_km:.0f} กม. / กรมเจ้าท่า {md_km} กม.")
         props = {
-            "name": name, "length_km": md_km,
+            "name": rv["name"], "length_km": md_km,
             "provinces": ", ".join(p.strip() for p in r["Province_Via"].split(",") if p.strip()),
             "n_prov": int(f(r["No_Province"]) or 0),
-            "start": [lon[0], lat[0]], "end": [lon[1], lat[1]],
+            "start": [rv["lon"][0], rv["lat"][0]], "end": [rv["lon"][1], rv["lat"][1]],
             "osm_km": round(osm_km),
         }
         geom = {"type": "MultiLineString", "coordinates": lines} if lines else None
         feats.append({"type": "Feature", "properties": props, "geometry": geom})
-        time.sleep(2)
 
+    found = sum(1 for x in feats if x["geometry"])
+    if not found:
+        raise SystemExit("ไม่พบเส้นทางเลย (Overpass อาจล่ม) ไม่เขียนไฟล์ทับ")
     OUT.write_text(json.dumps({
         "type": "FeatureCollection",
         "attribution": "เส้นทาง © OpenStreetMap contributors (ODbL); ข้อมูลแม่น้ำ: กรมเจ้าท่า",
         "features": feats,
     }, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    found = sum(1 for x in feats if x["geometry"])
     print(f"สร้าง {OUT}: พบเส้นทาง {found}/{len(feats)} สาย, {OUT.stat().st_size / 1e6:.2f} MB")
     missing = [x["properties"]["name"] for x in feats if not x["geometry"]]
     if missing:
         print("ไม่พบเส้นทาง:", ", ".join(missing))
-
 
 if __name__ == "__main__":
     main()
