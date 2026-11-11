@@ -87,6 +87,30 @@ main { min-width: 0; }
 .tile .v small { font-size: 13px; font-weight: 500; color: var(--muted); }
 .tile .s { text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
 .tile.wide { grid-column: span 2; }
+.ov { display: flex; flex-direction: column; gap: 14px; }
+.ov-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.ov-big { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.5px; margin-bottom: 6px; }
+.ov-big small { font-size: 15px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.ov-side { text-align: right; }
+.ov-bar { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: var(--tile); }
+.ov-bar .seg { display: block; min-width: 3px; transition: opacity .2s; }
+.ov-bar .seg.dim, .ov-st.dim { opacity: .35; }
+.ov-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ov-st { text-align: left; background: var(--tile); border: 1px solid transparent; border-radius: 14px; padding: 12px 12px 10px; cursor: pointer; position: relative; overflow: hidden; transition: background .15s, opacity .2s; }
+.ov-st::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c); }
+.ov-st:hover { background: var(--tile-hover); }
+.ov-st.on { border-color: var(--c); background: var(--tile-hover); }
+.ov-st .lab { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ov-st .cnt { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1.1; }
+.ov-st .pc { font-size: 12px; color: var(--muted); }
+.ov-trend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ov-trend > .muted { margin-right: 4px; }
+.chip-t { border: 1px solid var(--line); background: var(--card); border-radius: 18px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--text); }
+.chip-t:hover { background: var(--tile); }
+.chip-t.on { background: var(--tile-hover); border-color: var(--text); }
+.chip-t b { font-size: 14px; }
+.chip-t.up b { color: var(--s-flood); } .chip-t.down b { color: var(--blue); } .chip-t.flat b { color: var(--muted); }
+.chip-t strong { font-weight: 700; margin-left: 2px; }
 .obs { color: var(--muted); font-size: 12px; margin-top: 12px; text-align: right; }
 
 /* รายการสถานี */
@@ -176,6 +200,8 @@ footer a { color: var(--text); }
   .now .big { font-size: 42px; }
   .now .name { font-size: 22px; }
   .hl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-big { font-size: 34px; }
   .tile.wide { grid-column: span 2; }
   .map { height: 400px; }
   th, td { padding: 9px 6px; font-size: 13px; }
