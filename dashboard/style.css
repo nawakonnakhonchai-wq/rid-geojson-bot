@@ -304,3 +304,39 @@ footer a { color: var(--text); }
   .hide-sm { display: none; }
   .tbl-ctrl input { width: 130px; }
 }
+
+/* นิคมอุตสาหกรรม */
+:root, :root[data-theme="dark"] { --ind: #9b8cf0; }
+:root[data-theme="light"] { --ind: #6b4fd8; }
+.ind-marker { background: none; border: 0; }
+.ind-ic { position: relative; display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px;
+  background: var(--ind); color: #fff; border: 2px solid var(--card); box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.ind-ic svg { width: 15px; height: 15px; }
+.ind-ic.sm { width: 28px; height: 28px; flex: none; box-shadow: none; }
+.ind-ic.xs { width: 16px; height: 16px; border-radius: 5px; border-width: 0; box-shadow: none; }
+.ind-ic.xs svg { width: 11px; height: 11px; }
+.ind-badge { position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--card); }
+.riv-btn.ind-btn.on { border-color: var(--ind); }
+.ind-btn svg { color: var(--ind); }
+.map-legend .ind-key { cursor: pointer; }
+.legend-row .ind-key.off { opacity: .4; text-decoration: line-through; }
+/* ป๊อปอัปนิคม (ใช้ธีมเดียวกับการ์ด) */
+.ind-pop .leaflet-popup-content-wrapper { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.25); padding: 0; }
+.ind-pop .leaflet-popup-content { margin: 0; width: auto !important; font: inherit; }
+.ind-pop .leaflet-popup-tip { background: var(--card); }
+.ind-pop a.leaflet-popup-close-button { color: var(--muted); top: 6px; right: 6px; }
+.ind-card { width: 270px; }
+.ind-card .mt-head { padding-right: 18px; }
+.ind-risk-line { margin-top: 8px; padding: 6px 10px; border-radius: 10px; background: var(--tile); font-size: 12px; color: var(--muted); }
+.ind-risk-line.warn { color: var(--text); background: color-mix(in srgb, var(--c) 16%, var(--card)); font-weight: 600; }
+.ind-sec { margin-top: 10px; }
+.ind-sec-h { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.ind-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; margin: 0 -6px; border: 0; background: none; border-radius: 8px; cursor: pointer; text-align: left; font-size: 12px; color: var(--text); }
+.ind-row:hover { background: var(--tile); }
+.ind-row .dot { width: 8px; height: 8px; }
+.ind-row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ind-row .k { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ind-row b { min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
+.ind-hint { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+.pop-open .map-legend, .pop-open .leaflet-control-zoom { visibility: hidden; }
