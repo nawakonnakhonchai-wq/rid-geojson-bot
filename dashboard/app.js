@@ -103,7 +103,10 @@
   function makeMap(id) {
     if (typeof L === "undefined") { $(id).replaceChildren(el("div", { class: "msg" }, "โหลดแผนที่ไม่สำเร็จ")); return null; }
     const m = L.map(id, { scrollWheelZoom: false, zoomSnap: 0.5, preferCanvas: true }).setView([13.2, 100.9], 6);
-    m._tiles = []; maps.push(m); setTiles(m); riverLayer(m);
+    m._tiles = []; maps.push(m); setTiles(m); riverLayer(m); indLayer(m);
+    // ซ่อนกล่องคำอธิบายสัญลักษณ์ระหว่างเปิดป๊อปอัป ไม่ให้บังกัน (สำคัญบนมือถือ)
+    m.on("popupopen", () => m.getContainer().classList.add("pop-open"));
+    m.on("popupclose", () => m.getContainer().classList.remove("pop-open"));
     // ย้ายคำอธิบายสัญลักษณ์ (ถ้ามี) เข้าไปเป็นกล่องลอยมุมขวาบนในแผนที่
     const lg = $(id === "map" ? "mapLegend" : id === "damMap" ? "damLegend" : "");
     if (lg) {
@@ -161,6 +164,18 @@
       tipFor(rk, "แม่น้ำสายหลัก", () => [{ label: "รายชื่อจากกรมเจ้าท่า เส้นทางจาก OpenStreetMap", value: "" }]);
       box.append(rk);
     }
+    if (IND.data && onMap) {
+      const ic = el("span", { class: "ind-ic xs" }); ic.append(factoryEl());
+      const ik = el("span", { class: "ind-key lg-item" + (IND.on ? "" : " off"), role: "button", tabindex: "0" }, ic, el("span", { class: "lg-l" }, "นิคมอุตสาหกรรม"),
+        el("span", { class: "lg-r" }, IND.on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"));
+      ik.addEventListener("click", e => { setInd(!IND.on); e.stopPropagation(); });
+      ik.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setInd(!IND.on); } });
+      tipFor(ik, "นิคมอุตสาหกรรม", () => [
+        { label: `${nf(IND.data.features.length)} แห่ง จาก กนอ.`, value: "" },
+        { label: `จุดสีมุมไอคอน = มีสถานีน้ำมาก/ล้นตลิ่งในรัศมี ${IND.radius} กม.`, value: "" },
+        { label: "แตะไอคอนนิคมเพื่อดูสถานี/เขื่อนใกล้เคียง", value: "" }]);
+      box.append(ik);
+    }
   }
   document.addEventListener("click", hideTip);
 
@@ -203,6 +218,80 @@
     } catch (e) { /* ยังไม่มีไฟล์แม่น้ำ */ }
   }
 
+
+  /* ---------- ชั้นนิคมอุตสาหกรรม (กนอ.) ---------- */
+  const FACTORY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21V10l5 3V10l5 3V10l5 3V4h3v17H3z"/></svg>';
+  const IND = { data: null, on: store.get("rid-ind") !== "0", radius: 10 };
+  const factoryEl = () => { const t = document.createElement("template"); t.innerHTML = FACTORY_SVG; return t.content.firstChild; };
+  // สถานีวัดน้ำ / เขื่อนที่ใกล้นิคมที่สุด
+  function nearOf(rows, pt, n) {
+    return rows.filter(r => r.lat != null && r.lon != null)
+      .map(r => ({ r, km: kmBetween(pt, r) })).sort((a, b) => a.km - b.km).slice(0, n);
+  }
+  // ความเสี่ยงรอบนิคม: สถานะรุนแรงที่สุดของสถานีวัดน้ำในรัศมี IND.radius กม.
+  function indRisk(pt) {
+    const near = nearOf(S.all, pt, 8).filter(x => x.km <= IND.radius);
+    if (!near.length) return null;
+    const order = ["flood", "high", "normal", "low", "na"];
+    return near.map(x => stStatus(x.r.pct)).sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key))[0];
+  }
+  function indCard(f) {
+    const p = f.properties, pt = { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
+    const ic = el("span", { class: "ind-ic sm" }); ic.append(factoryEl());
+    const head = el("div", { class: "mt-head" }, el("div", { class: "mt-name" }, p.name), ic);
+    const sub = el("div", { class: "mt-sub" }, `นิคมอุตสาหกรรม · ${p.operations}`);
+    const risk = indRisk(pt);
+    const riskLine = el("div", { class: "ind-risk-line" });
+    if (!risk) riskLine.append(`ไม่มีสถานีวัดน้ำในรัศมี ${IND.radius} กม.`);
+    else if (risk.key === "flood" || risk.key === "high") {
+      riskLine.classList.add("warn"); riskLine.style.setProperty("--c", color(risk));
+      riskLine.append(`⚠ มีสถานี${risk.label}ในรัศมี ${IND.radius} กม.`);
+    } else riskLine.append(`✓ สถานีในรัศมี ${IND.radius} กม. ไม่มีน้ำมากหรือล้นตลิ่ง`);
+    const rowsOf = (title, list, stOf, pick) => {
+      const box = el("div", { class: "ind-sec" }, el("div", { class: "ind-sec-h" }, title));
+      for (const { r, km } of list) {
+        const st = stOf(r.pct);
+        const b = el("button", { type: "button", class: "ind-row" }, dotEl(color(st)), el("span", { class: "n" }, r.name),
+          el("span", { class: "k" }, fmtKm(km)), el("b", {}, r.pct == null ? "–" : fmt(r.pct, 0) + "%"));
+        b.addEventListener("click", () => pick(r));
+        box.append(b);
+      }
+      return box;
+    };
+    const card = el("div", { class: "mt ind-card" }, head, sub, riskLine);
+    if (S.all.length) card.append(rowsOf("สถานีวัดน้ำใกล้ที่สุด (% ตลิ่ง)", nearOf(S.all, pt, 3), stStatus, r => { pickStationNear(r); selectStation(r, { fly: true }); $("overview").scrollIntoView({ behavior: "smooth" }); }));
+    if (D.all.length) card.append(rowsOf("เขื่อน/อ่างใกล้ที่สุด (% เก็บกักปกติ)", nearOf(D.all, pt, 2), dStatus, d => { pickDamNear(d); selectDam(d, { fly: true }); $("dams").scrollIntoView({ behavior: "smooth" }); }));
+    card.append(el("div", { class: "ind-hint" }, "แตะชื่อเพื่อดูรายละเอียด"));
+    return card;
+  }
+  function indLayer(m) {
+    if (!IND.data || !m) return;
+    if (m._ind) m._ind.remove();
+    m._ind = L.layerGroup(IND.data.features.map(f => {
+      const [lon, lat] = f.geometry.coordinates, risk = S.all.length ? indRisk({ lat, lon }) : null;
+      const warn = risk && (risk.key === "flood" || risk.key === "high");
+      const html = `<span class="ind-ic">${FACTORY_SVG}${warn ? `<i class="ind-badge" style="background:${color(risk)}"></i>` : ""}</span>`;
+      return L.marker([lat, lon], { icon: L.divIcon({ className: "ind-marker", html, iconSize: [26, 26], iconAnchor: [13, 13] }), keyboard: true, title: f.properties.name })
+        .bindTooltip(f.properties.name, { direction: "top", offset: [0, -12] })
+        .bindPopup(() => indCard(f), { className: "ind-pop", maxWidth: 300, minWidth: 260, autoPanPadding: [20, 20] });
+    }));
+    if (IND.on) m._ind.addTo(m);
+  }
+  function setInd(on) {
+    IND.on = on; store.set("rid-ind", on ? "1" : "0");
+    document.querySelectorAll("[data-ind]").forEach(b => b.classList.toggle("on", on));
+    document.querySelectorAll(".ind-key").forEach(k => { k.classList.toggle("off", !on); const r = k.querySelector(".lg-r"); if (r) r.textContent = on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"; });
+    maps.forEach(m => { if (m._ind) on ? m._ind.addTo(m) : m._ind.remove(); });
+  }
+  async function loadInd(bust) {
+    try {
+      IND.data = await fetch("data/ieat_estates.geojson" + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      document.querySelectorAll("[data-ind]").forEach(b => { b.hidden = false; b.classList.toggle("on", IND.on); });
+      maps.forEach(indLayer);
+      if (S.all.length) legend($("mapLegend"), [...ST, NA]);
+      if (D.all.length) legend($("damLegend"), [...DST, NA]);
+    } catch (e) { /* ยังไม่มีไฟล์นิคม */ }
+  }
 
   /* ---------- การ์ด pop-up บนแผนที่ ---------- */
   const TREND_ICON = { "เพิ่มขึ้น": ["↑", "up"], "ลดลง": ["↓", "down"], "คงที่": ["→", "flat"] };
@@ -373,6 +462,7 @@
     legend($("mapLegend"), [...ST, NA]);
     legend($("trendLegend"), ST);
     applyStations();
+    maps.forEach(indLayer);   // วาดนิคมใหม่พร้อมจุดเตือนเมื่อมีข้อมูลสถานีแล้ว
     fetch("data/history.json" + bust).then(r => r.json()).then(h => {
       S.hist = h; renderTrend(); renderHist();
     }).catch(() => { $("trendChart").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลย้อนหลังไม่สำเร็จ")); });
@@ -1117,10 +1207,11 @@
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.addEventListener("click", () => {
     document.documentElement.dataset.theme = b.dataset.themeBtn; store.set("rid-theme", b.dataset.themeBtn);
     syncSeg("data-theme-btn", b.dataset.themeBtn);
-    maps.forEach(setTiles); maps.forEach(riverLayer); if (ME.pos) showMe(); redrawAll();
+    maps.forEach(setTiles); maps.forEach(riverLayer); maps.forEach(indLayer); if (ME.pos) showMe(); redrawAll();
   }));
   syncSeg("data-theme-btn", document.documentElement.dataset.theme);
   document.querySelectorAll("[data-rivers]").forEach(b => b.addEventListener("click", () => setRivers(!RIV.on)));
+  document.querySelectorAll("[data-ind]").forEach(b => b.addEventListener("click", () => setInd(!IND.on)));
   document.querySelectorAll("[data-size]").forEach(b => b.addEventListener("click", () => {
     D.size = b.dataset.size; syncSeg("data-size", D.size); applyDams();
   }));
@@ -1184,6 +1275,7 @@
 
   const bust = "?t=" + Math.floor(Date.now() / 300000); // cache 5 นาที
   loadRivers(bust);
+  loadInd(bust);
   loadStations(bust).catch(err => { console.error(err); $("nowcard").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลสถานีไม่สำเร็จ")); });
   loadDams(bust).catch(err => { console.error(err); $("damNow").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลเขื่อนไม่สำเร็จ")); });
 })();
