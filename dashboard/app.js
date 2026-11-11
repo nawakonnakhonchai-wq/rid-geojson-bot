@@ -85,6 +85,13 @@
     if (typeof L === "undefined") { $(id).replaceChildren(el("div", { class: "msg" }, "โหลดแผนที่ไม่สำเร็จ")); return null; }
     const m = L.map(id, { scrollWheelZoom: false, zoomSnap: 0.5, preferCanvas: true }).setView([13.2, 100.9], 6);
     m._tiles = []; maps.push(m); setTiles(m); riverLayer(m);
+    // ย้ายคำอธิบายสัญลักษณ์ (ถ้ามี) เข้าไปเป็นกล่องลอยมุมขวาบนในแผนที่
+    const lg = $(id === "map" ? "mapLegend" : id === "damMap" ? "damLegend" : "");
+    if (lg) {
+      const ctl = L.control({ position: "topright" });
+      ctl.onAdd = () => { lg.classList.add("map-legend"); L.DomEvent.disableClickPropagation(lg); L.DomEvent.disableScrollPropagation(lg); return lg; };
+      ctl.addTo(m);
+    }
     return m;
   }
   function setTiles(m) {
@@ -104,7 +111,10 @@
     box.replaceChildren(...list.map(s => el("span", {}, dotEl(color(s)), s.label)));
     if (RIV.data && (box.id === "mapLegend" || box.id === "damLegend")) {
       const k = el("i", { class: "rk" }); k.style.background = cssVar("--river");
-      box.append(el("span", { class: "riv-key" + (RIV.on ? "" : " off") }, k, "แม่น้ำสายหลัก"));
+      const rk = el("span", { class: "riv-key" + (RIV.on ? "" : " off"), role: "button", tabindex: "0", title: "แตะเพื่อเปิด/ปิดเส้นแม่น้ำ" }, k, "แม่น้ำสายหลัก");
+      rk.addEventListener("click", () => setRivers(!RIV.on));
+      rk.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setRivers(!RIV.on); } });
+      box.append(rk);
     }
   }
 

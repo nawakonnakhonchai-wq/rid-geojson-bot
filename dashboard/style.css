@@ -176,6 +176,12 @@ span.chip-t:hover { background: var(--card); }
 .legend-row .sw { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
 .legend-row .rk { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
 .legend-row .riv-key.off { opacity: .4; text-decoration: line-through; }
+/* คำอธิบายสัญลักษณ์แบบลอยในแผนที่ */
+.legend-row.map-legend { flex-direction: column; gap: 4px; margin: 10px 10px 0 0; padding: 10px 12px; font-size: 12px; line-height: 1.5;
+  color: var(--text); background: color-mix(in srgb, var(--card) 92%, transparent); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.2); backdrop-filter: blur(6px); }
+.map-legend .riv-key { cursor: pointer; padding-top: 4px; margin-top: 2px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) { .legend-row.map-legend { font-size: 11px; padding: 8px 10px; gap: 2px; } }
 .riv-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--tile); color: var(--muted); border-radius: 18px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .riv-btn svg { width: 16px; height: 16px; }
 .riv-btn.on { color: var(--text); border-color: var(--blue); }
