@@ -751,15 +751,101 @@
   }
 
 
-  /* ---------- ช่องค้นหาเขื่อน (พิมพ์ได้ + รายการให้เลือก) ---------- */
-  (function damFinder() {
-    const inp = $("damFind"), list = $("damFindList");
+  /* ---------- ช่องค้นหาแบบพิมพ์ได้ + รายการให้เลือก (ใช้ทั้งสถานีและเขื่อน) ---------- */
+  function makeFinder({ input, list, prefix, section, groups, option, choose }) {
+    const inp = $(input), ul = $(list);
     let items = [], act = -1;
-    const strip = n => n.replace(/^(เขื่อน|อ่างเก็บน้ำ)\s*/, "");
-    function close() { list.hidden = true; inp.setAttribute("aria-expanded", "false"); act = -1; }
-    function choose(d) {
-      inp.value = d.name; close(); inp.blur();
-      // ถ้าเขื่อนที่เลือกไม่อยู่ในตัวกรองปัจจุบัน ล้างตัวกรองก่อน
+    function close() { ul.hidden = true; inp.setAttribute("aria-expanded", "false"); act = -1; }
+    function pick(row) { inp.value = row.name; close(); inp.blur(); choose(row); }
+    function open() {
+      const q = inp.value.trim().toLowerCase();
+      items = [];
+      const lis = [];
+      for (const { title, rows, limit } of groups(q)) {
+        if (!rows.length) continue;
+        lis.push(el("li", { class: "grp", role: "presentation" }, `${title} (${nf(rows.length)})`));
+        for (const row of rows.slice(0, limit)) {
+          const li = el("li", { role: "option", id: prefix + items.length }, ...option(row, q));
+          li.addEventListener("mousedown", e => { e.preventDefault(); pick(row); });
+          items.push(row); lis.push(li);
+        }
+        if (rows.length > limit) lis.push(el("li", { class: "grp", role: "presentation" }, `…และอีก ${nf(rows.length - limit)} รายการ พิมพ์เพิ่มเพื่อค้นหา`));
+      }
+      if (!items.length) lis.push(el("li", { class: "empty" }, "ไม่พบชื่อที่ค้นหา"));
+      ul.replaceChildren(...lis);
+      ul.hidden = false; inp.setAttribute("aria-expanded", "true");
+      setAct(q && items.length ? 0 : -1);
+    }
+    function setAct(i) {
+      act = i;
+      ul.querySelectorAll('[role="option"]').forEach((li, j) => li.classList.toggle("act", j === i));
+      const cur = i >= 0 ? $(prefix + i) : null;
+      if (cur) { cur.scrollIntoView({ block: "nearest" }); inp.setAttribute("aria-activedescendant", cur.id); }
+      else inp.removeAttribute("aria-activedescendant");
+    }
+    inp.addEventListener("focus", () => {
+      inp.select(); open();
+      // ให้รายการไม่ตกขอบจอ: ถ้าช่องอยู่ครึ่งล่างของจอ เลื่อนหัวข้อขึ้นไปด้านบน
+      if (inp.getBoundingClientRect().top > innerHeight * 0.45) $(section).scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    inp.addEventListener("input", open);
+    inp.addEventListener("blur", () => setTimeout(close, 120));
+    inp.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") { e.preventDefault(); if (ul.hidden) open(); setAct(Math.min(items.length - 1, act + 1)); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); setAct(Math.max(0, act - 1)); }
+      else if (e.key === "Enter") { e.preventDefault(); const r = items[act >= 0 ? act : 0]; if (r) pick(r); }
+      else if (e.key === "Escape") { close(); inp.blur(); }
+    });
+  }
+  function hl(text, q, cls = "nm") {
+    const span = el("span", { class: cls });
+    const i = q ? text.toLowerCase().indexOf(q) : -1;
+    if (i < 0) span.append(text);
+    else span.append(text.slice(0, i), el("mark", {}, text.slice(i, i + q.length)), text.slice(i + q.length));
+    return span;
+  }
+
+  // สถานีวัดน้ำ: ค้นจากชื่อ รหัส หรือจังหวัด
+  makeFinder({
+    input: "stFind", list: "stFindList", prefix: "sf", section: "overview",
+    groups: q => {
+      if (!q) return [{ title: "% ตลิ่งสูงสุด", rows: sortRows(S.all.filter(s => s.pct != null), "pct", false), limit: 30 }];
+      const m = f => S.all.filter(f);
+      const byName = m(s => s.name.toLowerCase().includes(q) || (s.code || "").toLowerCase().includes(q));
+      const byProv = m(s => s.prov.toLowerCase().includes(q) && !byName.includes(s));
+      return [
+        { title: "ชื่อ / รหัสสถานี", rows: sortRows(byName, "pct", false), limit: 60 },
+        { title: "สถานีในจังหวัด", rows: sortRows(byProv, "pct", false), limit: 40 },
+      ];
+    },
+    option: (s, q) => [dotEl(color(stStatus(s.pct))), hl(s.name, q),
+      el("span", { class: "rg" }, hl(s.prov, q, "p"), " · ", hl(s.code || "", q, "p")),
+      el("span", { class: "pc" }, s.pct == null ? "–" : fmt(s.pct, 0) + "%")],
+    choose: s => {
+      // ถ้าสถานีที่เลือกไม่อยู่ในตัวกรองปัจจุบัน ล้างตัวกรองก่อน
+      if (!S.list.includes(s)) {
+        $("fProv").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; store.set("rid-prov", "");
+        applyStations();
+      }
+      selectStation(s, { fly: true });
+      $("nowcard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    },
+  });
+
+  // เขื่อน / อ่างเก็บน้ำ
+  const stripDam = n => n.replace(/^(เขื่อน|อ่างเก็บน้ำ)\s*/, "");
+  makeFinder({
+    input: "damFind", list: "damFindList", prefix: "df", section: "dams",
+    groups: q => {
+      const all = D.all.filter(d => !q || d.name.toLowerCase().includes(q) || stripDam(d.name).toLowerCase().startsWith(q));
+      return [
+        { title: "เขื่อนขนาดใหญ่", rows: sortRows(all.filter(d => d.large), "cap", false), limit: 40 },
+        { title: "อ่างเก็บน้ำขนาดกลาง", rows: sortRows(all.filter(d => !d.large), "name", true), limit: q ? 60 : 20 },
+      ];
+    },
+    option: (d, q) => [dotEl(color(dStatus(d.pct))), hl(d.name, q), el("span", { class: "rg" }, d.region),
+      el("span", { class: "pc" }, d.pct == null ? "–" : fmt(d.pct, 0) + "%")],
+    choose: d => {
       if (!D.list.includes(d)) {
         $("dRegion").value = ""; D.size = ""; D.st = "";
         document.querySelectorAll("[data-size]").forEach(b => b.classList.toggle("on", b.dataset.size === ""));
@@ -767,61 +853,8 @@
       }
       selectDam(d, { fly: true });
       $("damNow").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-    function highlight(name, q) {
-      const span = el("span", { class: "nm" });
-      const i = q ? name.toLowerCase().indexOf(q) : -1;
-      if (i < 0) span.append(name);
-      else span.append(name.slice(0, i), el("mark", {}, name.slice(i, i + q.length)), name.slice(i + q.length));
-      return span;
-    }
-    function open() {
-      const q = inp.value.trim().toLowerCase();
-      const all = D.all.filter(d => !q || d.name.toLowerCase().includes(q) || strip(d.name).toLowerCase().startsWith(q));
-      const large = sortRows(all.filter(d => d.large), "cap", false);
-      const medium = sortRows(all.filter(d => !d.large), "name", true);
-      items = [];
-      const lis = [];
-      const group = (title, arr, limit) => {
-        if (!arr.length) return;
-        lis.push(el("li", { class: "grp", role: "presentation" }, `${title} (${nf(arr.length)})`));
-        for (const d of arr.slice(0, limit)) {
-          const st = dStatus(d.pct), idx = items.length;
-          const li = el("li", { role: "option", id: "df" + idx },
-            dotEl(color(st)), highlight(d.name, q), el("span", { class: "rg" }, d.region), el("span", { class: "pc" }, d.pct == null ? "–" : fmt(d.pct, 0) + "%"));
-          li.addEventListener("mousedown", e => { e.preventDefault(); choose(d); });
-          items.push(d); lis.push(li);
-        }
-        if (arr.length > limit) lis.push(el("li", { class: "grp", role: "presentation" }, `…และอีก ${nf(arr.length - limit)} แห่ง พิมพ์ชื่อเพื่อค้นหา`));
-      };
-      group("เขื่อนขนาดใหญ่", large, 40);
-      group("อ่างเก็บน้ำขนาดกลาง", medium, q ? 60 : 20);
-      if (!items.length) lis.push(el("li", { class: "empty" }, "ไม่พบชื่อที่ค้นหา"));
-      list.replaceChildren(...lis);
-      list.hidden = false; inp.setAttribute("aria-expanded", "true");
-      setAct(q && items.length ? 0 : -1);
-    }
-    function setAct(i) {
-      act = i;
-      list.querySelectorAll('[role="option"]').forEach((li, j) => li.classList.toggle("act", j === i));
-      const cur = i >= 0 ? $("df" + i) : null;
-      if (cur) { cur.scrollIntoView({ block: "nearest" }); inp.setAttribute("aria-activedescendant", cur.id); }
-      else inp.removeAttribute("aria-activedescendant");
-    }
-    inp.addEventListener("focus", () => {
-      inp.select(); open();
-      // ให้รายการไม่ตกขอบจอ: ถ้าช่องอยู่ครึ่งล่างของจอ เลื่อนหัวข้อเขื่อนขึ้นไปด้านบน
-      if (inp.getBoundingClientRect().top > innerHeight * 0.45) $("dams").scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    inp.addEventListener("input", open);
-    inp.addEventListener("blur", () => setTimeout(close, 120));
-    inp.addEventListener("keydown", e => {
-      if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) open(); setAct(Math.min(items.length - 1, act + 1)); }
-      else if (e.key === "ArrowUp") { e.preventDefault(); setAct(Math.max(0, act - 1)); }
-      else if (e.key === "Enter") { e.preventDefault(); const d = items[act >= 0 ? act : 0]; if (d) choose(d); }
-      else if (e.key === "Escape") { close(); inp.blur(); }
-    });
-  })();
+    },
+  });
 
   /* =================== ปุ่มและเหตุการณ์ =================== */
   const syncSeg = (attr, val) => document.querySelectorAll(`[${attr}]`).forEach(b => b.classList.toggle("on", b.getAttribute(attr) === val));
