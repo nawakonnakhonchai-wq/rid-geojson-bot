@@ -337,16 +337,59 @@
     const v = el("div", { class: "v" }, value); if (unit) v.append(el("small", {}, unit));
     return el("div", { class: "tile" + (wide ? " wide" : "") }, k, v, sub ? el("div", { class: "s" }, sub) : null);
   }
+  // ภาพรวม: ตัวเลขรวม → แถบสัดส่วนสถานะ → การ์ดสถานะ (กดเพื่อกรอง) → แนวโน้ม (กดเพื่อกรอง)
+  // ตัวเลขแต่ละส่วนไม่นับตัวกรองของตัวเอง เพื่อให้ยังเห็นภาพรวมขณะเลือกกรองอยู่
   function renderKpis() {
-    const n = S.list.length;
-    const tiles = [tile("สถานีทั้งหมด", nf(n), "สถานี", `มีค่า % ตลิ่ง ${nf(S.list.filter(s => s.pct != null).length)}`)];
-    for (const st of ST) {
-      const c = S.list.filter(s => stStatus(s.pct).key === st.key).length;
-      tiles.push(tile(st.label, nf(c), "สถานี", n ? `${Math.round(c / n * 100)}% ของสถานี` : "", color(st)));
+    const prov = $("fProv").value, stSel = $("fStatus").value, trSel = $("fTrend").value;
+    const inProv = S.all.filter(s => !prov || s.prov === prov);
+    const forStatus = inProv.filter(s => !trSel || s.trend === trSel);
+    const forTrend = inProv.filter(s => !stSel || stStatus(s.pct).key === stSel);
+    const n = forStatus.length;
+    const cnt = k => forStatus.filter(s => stStatus(s.pct).key === k).length;
+    const pctOf = c => n ? Math.round(c / n * 100) : 0;
+
+    // 1) ตัวเลขรวม
+    const head = el("div", { class: "ov-head" },
+      el("div", {}, el("div", { class: "ov-big" }, nf(n), el("small", {}, " สถานี")),
+        el("div", { class: "muted" }, (prov || "ทั้งประเทศ") + (trSel ? ` · แนวโน้ม${trSel}` : ""))),
+      el("div", { class: "ov-side muted" }, `มีค่า % ตลิ่ง ${nf(forStatus.filter(s => s.pct != null).length)} สถานี`));
+
+    // 2) แถบสัดส่วน
+    const bar = el("div", { class: "ov-bar", role: "img", "aria-label": ST.map(st => `${st.label} ${cnt(st.key)}`).join(", ") });
+    for (const st of [...ST, NA]) {
+      const c = cnt(st.key); if (!c) continue;
+      const seg = el("i", { class: "seg" + (stSel && stSel !== st.key ? " dim" : "") });
+      seg.style.flexGrow = c; seg.style.background = color(st);
+      seg.addEventListener("pointermove", e => showTip(e, st.label, [{ label: "จำนวน", value: `${nf(c)} สถานี (${pctOf(c)}%)`, color: color(st) }]));
+      seg.addEventListener("pointerleave", hideTip);
+      bar.append(seg);
     }
-    const up = S.list.filter(s => s.trend === "เพิ่มขึ้น").length;
-    tiles.push(tile("ระดับน้ำเพิ่มขึ้น", nf(up), "สถานี", `ลดลง ${nf(S.list.filter(s => s.trend === "ลดลง").length)} สถานี`));
-    $("kpis").replaceChildren(...tiles);
+
+    // 3) การ์ดสถานะ เรียงจากรุนแรง
+    const grid = el("div", { class: "ov-grid" });
+    for (const st of ST) {
+      const c = cnt(st.key);
+      const on = stSel === st.key;
+      const b = el("button", { type: "button", class: "ov-st" + (on ? " on" : "") + (stSel && !on ? " dim" : ""), "aria-pressed": on ? "true" : "false" });
+      b.style.setProperty("--c", color(st));
+      b.append(el("div", { class: "lab" }, dotEl(color(st)), st.label),
+        el("div", { class: "cnt" }, nf(c)),
+        el("div", { class: "pc" }, `${pctOf(c)}%`));
+      b.addEventListener("click", () => { $("fStatus").value = on ? "" : st.key; applyStations(); });
+      grid.append(b);
+    }
+
+    // 4) แนวโน้ม
+    const trends = [["เพิ่มขึ้น", "↑", "up"], ["คงที่", "→", "flat"], ["ลดลง", "↓", "down"]];
+    const tr = el("div", { class: "ov-trend" }, el("span", { class: "muted" }, "แนวโน้มระดับน้ำ"));
+    for (const [t, arrow, cls] of trends) {
+      const c = forTrend.filter(s => s.trend === t).length, on = trSel === t;
+      const b = el("button", { type: "button", class: `chip-t ${cls}` + (on ? " on" : ""), "aria-pressed": on ? "true" : "false" },
+        el("b", {}, arrow), ` ${t} `, el("strong", {}, nf(c)));
+      b.addEventListener("click", () => { $("fTrend").value = on ? "" : t; applyStations(); });
+      tr.append(b);
+    }
+    $("kpis").replaceChildren(head, bar, grid, tr);
   }
 
   function renderList() {
