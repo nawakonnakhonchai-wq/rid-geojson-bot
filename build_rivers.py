@@ -31,10 +31,11 @@ def f(v):
 def name_variants(name):
     base = re.sub(r"\s*\(.*?\)\s*", "", name).strip()
     out = {base}
-    for pre in ("แม่น้ำ", "ลำน้ำ"):
+    for pre in ("แม่น้ำ", "ลำน้ำ", "คลอง"):
         if base.startswith(pre):
             rest = base[len(pre):]
-            out |= {"น้ำ" + rest, "ลำน้ำ" + rest, "แม่น้ำ" + rest}
+            # OSM มักใช้ชื่อต่างกัน เช่น "น้ำแม่ยวม", "คลองสวี", "ลำน้ำพอง"
+            out |= {"น้ำ" + rest, "ลำน้ำ" + rest, "แม่น้ำ" + rest, "น้ำแม่" + rest, "คลอง" + rest, "ลำ" + rest}
     return sorted(out)
 
 
