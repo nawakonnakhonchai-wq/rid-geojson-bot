@@ -107,6 +107,7 @@ main { min-width: 0; }
 .leaflet-tooltip-top:before { border-top-color: var(--card); }
 .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--muted); }
 .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row .sw { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
 .legend-row .rk { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
 .legend-row .riv-key.off { opacity: .4; text-decoration: line-through; }
 .riv-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--tile); color: var(--muted); border-radius: 18px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }

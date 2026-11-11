@@ -153,12 +153,20 @@
         <div class="hl-grid" id="damKpis"></div>
       </section>
 
-      <section class="card" id="damBarsCard">
-        <div class="card-head"><h2>% ความจุ เขื่อนขนาดใหญ่</h2><span class="muted">เรียงจากมากไปน้อย</span></div>
+      <section class="card full" id="damBarsCard">
+        <div class="card-head">
+          <h2>ปริมาณน้ำเทียบความจุ เขื่อนขนาดใหญ่</h2>
+          <div class="ctrl">
+            <select id="barSort" aria-label="เรียงตาม">
+              <option value="pct">% ความจุ มาก→น้อย</option><option value="cap">ขนาดความจุ</option><option value="vol">ปริมาตรน้ำ</option>
+            </select>
+          </div>
+        </div>
         <div class="chart bars-scroll" id="damBars"></div>
+        <div class="legend-row" id="barLegend"></div>
       </section>
 
-      <section class="card">
+      <section class="card full">
         <div class="card-head"><h2>% ความจุ ย้อนหลัง</h2><span class="muted" id="damHistName"></span></div>
         <div class="chart" id="damChart"><div class="msg">เลือกเขื่อนเพื่อดูกราฟ</div></div>
       </section>
