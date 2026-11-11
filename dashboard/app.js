@@ -530,14 +530,15 @@
 
   function applyDams() {
     const r = $("dRegion").value, q = $("dSearch").value.trim().toLowerCase();
-    D.list = D.all.filter(d => (!r || d.region === r) && (!D.size || (D.size === "large") === d.large));
+    D.base = D.all.filter(d => (!r || d.region === r) && (!D.size || (D.size === "large") === d.large));
+    D.list = D.base.filter(d => !D.st || dStatus(d.pct).key === D.st);
     D.tableRows = q ? D.list.filter(d => d.name.toLowerCase().includes(q)) : D.list;
     D.shown = 30;
     if (!D.sel || !D.list.includes(D.sel)) {
       // เริ่มที่เขื่อนใหญ่ที่สุดในกลุ่ม
       D.sel = sortRows(D.list.filter(d => d.pct != null), "cap", false)[0] || null;
     }
-    $("damScope").textContent = `${nf(D.list.length)} แห่ง`;
+    $("damScope").textContent = `${nf(D.base.length)} แห่ง`;
     renderDamNow(); renderDamKpis(); renderDamBars(); renderDamMap(true); renderDamTable(); renderDamHist();
   }
 
@@ -568,20 +569,55 @@
       el("div", { class: "desc" }, el("b", {}, `ไหลเข้า ${fmt(d.inflow)} · ระบาย ${fmt(d.outflow)}`), el("span", {}, "ล้าน ลบ.ม. ต่อวัน")));
   }
 
+  // ภาพรวมเขื่อน: % น้ำรวม + ถังน้ำ → การ์ดสถานะ (กดเพื่อกรอง) → น้ำไหลเข้า/ระบาย/สุทธิ
+  // คำนวณจากตัวกรองภาค+ขนาดเท่านั้น (ไม่นับตัวกรองสถานะ) เพื่อให้ยังเห็นภาพรวม
   function renderDamKpis() {
-    const w = D.list.filter(d => d.vol != null && d.normal);
+    const base = D.base || D.list;
+    const w = base.filter(d => d.vol != null && d.normal);
     const vol = w.reduce((a, d) => a + d.vol, 0), cap = w.reduce((a, d) => a + d.normal, 0);
-    const inflow = D.list.reduce((a, d) => a + (d.inflow || 0), 0), outflow = D.list.reduce((a, d) => a + (d.outflow || 0), 0);
-    const tiles = [
-      tile("ปริมาตรน้ำรวม (เทียบเก็บกักปกติ)", cap ? fmt(vol / cap * 100, 0) : "–", "%", `${fmt(vol, 0)} / ${fmt(cap, 0)} ล้าน ลบ.ม.`),
-      tile("ไหลเข้า / ระบาย", `${fmt(inflow, 1)} / ${fmt(outflow, 1)}`, "", "ล้าน ลบ.ม. ต่อวัน", null, true),
-    ];
+    const pct = cap ? vol / cap * 100 : null;
+    const inflow = base.reduce((a, d) => a + (d.inflow || 0), 0), outflow = base.reduce((a, d) => a + (d.outflow || 0), 0);
+    const net = inflow - outflow;
+    const n = base.length, cnt = k => base.filter(d => dStatus(d.pct).key === k).length;
+    const scope = [$("dRegion").value || "ทุกภาค", D.size === "large" ? "เขื่อนขนาดใหญ่" : D.size === "medium" ? "อ่างขนาดกลาง" : "ทุกขนาด"].join(" · ");
+
+    // 1) ตัวเลขหลัก + ถังน้ำ
+    const big = el("div", { class: "ov-big" }, pct == null ? "–" : fmt(pct, 0), el("small", {}, "%"));
+    const head = el("div", { class: "ov-head" },
+      el("div", {}, el("div", { class: "muted" }, "น้ำในเขื่อนรวม (เทียบระดับเก็บกักปกติ)"), big, el("div", { class: "muted" }, scope)),
+      el("div", { class: "ov-side" }, el("div", { class: "ov-vol" }, `${fmt(vol, 0)}`, el("small", {}, ` / ${fmt(cap, 0)}`)), el("div", { class: "muted" }, "ล้าน ลบ.ม.")));
+    const tank = el("div", { class: "ov-tank", role: "img", "aria-label": `น้ำรวม ${fmt(pct, 0)}% ของระดับเก็บกักปกติ` });
+    const fill = el("i", { class: "fill" }); fill.style.width = Math.min(100, pct || 0) + "%"; fill.style.background = color(dStatus(pct));
+    tank.append(fill);
+    const room = cap - vol;
+    const tankNote = el("div", { class: "ov-tank-note muted" },
+      el("span", {}, "0%"),
+      el("span", {}, room >= 0 ? `ยังรับน้ำได้อีก ${fmt(room, 0)} ล้าน ลบ.ม.` : `เกินระดับเก็บกักปกติ ${fmt(-room, 0)} ล้าน ลบ.ม.`),
+      el("span", {}, "เต็ม 100%"));
+
+    // 2) การ์ดสถานะ
+    const grid = el("div", { class: "ov-grid" });
     for (const st of DST) {
-      const c = D.list.filter(d => dStatus(d.pct).key === st.key).length;
-      tiles.push(tile(st.label, nf(c), "แห่ง", `จาก ${nf(D.list.length)} แห่ง`, color(st)));
+      const c = cnt(st.key), on = D.st === st.key;
+      const b = el("button", { type: "button", class: "ov-st" + (on ? " on" : "") + (D.st && !on ? " dim" : ""), "aria-pressed": on ? "true" : "false" });
+      b.style.setProperty("--c", color(st));
+      b.append(el("div", { class: "lab" }, dotEl(color(st)), st.label),
+        el("div", { class: "cnt" }, nf(c), el("small", {}, " แห่ง")),
+        el("div", { class: "pc" }, `${n ? Math.round(c / n * 100) : 0}% ของทั้งหมด`));
+      b.addEventListener("click", () => { D.st = on ? "" : st.key; applyDams(); });
+      grid.append(b);
     }
-    tiles.push(tile("ยังไม่อัปเดตวันล่าสุด", nf(D.list.filter(d => d.date && d.date < D.latest).length), "แห่ง", "แสดงค่าล่าสุดที่มี"));
-    $("damKpis").replaceChildren(...tiles);
+
+    // 3) น้ำไหลเข้า / ระบาย / สุทธิ
+    const flow = el("div", { class: "ov-trend" }, el("span", { class: "muted" }, "วันนี้ (ล้าน ลบ.ม.)"),
+      el("span", { class: "chip-t down" }, el("b", {}, "↓"), " ไหลเข้า ", el("strong", {}, fmt(inflow, 1))),
+      el("span", { class: "chip-t flat" }, el("b", {}, "↑"), " ระบาย ", el("strong", {}, fmt(outflow, 1))),
+      el("span", { class: "chip-t " + (net >= 0 ? "pos" : "neg") }, el("b", {}, net >= 0 ? "＋" : "−"),
+        net >= 0 ? " น้ำเพิ่มสุทธิ " : " น้ำลดสุทธิ ", el("strong", {}, fmt(Math.abs(net), 1))));
+    const stale = base.filter(d => d.date && d.date < D.latest).length;
+    const parts = [head, tank, tankNote, grid, flow];
+    if (stale) parts.push(el("div", { class: "obs" }, `* ${nf(stale)} แห่งยังไม่มีข้อมูลวันล่าสุด ใช้ค่าล่าสุดที่มี`));
+    $("damKpis").replaceChildren(...parts);
   }
 
   // รางยาวเท่ากัน = ระดับเก็บกักปกติ (100% ตามที่กรมชลฯ รายงาน), แถบสี = น้ำปัจจุบัน,

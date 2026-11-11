@@ -103,6 +103,15 @@ main { min-width: 0; }
 .ov-st .lab { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
 .ov-st .cnt { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1.1; }
 .ov-st .pc { font-size: 12px; color: var(--muted); }
+.ov-vol { font-size: 22px; font-weight: 700; }
+.ov-vol small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.ov-tank { height: 16px; border-radius: 8px; background: var(--tile); border: 1px solid var(--line); overflow: hidden; }
+.ov-tank .fill { display: block; height: 100%; border-radius: 8px 0 0 8px; }
+.ov-tank-note { display: flex; justify-content: space-between; font-size: 12px; margin-top: -8px; }
+.ov-st .cnt small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.chip-t.pos b, .chip-t.neg b { color: var(--text); }
+span.chip-t { cursor: default; }
+span.chip-t:hover { background: var(--card); }
 .ov-trend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ov-trend > .muted { margin-right: 4px; }
 .chip-t { border: 1px solid var(--line); background: var(--card); border-radius: 18px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--text); }
