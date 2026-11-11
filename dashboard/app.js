@@ -103,7 +103,7 @@
   function legend(box, list) {
     box.replaceChildren(...list.map(s => el("span", {}, dotEl(color(s)), s.label)));
     if (RIV.data && (box.id === "mapLegend" || box.id === "damLegend")) {
-      const k = el("i", { class: "rk" }); k.style.background = cssVar("--blue");
+      const k = el("i", { class: "rk" }); k.style.background = cssVar("--river");
       box.append(el("span", { class: "riv-key" + (RIV.on ? "" : " off") }, k, "แม่น้ำสายหลัก"));
     }
   }
@@ -114,7 +114,7 @@
     if (!RIV.data || !m) return;
     if (!m.getPane("rivers")) m.createPane("rivers").style.zIndex = 390;
     if (m._riv) m._riv.remove();
-    const blue = cssVar("--blue");
+    const blue = cssVar("--river");
     const base = f => ({ color: blue, weight: (f.properties.length_km || 0) >= 300 ? 2.6 : 1.6, opacity: .8, lineCap: "round" });
     m._riv = L.geoJSON(RIV.data, {
       pane: "rivers", renderer: L.svg({ pane: "rivers", padding: 0.5 }),
