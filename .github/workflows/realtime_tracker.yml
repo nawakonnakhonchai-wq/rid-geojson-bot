@@ -36,6 +36,7 @@ jobs:
         run: python snapshot.py
 
       - name: Build Dashboard Data
+        continue-on-error: true
         run: python build_dashboard_data.py
 
       - name: Update Dam Data (from Dam_Daily)
