@@ -41,7 +41,11 @@ def fetch_rid_realtime(basin="", province="", region="", rid="", date=""):
             
             # 2. ดึงค่าระดับน้ำปัจจุบัน และระดับตลิ่งจากคีย์ใหม่ล่าสุด (wl_values และ bank_values)
             wl_current = pd.to_numeric(item.get("wl_values"), errors='coerce')
-            bank_level = pd.to_numeric(item.get("bank_values"), errors='coerce')
+            # API ปัจจุบันส่งระดับตลิ่งในช่อง brae_level (bank_values ไม่มีแล้ว) — ยังรองรับชื่อเดิมไว้
+            bank_raw = item.get("bank_values")
+            if bank_raw is None:
+                bank_raw = item.get("brae_level")
+            bank_level = pd.to_numeric(bank_raw, errors='coerce')
             
             # 3. ถ้าระบบส่งค่า wl_pct มาเป็นข้อความ (String) ที่มีเครื่องหมาย % ติดมาด้วย ให้คลีนออกก่อน
             if isinstance(wl_pct, str):
@@ -55,9 +59,11 @@ def fetch_rid_realtime(basin="", province="", region="", rid="", date=""):
             # 4. ตรรกะ Fallback: ถ้าเปอร์เซ็นต์จาก API หายไป (เป็น None หรือ NaN) ให้ใช้สูตรคำนวณย้อนกลับทันที
             if wl_pct is None or pd.isna(wl_pct):
                 try:
-                    if pd.notna(wl_current) and pd.notna(bank_level) and bank_level > 0:
-                        # คำนวณเปอร์เซ็นต์เทียบตลิ่ง และปัดเศษทศนิยม 2 ตำแหน่ง
-                        wl_pct = round((wl_current / bank_level) * 100, 2)
+                    # % เทียบตลิ่งของกรมชลฯ วัดจากท้องน้ำ: (ระดับน้ำ - ท้องน้ำ) / (ตลิ่ง - ท้องน้ำ) x 100
+                    # ถ้าไม่มีระดับท้องน้ำ ปล่อยเป็น None ดีกว่าคำนวณผิด
+                    ground = pd.to_numeric(item.get("ground_level"), errors='coerce')
+                    if pd.notna(wl_current) and pd.notna(bank_level) and pd.notna(ground) and bank_level > ground:
+                        wl_pct = round((wl_current - ground) / (bank_level - ground) * 100, 2)
                 except Exception:
                     wl_pct = None # ถ้าข้อมูลไม่พอที่จะคำนวณ ให้ปล่อยเป็น None เพื่อไม่ให้บอตรันพัง
             
@@ -90,7 +96,18 @@ def fetch_rid_realtime(basin="", province="", region="", rid="", date=""):
                     record["เวลาบันทึกข้อมูล (เวลาไทย)"] = None
             else:
                 record["เวลาบันทึกข้อมูล (เวลาไทย)"] = None
-                
+
+            # --- คอลัมน์เพิ่มเติม (ต่อท้ายเสมอ เพื่อไม่ให้กระทบคอลัมน์เดิมที่ระบบอื่นใช้อยู่) ---
+            # ชื่อลุ่มน้ำใน API มีทั้ง "มูล" และ "ลุ่มน้ำมูล" จึงตัดคำนำหน้าให้เป็นแบบเดียวกัน
+            basin = (item.get("basin_name") or "").strip()
+            if basin.startswith("ลุ่มน้ำ"):
+                basin = basin[len("ลุ่มน้ำ"):].strip()
+            record["ลุ่มน้ำ"] = basin or None
+            record["แม่น้ำ/ลำน้ำ"] = (item.get("river") or "").strip() or None
+            record["อำเภอ"] = item.get("amphoe")
+            record["ภาค"] = item.get("region")
+            record["สำนักชลประทาน"] = item.get("rid_name")
+
             parsed_records.append(record)
             
         # 1. จัดทำเป็นตาราง DataFrame

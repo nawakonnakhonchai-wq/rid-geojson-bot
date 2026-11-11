@@ -325,6 +325,7 @@
       const p = f.properties;
       return {
         code: p["รหัสสถานี"], name: p["ชื่อสถานี"] || "", prov: p["จังหวัด"] || "",
+        basin: p["ลุ่มน้ำ"] || "", river: p["แม่น้ำ/ลำน้ำ"] || "", amphoe: p["อำเภอ"] || "",
         wl: num(p["ระดับน้ำปัจจุบัน (ม.รทก.)"]), pct: num(p["ระดับน้ำเทียบตลิ่ง (%)"]),
         diff: num(p["ระยะจากตลิ่ง (ม.)"]), trend: p["แนวโน้มระดับน้ำ"] || "",
         q: num(p["อัตราการไหล (ลบ.ม./วิ)"]),
@@ -338,6 +339,11 @@
     for (const p of provs) $("fProv").append(el("option", { value: p }, p));
     for (const s of [...ST, NA]) $("fStatus").append(el("option", { value: s.key }, s.label));
     const saved = store.get("rid-prov"); if (saved && provs.includes(saved)) $("fProv").value = saved;
+    // ลุ่มน้ำ (มีเมื่อบอทอัปเดตข้อมูลรอบใหม่แล้ว; ถ้ายังไม่มีให้ซ่อนช่องเลือก)
+    const basins = [...new Set(S.all.map(s => s.basin).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
+    for (const b of basins) $("fBasin").append(el("option", { value: b }, `ลุ่มน้ำ${b} (${nf(S.all.filter(s => s.basin === b).length)})`));
+    $("fBasin").closest(".search").hidden = !basins.length;
+    const savedB = store.get("rid-basin"); if (savedB && basins.includes(savedB)) $("fBasin").value = savedB;
     S.map = makeMap("map");
     if (S.map) S.layer = L.layerGroup().addTo(S.map);
     legend($("mapLegend"), [...ST, NA]);
@@ -349,9 +355,9 @@
   }
 
   function applyStations() {
-    const prov = $("fProv").value, st = $("fStatus").value, tr = $("fTrend").value;
+    const prov = $("fProv").value, basin = $("fBasin").value, st = $("fStatus").value, tr = $("fTrend").value;
     const q = $("fSearch").value.trim().toLowerCase();
-    const base = S.all.filter(s => (!prov || s.prov === prov) && (!st || stStatus(s.pct).key === st) && (!tr || s.trend === tr));
+    const base = S.all.filter(s => (!prov || s.prov === prov) && (!basin || s.basin === basin) && (!st || stStatus(s.pct).key === st) && (!tr || s.trend === tr));
     S.list = base;
     S.tableRows = q ? base.filter(s => s.name.toLowerCase().includes(q) || (s.code || "").toLowerCase().includes(q)) : base;
     S.shown = 50;
@@ -385,7 +391,8 @@
     const right = el("div", { class: "right" }, big, el("div", { class: "sub" }, "ระดับน้ำ " + fmt(s.wl) + " ม.รทก."));
     const diffTxt = s.diff == null ? "–" : s.diff >= 0 ? `สูงกว่าตลิ่ง ${fmt(s.diff)} ม.` : `ต่ำกว่าตลิ่ง ${fmt(-s.diff)} ม.`;
     box.replaceChildren(chip, badge, left, right,
-      el("div", { class: "left-bottom" }, s.q != null ? `อัตราการไหล ${fmt(s.q, 1)} ลบ.ม./วิ` : "เทียบกับระดับตลิ่ง"),
+      el("div", { class: "left-bottom" },
+        [s.basin && `ลุ่มน้ำ${s.basin}`, s.river, s.q != null && `อัตราการไหล ${fmt(s.q, 1)} ลบ.ม./วิ`].filter(Boolean).join(" · ") || "เทียบกับระดับตลิ่ง"),
       el("div", { class: "desc" }, el("b", {}, "แนวโน้ม" + (s.trend || "–")), el("span", {}, diffTxt)));
   }
 
@@ -397,8 +404,8 @@
   // ภาพรวม: ตัวเลขรวม → แถบสัดส่วนสถานะ → การ์ดสถานะ (กดเพื่อกรอง) → แนวโน้ม (กดเพื่อกรอง)
   // ตัวเลขแต่ละส่วนไม่นับตัวกรองของตัวเอง เพื่อให้ยังเห็นภาพรวมขณะเลือกกรองอยู่
   function renderKpis() {
-    const prov = $("fProv").value, stSel = $("fStatus").value, trSel = $("fTrend").value;
-    const inProv = S.all.filter(s => !prov || s.prov === prov);
+    const prov = $("fProv").value, basin = $("fBasin").value, stSel = $("fStatus").value, trSel = $("fTrend").value;
+    const inProv = S.all.filter(s => (!prov || s.prov === prov) && (!basin || s.basin === basin));
     const forStatus = inProv.filter(s => !trSel || s.trend === trSel);
     const forTrend = inProv.filter(s => !stSel || stStatus(s.pct).key === stSel);
     const n = forStatus.length;
@@ -408,7 +415,7 @@
     // 1) ตัวเลขรวม
     const head = el("div", { class: "ov-head" },
       el("div", {}, el("div", { class: "ov-big" }, nf(n), el("small", {}, " สถานี")),
-        el("div", { class: "muted" }, (prov || "ทั้งประเทศ") + (trSel ? ` · แนวโน้ม${trSel}` : ""))),
+        el("div", { class: "muted" }, ([prov, basin && "ลุ่มน้ำ" + basin].filter(Boolean).join(" · ") || "ทั้งประเทศ") + (trSel ? ` · แนวโน้ม${trSel}` : ""))),
       el("div", { class: "ov-side muted" }, `มีค่า % ตลิ่ง ${nf(forStatus.filter(s => s.pct != null).length)} สถานี`));
 
     // 2) แถบสัดส่วน
@@ -478,7 +485,7 @@
     for (const s of pts) {
       const st = stStatus(s.pct);
       const m = L.circleMarker([s.lat, s.lon], { radius: st.key === "flood" ? 7 : 5, color: ring, weight: 1.5, fillColor: color(st), fillOpacity: 1 })
-        .bindTooltip(() => el("div", {}, el("b", {}, s.name), el("br"), `${s.prov} · ${fmt(s.pct, 1)}% · ${s.trend}`), { direction: "top", offset: [0, -6] })
+        .bindTooltip(() => el("div", {}, el("b", {}, s.name), el("br"), `${s.prov}${s.basin ? " · ลุ่มน้ำ" + s.basin : ""} · ${fmt(s.pct, 1)}% · ${s.trend}`), { direction: "top", offset: [0, -6] })
         .on("click", () => selectStation(s))
         .addTo(S.layer);
       S.markers.set(s.code, m);
@@ -494,7 +501,7 @@
       const st = stStatus(s.pct);
       const pct = el("td", { class: "num" }, dotEl(color(st)), " " + fmt(s.pct, 1));
       const tr = el("tr", { class: S.sel === s ? "on" : "" },
-        el("td", {}, s.code), el("td", {}, s.name), el("td", { class: "hide-sm" }, s.prov), pct,
+        el("td", {}, s.code), el("td", {}, s.name), el("td", { class: "hide-sm" }, s.prov), el("td", { class: "hide-sm" }, s.basin || "–"), pct,
         el("td", { class: "num hide-sm" }, fmt(s.wl)), el("td", { class: "num" }, fmt(s.diff)),
         el("td", { class: s.trend === "เพิ่มขึ้น" ? "trend-up" : s.trend === "ลดลง" ? "trend-down" : "" }, s.trend));
       tr.addEventListener("click", () => selectStation(s, { fly: true, top: true }));
@@ -989,9 +996,11 @@
       const m = f => S.all.filter(f);
       const byName = m(s => s.name.toLowerCase().includes(q) || (s.code || "").toLowerCase().includes(q));
       const byProv = m(s => s.prov.toLowerCase().includes(q) && !byName.includes(s));
+      const byBasin = m(s => s.basin.toLowerCase().includes(q.replace(/^ลุ่มน้ำ/, "")) && !byName.includes(s) && !byProv.includes(s));
       return [
         { title: "ชื่อ / รหัสสถานี", rows: sortRows(byName, "pct", false), limit: 60 },
         { title: "สถานีในจังหวัด", rows: sortRows(byProv, "pct", false), limit: 40 },
+        { title: "สถานีในลุ่มน้ำ", rows: sortRows(byBasin, "pct", false), limit: 40 },
       ];
     },
     option: (s, q, ctx) => [dotEl(color(stStatus(s.pct))), hl(s.name, q),
@@ -1001,7 +1010,7 @@
     choose: s => {
       // ถ้าสถานีที่เลือกไม่อยู่ในตัวกรองปัจจุบัน ล้างตัวกรองก่อน
       if (!S.list.includes(s)) {
-        $("fProv").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; store.set("rid-prov", "");
+        $("fProv").value = ""; $("fBasin").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; store.set("rid-prov", "");
         applyStations();
       }
       selectStation(s, { fly: true });
@@ -1036,7 +1045,7 @@
 
   // เลือกโดยไม่ซูมแผนที่ไปที่จุดเดียว (จะ fit ให้เห็นทั้งผู้ใช้และสถานีรอบๆ แทน)
   const pickStationNear = s => {
-    if (!S.list.includes(s)) { $("fProv").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; applyStations(); }
+    if (!S.list.includes(s)) { $("fProv").value = ""; $("fBasin").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; applyStations(); }
     selectStation(s);
   };
   const pickDamNear = d => {
@@ -1083,6 +1092,7 @@
   }));
 
   $("fProv").addEventListener("change", () => { store.set("rid-prov", $("fProv").value); applyStations(); $("fProv").blur(); });
+  $("fBasin").addEventListener("change", () => { store.set("rid-basin", $("fBasin").value); applyStations(); $("fBasin").blur(); });
   ["fStatus", "fTrend"].forEach(id => $(id).addEventListener("change", () => applyStations()));
   $("lSort").addEventListener("change", renderList);
   let deb1, deb2;

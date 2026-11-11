@@ -43,13 +43,17 @@ main { min-width: 0; }
 .hello { flex: 1 1 260px; min-width: 0; }
 .hello .hi { color: var(--muted); font-size: 14px; }
 .hello h1 { margin: 2px 0 0; font-size: 22px; font-weight: 700; }
-.search { position: relative; flex: 0 1 340px; min-width: 200px; }
+.search { position: relative; flex: 0 1 340px; min-width: 180px; }
+.search:not(.combo) { flex-basis: 200px; }
+.search.combo { flex-basis: 300px; }
+.top .hello { flex-basis: 200px; }
 .search select { width: 100%; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 40px 0 42px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; }
 .search select:focus { border-color: var(--accent); }
 .search select option { background: var(--card); color: var(--text); }
 .search > svg { position: absolute; top: 13px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
 .search > svg.pin { left: 15px; }
 .search > svg.caret { right: 15px; }
+.search[hidden] { display: none; }
 .combo input { width: 100%; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 40px 0 42px; outline: none; }
 .combo input:focus { border-color: var(--accent); }
 .combo-list { position: absolute; z-index: 1500; top: 50px; left: 0; width: max(100%, 560px); max-height: 360px; overflow: auto; margin: 0; padding: 6px; list-style: none;
