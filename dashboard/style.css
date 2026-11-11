@@ -53,6 +53,7 @@ main { min-width: 0; }
 .combo-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
 .combo-list li.act, .combo-list li:hover { background: var(--tile-hover); }
 .combo-list li .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-list li .rg .p mark { background: none; color: var(--accent); font-weight: 700; }
 .combo-list li .nm mark { background: none; color: var(--accent); font-weight: 700; }
 .combo-list li .rg { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .combo-list li .pc { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
