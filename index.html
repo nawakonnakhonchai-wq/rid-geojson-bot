@@ -155,19 +155,20 @@
 
       <section class="card full" id="damBarsCard">
         <div class="card-head">
-          <h2>ปริมาณน้ำเทียบความจุ เขื่อนขนาดใหญ่</h2>
+          <h2>ปริมาณน้ำเทียบระดับเก็บกักปกติ เขื่อนขนาดใหญ่</h2>
           <div class="ctrl">
             <select id="barSort" aria-label="เรียงตาม">
-              <option value="pct">% ความจุ มาก→น้อย</option><option value="cap">ขนาดความจุ</option><option value="vol">ปริมาตรน้ำ</option>
+              <option value="pct">% มาก→น้อย</option><option value="normal">ขนาดเขื่อน</option><option value="vol">ปริมาตรน้ำ</option>
             </select>
           </div>
         </div>
+        <div class="bar-summary" id="barSummary"></div>
         <div class="chart bars-scroll" id="damBars"></div>
         <div class="legend-row" id="barLegend"></div>
       </section>
 
       <section class="card full">
-        <div class="card-head"><h2>% ความจุ ย้อนหลัง</h2><span class="muted" id="damHistName"></span></div>
+        <div class="card-head"><h2>% เทียบระดับเก็บกักปกติ ย้อนหลัง</h2><span class="muted" id="damHistName"></span></div>
         <div class="chart" id="damChart"><div class="msg">เลือกเขื่อนเพื่อดูกราฟ</div></div>
       </section>
 
@@ -187,7 +188,7 @@
             <thead><tr>
               <th data-k="name">ชื่อ</th><th data-k="region" class="hide-sm">ภาค</th>
               <th data-k="pct" class="num">% ความจุ</th><th data-k="vol" class="num">ปริมาตร</th>
-              <th data-k="cap" class="num hide-sm">ความจุ</th><th data-k="inflow" class="num hide-sm">ไหลเข้า</th>
+              <th data-k="normal" class="num hide-sm">เก็บกักปกติ</th><th data-k="inflow" class="num hide-sm">ไหลเข้า</th>
               <th data-k="outflow" class="num hide-sm">ระบาย</th><th data-k="date">วันที่</th>
             </tr></thead>
             <tbody></tbody>
@@ -201,7 +202,7 @@
       ข้อมูลจากกรมชลประทาน (bigdata-swoc.rid.go.th, app.rid.go.th/reservoir) · สถานีอัปเดตทุก 15 นาที · เขื่อนผ่าน repo
       <a href="https://github.com/nawakonnakhonchai-wq/Dam_Daily" target="_blank" rel="noopener">Dam_Daily</a><br>
       เกณฑ์สถานีวัดน้ำ (% ตลิ่ง): ≤30 น้ำน้อย · 30–70 ปกติ · 70–100 น้ำมาก · &gt;100 ล้นตลิ่ง<br>
-      เกณฑ์เขื่อน (% ความจุ): ≤30 น้ำน้อย · 30–80 ปกติ · 80–100 น้ำมาก · &gt;100 เกินความจุ · ปริมาตร/ไหลเข้า/ระบาย หน่วยล้าน ลบ.ม.<br>
+      เกณฑ์เขื่อน (% ของระดับเก็บกักปกติ ตามที่กรมชลฯ รายงาน): ≤30 น้ำน้อย · 30–80 ปกติ · 80–100 น้ำมาก · &gt;100 เกินเก็บกักปกติ · ปริมาตร/ไหลเข้า/ระบาย หน่วยล้าน ลบ.ม.<br>
       เส้นทางแม่น้ำ: รายชื่อจากกรมเจ้าท่า · เส้นทางจาก © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors<br>
       ดาวน์โหลด <a href="rid_realtime.geojson">สถานี GeoJSON</a> · <a href="data/dams.json">เขื่อน JSON</a> · <a href="data/rivers.geojson">แม่น้ำ GeoJSON</a>
     </footer>

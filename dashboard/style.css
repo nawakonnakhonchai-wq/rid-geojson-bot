@@ -122,6 +122,10 @@ main { min-width: 0; }
 .gridline { stroke: var(--line); stroke-width: 1; }
 .baseline { stroke: var(--muted); stroke-width: 1; opacity: .5; }
 .xhair { stroke: var(--muted); stroke-width: 1; }
+.bar-summary { background: var(--tile); border-radius: 12px; padding: 10px 14px; font-size: 14px; margin-bottom: 12px; }
+.bar-summary .over { color: var(--s-flood); }
+.bar-summary .note { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.bar-summary .over b { color: var(--text); font-weight: 600; }
 .bars-scroll { max-height: 430px; overflow-y: auto; padding-right: 4px; }
 #damBars text { font-size: 12px; }
 #damBars g:hover .hit, #damBars g:focus .hit { fill: var(--tile); }
