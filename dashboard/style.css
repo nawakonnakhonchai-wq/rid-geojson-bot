@@ -4,8 +4,9 @@
   --page: #101012; --app: #19191b; --card: #232326; --tile: #2d2d31; --tile-hover: #36363b;
   --text: #f4f4f5; --muted: #a1a1aa; --line: #34343a; --accent: #fbbf24; --accent-text: #19191b;
   --blue: #60a5fa; --shadow: 0 1px 0 rgba(255,255,255,.03) inset;
-  /* สีสถานะ: น้ำน้อย=อำพัน · ปกติ=เขียวอมฟ้า · น้ำมาก=ฟ้า · ล้น/เกิน=แดงอมชมพู (ผ่านการตรวจตาบอดสีทั้งสองธีม) */
-  --s-low: #c4861f; --s-normal: #179d85; --s-high: #3f86e8; --s-flood: #e5486a; --s-na: #5b5b63;
+  /* สีสถานะเรียงตามความเสี่ยง: น้ำน้อย=เขียว (ปลอดภัย) · ปกติ=ฟ้า · น้ำมาก=อำพัน (เฝ้าระวัง) · ล้น/เกิน=แดงอมชมพู (อันตราย)
+     ผ่านการตรวจช่วงความสว่าง/ความอิ่มสี/การแยกสีสำหรับผู้ตาบอดสี ทั้งสองธีม */
+  --s-low: #2f9e57; --s-normal: #3f86e8; --s-high: #c4861f; --s-flood: #e5486a; --s-na: #5b5b63;
   --river: #67c3e6;
 }
 :root[data-theme="light"] {
@@ -13,7 +14,7 @@
   --page: #e9edf2; --app: #f5f7fa; --card: #ffffff; --tile: #f1f4f8; --tile-hover: #e7ecf3;
   --text: #18202b; --muted: #637083; --line: #e2e7ee; --accent: #f59e0b; --accent-text: #ffffff;
   --blue: #2563eb; --shadow: 0 1px 2px rgba(16,24,40,.06);
-  --s-low: #e0a127; --s-normal: #14a88f; --s-high: #3b82e6; --s-flood: #e5405f; --s-na: #c3c2b7;
+  --s-low: #2fa75a; --s-normal: #3b82e6; --s-high: #e0a127; --s-flood: #e5405f; --s-na: #c3c2b7;
   --river: #38a8d6;
 }
 * { box-sizing: border-box; }
