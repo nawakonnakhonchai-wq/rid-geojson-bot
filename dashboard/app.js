@@ -117,7 +117,7 @@
     const blue = cssVar("--blue");
     const base = f => ({ color: blue, weight: (f.properties.length_km || 0) >= 300 ? 2.6 : 1.6, opacity: .8, lineCap: "round" });
     m._riv = L.geoJSON(RIV.data, {
-      pane: "rivers", renderer: L.canvas({ pane: "rivers", tolerance: 6 }),
+      pane: "rivers", renderer: L.svg({ pane: "rivers", padding: 0.5 }),
       filter: f => !!f.geometry, style: base,
       onEachFeature: (f, lyr) => {
         const p = f.properties;
