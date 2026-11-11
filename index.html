@@ -123,6 +123,12 @@
             <div class="muted trend-sum" id="trendScope"></div>
           </div>
           <div class="ctrl-row">
+            <div class="seg sm" role="group" aria-label="ขอบเขตสถานี">
+              <button data-tr-scope="all">ทุกสถานี</button><button data-tr-scope="ind">ใกล้นิคมฯ</button>
+            </div>
+            <div class="seg sm" role="group" aria-label="ระยะจากนิคม" id="trKm" hidden>
+              <button data-tr-km="5">5 กม.</button><button data-tr-km="10">10 กม.</button><button data-tr-km="20">20 กม.</button>
+            </div>
             <div class="seg sm" role="group" aria-label="ช่วงเวลา">
               <button data-tr-range="30">30 วัน</button><button data-tr-range="90">90 วัน</button><button data-tr-range="all">ทั้งหมด</button>
             </div>
@@ -133,6 +139,7 @@
         </div>
         <div class="chart" id="trendChart"><div class="msg">กำลังโหลดข้อมูลย้อนหลัง…</div></div>
         <div class="legend-row" id="trendLegend"></div>
+        <div class="tr-watch" id="trWatch" hidden></div>
       </section>
 
       <!-- ตาราง -->
