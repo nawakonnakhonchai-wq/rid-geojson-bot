@@ -506,15 +506,22 @@
     const f = frame(box, dates, ticks, H, pct ? "%" : "", P);
     const { svg, W, x, y } = f;
     svg.setAttribute("aria-label", `กราฟพื้นที่ซ้อน ${pct ? "สัดส่วน" : "จำนวน"}สถานีตามสถานะรายวัน`);
-    const base = new Array(dates.length).fill(0), ring = cssVar("--card"), mids = [];
+    // พื้นโปร่งใส + เส้นสีเต็มตามขอบบนของแต่ละสถานะ
+    const base = new Array(dates.length).fill(0), mids = [], tops = [], edges = [];
+    const fillOp = document.documentElement.dataset.theme === "light" ? ".32" : ".38";
     for (const si of [3, 2, 1, 0]) {   // ซ้อนจากล่าง: น้ำน้อย → ล้นตลิ่ง
       const top = base.map((b, i) => b + val(si, i));
-      const d = "M" + top.map((v, i) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("L") +
+      const upper = top.map((v, i) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("L");
+      const d = "M" + upper +
         "L" + base.map((v, i) => [i, v]).reverse().map(([i, v]) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("L") + "Z";
-      svg.append(sv("path", { d, fill: color(ST[si]), stroke: ring, "stroke-width": 1, "stroke-linejoin": "round" }));
+      svg.append(sv("path", { d, fill: color(ST[si]), "fill-opacity": fillOp, stroke: "none" }));
+      edges.push(sv("path", { d: "M" + upper, fill: "none", stroke: color(ST[si]), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
       mids.push({ si, y: (y(base[last]) + y(top[last])) / 2 });
+      tops.push({ si, top: [...top] });
       top.forEach((v, i) => { base[i] = v; });
     }
+    // วาดเส้นทีหลัง ให้อยู่บนพื้นทุกชั้น; ล้นตลิ่งเป็นเส้นบนสุดที่ 100% ในโหมด % จึงไม่วาดซ้ำกับกรอบ
+    edges.forEach((e, k) => { if (!(pct && tops[k].si === 0)) svg.append(e); });
     // ป้ายค่าล่าสุดที่ปลายขวา (กันป้ายทับกัน)
     mids.sort((a, b) => a.y - b.y);
     for (let k = 1; k < mids.length; k++) if (mids[k].y - mids[k - 1].y < 15) mids[k].y = mids[k - 1].y + 15;
@@ -529,8 +536,17 @@
       if (!narrow) { const l = sv("text", { x: lx + 50, y: m.y }); l.textContent = ST[m.si].label; g.append(l); }
       svg.append(g);
     }
-    const dot = sv("g", { visibility: "hidden" }); svg.append(dot);
+    // จุดบนเส้นตอนชี้
+    const card = cssVar("--card");
+    const dots = tops.filter(t => !(pct && t.si === 0)).map(t => {
+      const c = sv("circle", { r: 4, fill: color(ST[t.si]), stroke: card, "stroke-width": 2, visibility: "hidden" });
+      svg.append(c); return { c, t };
+    });
     crosshair(f, dates, H, (evt, i) => {
+      dots.forEach(({ c, t }) => {
+        if (!evt) { c.setAttribute("visibility", "hidden"); return; }
+        c.setAttribute("cx", x(i)); c.setAttribute("cy", y(t.top[i])); c.setAttribute("visibility", "visible");
+      });
       if (!evt) return;
       showTip(evt, `${thDate(dates[i])} · ${nf(totals[i])} สถานี`,
         ST.map((s, si) => ({ label: s.label, value: `${nf(series[si][i])} (${fmt(share(si, i), 0)}%)`, color: color(s) })));
