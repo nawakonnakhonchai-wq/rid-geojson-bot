@@ -102,7 +102,7 @@
   }
   function legend(box, list) {
     box.replaceChildren(...list.map(s => el("span", {}, dotEl(color(s)), s.label)));
-    if (RIV.data) {
+    if (RIV.data && (box.id === "mapLegend" || box.id === "damLegend")) {
       const k = el("i", { class: "rk" }); k.style.background = cssVar("--blue");
       box.append(el("span", { class: "riv-key" + (RIV.on ? "" : " off") }, k, "แม่น้ำสายหลัก"));
     }
@@ -172,7 +172,7 @@
   }
 
   /* ---------- charts ---------- */
-  const PAD = { l: 40, r: 12, t: 14, b: 26 };
+  const PAD = { l: 40, r: 12, t: 14, b: 26 }, PAD0 = PAD;
   function niceTicks(lo, hi, n = 4) {
     const step0 = (hi - lo) / n || 1, mag = Math.pow(10, Math.floor(Math.log10(step0)));
     const step = [1, 2, 2.5, 5, 10].map(k => k * mag).find(s => s >= step0);
@@ -180,7 +180,8 @@
     for (let v = Math.floor(lo / step) * step; v <= end + 1e-9; v += step) out.push(+v.toFixed(6));
     return out;
   }
-  function frame(box, dates, ticks, H, suffix = "") {
+  function frame(box, dates, ticks, H, suffix = "", P = PAD) {
+    const PAD = P;
     const W = Math.max(280, box.clientWidth || 640);
     const x = i => PAD.l + i * (W - PAD.l - PAD.r) / Math.max(1, dates.length - 1);
     const y = v => H - PAD.b - (v - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]) * (H - PAD.t - PAD.b);
@@ -200,10 +201,10 @@
       t.textContent = new Date(d + "T00:00:00").toLocaleDateString("th-TH", { month: "short" });
       svg.append(t);
     });
-    return { svg, W, x, y };
+    return { svg, W, x, y, P };
   }
   function crosshair(f, dates, H, onMove) {
-    const { svg, W, x } = f;
+    const { svg, W, x } = f, PAD = f.P || PAD0;
     const line = sv("line", { class: "xhair", y1: PAD.t, y2: H - PAD.b, visibility: "hidden" });
     const hit = sv("rect", { x: PAD.l, y: 0, width: W - PAD.l - PAD.r, height: H, fill: "transparent" });
     svg.append(line, hit);
@@ -470,33 +471,69 @@
     });
   }
 
+  // กราฟสถานะรายวัน: ค่าเริ่มต้นเป็นสัดส่วน % (ซ้อนเต็ม 100%) เพราะจำนวนสถานีที่รายงานแต่ละวันไม่เท่ากัน
+  const TR = { range: store.get("rid-tr-range") || "90", mode: store.get("rid-tr-mode") || "pct" };
   function renderTrend() {
-    const box = $("trendChart"), H = (box.clientWidth || 600) < 500 ? 220 : 300;
-    const dates = S.hist.dates, codes = new Set(S.list.map(s => s.code));
-    const series = ST.map(() => new Array(dates.length).fill(0));
+    const box = $("trendChart"), narrow = (box.clientWidth || 600) < 560, H = narrow ? 240 : 300;
+    const allDates = S.hist.dates, codes = new Set(S.list.map(s => s.code));
+    const cnt = ST.map(() => new Array(allDates.length).fill(0));
     for (const [code, h] of Object.entries(S.hist.stations)) {
       if (!codes.has(code)) continue;
-      h.pct.forEach((v, i) => { if (v != null) series[ST.indexOf(stStatus(v))][i]++; });
+      h.pct.forEach((v, i) => { if (v != null) cnt[ST.indexOf(stStatus(v))][i]++; });
     }
-    const totals = dates.map((_, i) => series.reduce((a, s) => a + s[i], 0));
-    $("trendScope").textContent = `${nf(dates.length)} วัน · ${nf(codes.size)} สถานี`;
-    const f = frame(box, dates, niceTicks(0, Math.max(1, ...totals)), H);
-    const { svg, x, y } = f;
-    svg.setAttribute("aria-label", "กราฟพื้นที่ซ้อน จำนวนสถานีตามสถานะรายวัน");
-    const base = new Array(dates.length).fill(0), ring = cssVar("--card");
+    const tot = allDates.map((_, i) => cnt.reduce((a, s) => a + s[i], 0));
+    // ตัดวันที่ข้อมูลขาด (สถานีรายงานน้อยกว่า 85% ของค่ามัธยฐาน) ซึ่งทำให้กราฟดิ่งผิดจริง
+    const med = [...tot].sort((a, b) => a - b)[Math.floor(tot.length / 2)] || 0;
+    let idx = allDates.map((_, i) => i).filter(i => tot[i] > 0 && tot[i] >= med * 0.85);
+    if (TR.range !== "all") idx = idx.filter(i => allDates[i] >= allDates[allDates.length - 1 - (+TR.range - 1)] );
+    if (idx.length < 2) { box.replaceChildren(el("div", { class: "msg" }, "ข้อมูลไม่พอสำหรับช่วงเวลานี้")); return; }
+    const dates = idx.map(i => allDates[i]);
+    const series = cnt.map(s => idx.map(i => s[i]));
+    const totals = idx.map(i => tot[i]);
+    const pct = TR.mode === "pct";
+    const val = (si, i) => pct ? series[si][i] / totals[i] * 100 : series[si][i];
+    const share = (si, i) => totals[i] ? series[si][i] / totals[i] * 100 : 0;
+
+    // สรุปการเปลี่ยนแปลง: น้ำมาก + ล้นตลิ่ง จากต้นช่วงถึงล่าสุด
+    const last = dates.length - 1, hi = i => share(0, i) + share(1, i), dlt = hi(last) - hi(0);
+    $("trendScope").replaceChildren(
+      el("span", {}, `น้ำมาก + ล้นตลิ่ง ล่าสุด `), el("b", {}, `${fmt(hi(last), 0)}%`),
+      el("span", { class: dlt >= 0 ? "up" : "down" }, ` ${dlt >= 0 ? "▲" : "▼"} ${fmt(Math.abs(dlt), 0)} จุด`),
+      el("span", {}, ` จาก ${thDate(dates[0])}`));
+
+    const P = { l: 44, r: narrow ? 64 : 120, t: 14, b: 26 };
+    const ticks = pct ? [0, 25, 50, 75, 100] : niceTicks(0, Math.max(1, ...totals), 6);
+    const f = frame(box, dates, ticks, H, pct ? "%" : "", P);
+    const { svg, W, x, y } = f;
+    svg.setAttribute("aria-label", `กราฟพื้นที่ซ้อน ${pct ? "สัดส่วน" : "จำนวน"}สถานีตามสถานะรายวัน`);
+    const base = new Array(dates.length).fill(0), ring = cssVar("--card"), mids = [];
     for (const si of [3, 2, 1, 0]) {   // ซ้อนจากล่าง: น้ำน้อย → ล้นตลิ่ง
-      const top = base.map((b, i) => b + series[si][i]);
+      const top = base.map((b, i) => b + val(si, i));
       const d = "M" + top.map((v, i) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("L") +
         "L" + base.map((v, i) => [i, v]).reverse().map(([i, v]) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("L") + "Z";
-      svg.append(sv("path", { d, fill: color(ST[si]), stroke: ring, "stroke-width": 1 }));
+      svg.append(sv("path", { d, fill: color(ST[si]), stroke: ring, "stroke-width": 1, "stroke-linejoin": "round" }));
+      mids.push({ si, y: (y(base[last]) + y(top[last])) / 2 });
       top.forEach((v, i) => { base[i] = v; });
     }
+    // ป้ายค่าล่าสุดที่ปลายขวา (กันป้ายทับกัน)
+    mids.sort((a, b) => a.y - b.y);
+    for (let k = 1; k < mids.length; k++) if (mids[k].y - mids[k - 1].y < 15) mids[k].y = mids[k - 1].y + 15;
+    const over = mids[mids.length - 1].y - (H - P.b - 4); if (over > 0) mids.forEach(m => { m.y -= over; });
+    const text = cssVar("--text"), lx = W - P.r + 8;
+    for (const m of mids) {
+      const g = sv("g");
+      g.append(sv("circle", { cx: lx + 4, cy: m.y - 4, r: 4, fill: color(ST[m.si]) }));
+      const t = sv("text", { x: lx + 12, y: m.y, style: `fill:${text};font-weight:600` });
+      t.textContent = pct ? `${fmt(share(m.si, last), 0)}%` : nf(series[m.si][last]);
+      g.append(t);
+      if (!narrow) { const l = sv("text", { x: lx + 50, y: m.y }); l.textContent = ST[m.si].label; g.append(l); }
+      svg.append(g);
+    }
+    const dot = sv("g", { visibility: "hidden" }); svg.append(dot);
     crosshair(f, dates, H, (evt, i) => {
       if (!evt) return;
-      showTip(evt, thDate(dates[i]), [
-        ...ST.map((s, si) => ({ label: s.label, value: nf(series[si][i]), color: color(s) })),
-        { label: "รวม", value: nf(totals[i]) },
-      ]);
+      showTip(evt, `${thDate(dates[i])} · ${nf(totals[i])} สถานี`,
+        ST.map((s, si) => ({ label: s.label, value: `${nf(series[si][i])} (${fmt(share(si, i), 0)}%)`, color: color(s) })));
     });
     box.replaceChildren(svg);
   }
@@ -940,6 +977,21 @@
   };
   $("stNear").addEventListener("click", () => nearMe($("stNear"), stFinder, () => S.all, () => S.map, "สถานี", pickStationNear));
   $("damNear").addEventListener("click", () => nearMe($("damNear"), damFinder, () => D.all, () => D.map, "เขื่อน/อ่าง", pickDamNear));
+
+  document.querySelectorAll("[data-tr-range]").forEach(b => b.addEventListener("click", () => {
+    TR.range = b.dataset.trRange; store.set("rid-tr-range", TR.range);
+    document.querySelectorAll("[data-tr-range]").forEach(x => x.classList.toggle("on", x === b));
+    if (S.hist) renderTrend();
+  }));
+  document.querySelectorAll("[data-tr-mode]").forEach(b => b.addEventListener("click", () => {
+    TR.mode = b.dataset.trMode; store.set("rid-tr-mode", TR.mode);
+    document.querySelectorAll("[data-tr-mode]").forEach(x => x.classList.toggle("on", x === b));
+    $("trendTitle").textContent = TR.mode === "pct" ? "สัดส่วนสถานีตามสถานะ รายวัน" : "จำนวนสถานีตามสถานะ รายวัน";
+    if (S.hist) renderTrend();
+  }));
+  document.querySelectorAll("[data-tr-range]").forEach(x => x.classList.toggle("on", x.dataset.trRange === TR.range));
+  document.querySelectorAll("[data-tr-mode]").forEach(x => x.classList.toggle("on", x.dataset.trMode === TR.mode));
+  $("trendTitle").textContent = TR.mode === "pct" ? "สัดส่วนสถานีตามสถานะ รายวัน" : "จำนวนสถานีตามสถานะ รายวัน";
 
   /* =================== ปุ่มและเหตุการณ์ =================== */
   const syncSeg = (attr, val) => document.querySelectorAll(`[${attr}]`).forEach(b => b.classList.toggle("on", b.getAttribute(attr) === val));

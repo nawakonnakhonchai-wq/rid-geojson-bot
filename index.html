@@ -112,7 +112,20 @@
 
       <!-- แนวโน้มรายวัน -->
       <section class="card full" id="trendcard">
-        <div class="card-head"><h2>จำนวนสถานีตามสถานะ รายวัน</h2><span class="muted" id="trendScope"></span></div>
+        <div class="card-head">
+          <div>
+            <h2 id="trendTitle">สัดส่วนสถานีตามสถานะ รายวัน</h2>
+            <div class="muted trend-sum" id="trendScope"></div>
+          </div>
+          <div class="ctrl-row">
+            <div class="seg sm" role="group" aria-label="ช่วงเวลา">
+              <button data-tr-range="30">30 วัน</button><button data-tr-range="90">90 วัน</button><button data-tr-range="all">ทั้งหมด</button>
+            </div>
+            <div class="seg sm" role="group" aria-label="หน่วย">
+              <button data-tr-mode="pct">%</button><button data-tr-mode="count">จำนวน</button>
+            </div>
+          </div>
+        </div>
         <div class="chart" id="trendChart"><div class="msg">กำลังโหลดข้อมูลย้อนหลัง…</div></div>
         <div class="legend-row" id="trendLegend"></div>
       </section>
