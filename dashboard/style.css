@@ -180,8 +180,19 @@ span.chip-t:hover { background: var(--card); }
 .legend-row.map-legend { flex-direction: column; gap: 4px; margin: 10px 10px 0 0; padding: 10px 12px; font-size: 12px; line-height: 1.5;
   color: var(--text); background: color-mix(in srgb, var(--card) 92%, transparent); border: 1px solid var(--line);
   border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.2); backdrop-filter: blur(6px); }
-.map-legend .riv-key { cursor: pointer; padding-top: 4px; margin-top: 2px; border-top: 1px solid var(--line); }
-@media (max-width: 760px) { .legend-row.map-legend { font-size: 11px; padding: 8px 10px; gap: 2px; } }
+.map-legend .riv-key { cursor: pointer; padding-top: 5px; margin-top: 3px; border-top: 1px solid var(--line); }
+.legend-row .lg-item { display: inline-flex; align-items: center; gap: 6px; cursor: help; outline: none; border-radius: 6px; }
+.legend-row .lg-item:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.legend-row .lg-r { color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-legend .lg-item { display: flex; }
+.map-legend .lg-r { margin-left: auto; padding-left: 14px; }
+.map-legend .lg-head { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.map-legend .riv-key .lg-r { font-size: 11px; }
+@media (max-width: 760px) {
+  .legend-row.map-legend { font-size: 11px; padding: 8px 10px; gap: 2px; }
+  /* มือถือ: กล่องเล็ก แตะสัญลักษณ์เพื่อดูช่วงค่าและความหมาย */
+  .map-legend .lg-r, .map-legend .lg-head { display: none; }
+}
 .riv-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--tile); color: var(--muted); border-radius: 18px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .riv-btn svg { width: 16px; height: 16px; }
 .riv-btn.on { color: var(--text); border-color: var(--blue); }
@@ -226,6 +237,8 @@ td.stale { color: var(--muted); }
 #tip .t { color: var(--muted); margin-bottom: 4px; }
 #tip .r { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
 #tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+#tip { max-width: 280px; }
+#tip .r b:empty { display: none; }
 #tip .k { width: 12px; height: 2px; display: inline-block; }
 #tip b { font-variant-numeric: tabular-nums; }
 
