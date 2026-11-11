@@ -288,6 +288,7 @@
       IND.data = await fetch("data/ieat_estates.geojson" + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
       document.querySelectorAll("[data-ind]").forEach(b => { b.hidden = false; b.classList.toggle("on", IND.on); });
       maps.forEach(indLayer);
+      if (S.hist && TR.scope === "ind") renderTrend();
       if (S.all.length) legend($("mapLegend"), [...ST, NA]);
       if (D.all.length) legend($("damLegend"), [...DST, NA]);
     } catch (e) { /* ยังไม่มีไฟล์นิคม */ }
@@ -654,10 +655,31 @@
   }
 
   // กราฟสถานะรายวัน: ค่าเริ่มต้นเป็นสัดส่วน % (ซ้อนเต็ม 100%) เพราะจำนวนสถานีที่รายงานแต่ละวันไม่เท่ากัน
-  const TR = { range: store.get("rid-tr-range") || "90", mode: store.get("rid-tr-mode") || "pct" };
+  const TR = { range: store.get("rid-tr-range") || "90", mode: store.get("rid-tr-mode") || "pct",
+    scope: store.get("rid-tr-scope") || "all", km: +(store.get("rid-tr-km") || 10) };
+  // นิคมที่ใกล้ที่สุดของแต่ละสถานี (คำนวณครั้งเดียวหลังโหลดข้อมูลนิคม)
+  let nearEst = null;
+  function stationEstates() {
+    if (nearEst || !IND.data || !S.all.length) return nearEst;
+    const est = IND.data.features.map(f => ({ name: f.properties.name, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] }));
+    nearEst = new Map();
+    for (const s of S.all) {
+      if (s.lat == null || s.lon == null) continue;
+      let best = null;
+      for (const e of est) { const km = kmBetween(s, e); if (!best || km < best.km) best = { est: e.name, km }; }
+      nearEst.set(s.code, best);
+    }
+    return nearEst;
+  }
+  const trTitle = () => (TR.scope === "ind" ? (TR.mode === "pct" ? "สัดส่วนสถานีใกล้นิคมฯ " : "จำนวนสถานีใกล้นิคมฯ ") : (TR.mode === "pct" ? "สัดส่วนสถานี" : "จำนวนสถานี")) + "ตามสถานะ รายวัน";
   function renderTrend() {
     const box = $("trendChart"), narrow = (box.clientWidth || 600) < 560, H = narrow ? 240 : 300;
-    const allDates = S.hist.dates, codes = new Set(S.list.map(s => s.code));
+    const ind = TR.scope === "ind", ne = ind ? stationEstates() : null;
+    $("trKm").hidden = !ind;
+    $("trendTitle").textContent = trTitle();
+    if (ind && !ne) { box.replaceChildren(el("div", { class: "msg" }, "กำลังโหลดข้อมูลนิคมอุตสาหกรรม…")); $("trWatch").hidden = true; return; }
+    const inScope = s => !ind || (ne.get(s.code)?.km ?? Infinity) <= TR.km;
+    const allDates = S.hist.dates, codes = new Set(S.list.filter(inScope).map(s => s.code));
     const cnt = ST.map(() => new Array(allDates.length).fill(0));
     for (const [code, h] of Object.entries(S.hist.stations)) {
       if (!codes.has(code)) continue;
@@ -678,10 +700,19 @@
 
     // สรุปการเปลี่ยนแปลง: น้ำมาก + ล้นตลิ่ง จากต้นช่วงถึงล่าสุด
     const last = dates.length - 1, hi = i => share(0, i) + share(1, i), dlt = hi(last) - hi(0);
-    $("trendScope").replaceChildren(
+    if (ind) {
+      const w = i => series[0][i] + series[1][i], dw = w(last) - w(0);
+      const estN = new Set([...codes].map(c => ne.get(c).est)).size;
+      $("trendScope").replaceChildren(
+        el("span", {}, `${nf(codes.size)} สถานีในรัศมี ${TR.km} กม. รอบ ${nf(estN)} จาก ${nf(IND.data.features.length)} นิคมฯ · ต้องเฝ้าระวัง `),
+        el("b", {}, `${nf(w(last))} สถานี`),
+        el("span", { class: dw > 0 ? "up" : dw < 0 ? "down" : "" }, ` ${dw > 0 ? "▲" : dw < 0 ? "▼" : "="} ${nf(Math.abs(dw))}`),
+        el("span", {}, ` จาก ${thDate(dates[0])}`));
+      renderWatch(codes, ne);
+    } else { $("trWatch").hidden = true; $("trendScope").replaceChildren(
       el("span", {}, `น้ำมาก + ล้นตลิ่ง ล่าสุด `), el("b", {}, `${fmt(hi(last), 0)}%`),
       el("span", { class: dlt >= 0 ? "up" : "down" }, ` ${dlt >= 0 ? "▲" : "▼"} ${fmt(Math.abs(dlt), 0)} จุด`),
-      el("span", {}, ` จาก ${thDate(dates[0])}`));
+      el("span", {}, ` จาก ${thDate(dates[0])}`)); }
 
     const P = { l: 44, r: narrow ? 64 : 120, t: 14, b: 26 };
     const ticks = pct ? [0, 25, 50, 75, 100] : niceTicks(0, Math.max(1, ...totals), 6);
@@ -734,6 +765,25 @@
         ST.map((s, si) => ({ label: s.label, value: `${nf(series[si][i])} (${fmt(share(si, i), 0)}%)`, color: color(s) })));
     });
     box.replaceChildren(svg);
+  }
+
+  // รายการสถานีใกล้นิคมที่ต้องเฝ้าระวัง (ค่าล่าสุดแบบ realtime)
+  function renderWatch(codes, ne) {
+    const box = $("trWatch"); box.hidden = false;
+    const rows = S.all.filter(s => codes.has(s.code) && s.pct != null && s.pct > 70).sort((a, b) => b.pct - a.pct);
+    const head = el("div", { class: "tr-watch-h" }, el("span", {}, `สถานีใกล้นิคมฯ ที่ต้องเฝ้าระวังขณะนี้ (${nf(rows.length)})`),
+      el("span", { class: "muted" }, `ระดับน้ำเกิน 70% ของตลิ่ง ในรัศมี ${TR.km} กม.`));
+    const grid = el("div", { class: "tr-watch-grid" });
+    for (const s of rows) {
+      const st = stStatus(s.pct), n = ne.get(s.code);
+      const b = el("button", { type: "button", class: "tr-w" }, el("i"), el("span", { class: "n" }, s.name),
+        el("span", { class: "e" }, `ใกล้นิคมฯ ${n.est} · ${fmtKm(n.km)}`), el("b", {}, fmt(s.pct, 0) + "%"));
+      b.style.setProperty("--c", color(st));
+      b.title = `${st.label} · ${s.prov}`;
+      b.addEventListener("click", () => { pickStationNear(s); selectStation(s, { fly: true }); $("overview").scrollIntoView({ behavior: "smooth" }); });
+      grid.append(b);
+    }
+    box.replaceChildren(head, rows.length ? grid : el("div", { class: "tr-none" }, "ไม่มีสถานีน้ำมากหรือล้นตลิ่งใกล้นิคมฯ ในขณะนี้"));
   }
 
   /* =================== เขื่อน / อ่างเก็บน้ำ =================== */
@@ -1191,12 +1241,27 @@
   document.querySelectorAll("[data-tr-mode]").forEach(b => b.addEventListener("click", () => {
     TR.mode = b.dataset.trMode; store.set("rid-tr-mode", TR.mode);
     document.querySelectorAll("[data-tr-mode]").forEach(x => x.classList.toggle("on", x === b));
-    $("trendTitle").textContent = TR.mode === "pct" ? "สัดส่วนสถานีตามสถานะ รายวัน" : "จำนวนสถานีตามสถานะ รายวัน";
+    $("trendTitle").textContent = trTitle();
     if (S.hist) renderTrend();
   }));
+  document.querySelectorAll("[data-tr-scope]").forEach(b => b.addEventListener("click", () => {
+    TR.scope = b.dataset.trScope; store.set("rid-tr-scope", TR.scope);
+    // ใกล้นิคมฯ สถานีน้อย ดูเป็นจำนวนจะเห็นชัดกว่า
+    if (TR.scope === "ind" && TR.mode === "pct") { TR.mode = "count"; store.set("rid-tr-mode", "count"); document.querySelectorAll("[data-tr-mode]").forEach(x => x.classList.toggle("on", x.dataset.trMode === "count")); }
+    document.querySelectorAll("[data-tr-scope]").forEach(x => x.classList.toggle("on", x === b));
+    if (S.hist) renderTrend();
+  }));
+  document.querySelectorAll("[data-tr-km]").forEach(b => b.addEventListener("click", () => {
+    TR.km = +b.dataset.trKm; store.set("rid-tr-km", String(TR.km));
+    document.querySelectorAll("[data-tr-km]").forEach(x => x.classList.toggle("on", x === b));
+    if (S.hist) renderTrend();
+  }));
+  document.querySelectorAll("[data-tr-scope]").forEach(x => x.classList.toggle("on", x.dataset.trScope === TR.scope));
+  document.querySelectorAll("[data-tr-km]").forEach(x => x.classList.toggle("on", +x.dataset.trKm === TR.km));
+  $("trKm").hidden = TR.scope !== "ind";
   document.querySelectorAll("[data-tr-range]").forEach(x => x.classList.toggle("on", x.dataset.trRange === TR.range));
   document.querySelectorAll("[data-tr-mode]").forEach(x => x.classList.toggle("on", x.dataset.trMode === TR.mode));
-  $("trendTitle").textContent = TR.mode === "pct" ? "สัดส่วนสถานีตามสถานะ รายวัน" : "จำนวนสถานีตามสถานะ รายวัน";
+  $("trendTitle").textContent = trTitle();
 
   /* =================== ปุ่มและเหตุการณ์ =================== */
   const syncSeg = (attr, val) => document.querySelectorAll(`[${attr}]`).forEach(b => b.classList.toggle("on", b.getAttribute(attr) === val));
