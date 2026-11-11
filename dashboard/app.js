@@ -51,6 +51,25 @@
   ];
   const ST = mkStatus("ล้นตลิ่ง", 70, 30);       // สถานีวัดน้ำ (% ตลิ่ง)
   const DST = mkStatus("เกินเก็บกักปกติ", 80, 30); // เขื่อน (% ของระดับเก็บกักปกติ)
+  // ความหมายของแต่ละสถานะ (ใช้ในคำอธิบายสัญลักษณ์)
+  const MEANING = {
+    st: {
+      title: "% ระดับน้ำเทียบตลิ่ง", unit: "สถานี",
+      flood: [">100%", "ระดับน้ำสูงกว่าตลิ่ง น้ำอาจล้นเข้าพื้นที่ริมฝั่ง"],
+      high: ["70–100%", "ระดับน้ำใกล้ตลิ่ง ควรเฝ้าระวัง"],
+      normal: ["30–70%", "ระดับน้ำอยู่ในเกณฑ์ปกติ"],
+      low: ["≤30%", "ระดับน้ำต่ำ อยู่ห่างจากตลิ่งมาก"],
+      na: ["", "สถานีไม่ได้ส่งค่าระดับน้ำเทียบตลิ่ง"],
+    },
+    dam: {
+      title: "% เทียบระดับเก็บกักปกติ", unit: "แห่ง",
+      flood: [">100%", "น้ำเกินระดับเก็บกักปกติ ต้องเร่งระบาย อาจกระทบพื้นที่ท้ายเขื่อน"],
+      high: ["80–100%", "น้ำใกล้เต็มระดับเก็บกักปกติ"],
+      normal: ["30–80%", "ปริมาณน้ำอยู่ในเกณฑ์ปกติ"],
+      low: ["≤30%", "น้ำในอ่างน้อย ควรใช้น้ำอย่างประหยัด"],
+      na: ["", "ไม่มีข้อมูลปริมาณน้ำ"],
+    },
+  };
   const statusIn = list => p => (p == null || isNaN(p)) ? NA : list.find(s => s.test(p));
   const stStatus = statusIn(ST), dStatus = statusIn(DST);
 
@@ -107,16 +126,43 @@
     m._tiles.forEach(t => t.addTo(m));
     m._tiles[1].bringToBack();
   }
+  // คำอธิบายสัญลักษณ์: สี + ชื่อ + ช่วงค่า; ชี้/แตะเพื่อดูความหมายเต็มและจำนวน
   function legend(box, list) {
-    box.replaceChildren(...list.map(s => el("span", {}, dotEl(color(s)), s.label)));
-    if (RIV.data && (box.id === "mapLegend" || box.id === "damLegend")) {
+    const isDam = box.id === "damLegend", M = MEANING[isDam ? "dam" : "st"];
+    const onMap = box.id === "mapLegend" || box.id === "damLegend";
+    const count = key => (isDam ? D.list : S.list).filter(r => (isDam ? dStatus : stStatus)(r.pct).key === key).length;
+    const tipFor = (item, title, rows) => {
+      const show = e => showTip(e, title, rows());
+      item.addEventListener("pointermove", show);
+      item.addEventListener("pointerleave", hideTip);
+      item.addEventListener("focus", () => { const r = item.getBoundingClientRect(); showTip({ clientX: r.left, clientY: r.bottom }, title, rows()); });
+      item.addEventListener("blur", hideTip);
+    };
+    const items = list.map(st => {
+      const [range, desc] = M[st.key];
+      const item = el("span", { class: "lg-item", tabindex: "0" }, dotEl(color(st)), el("span", { class: "lg-l" }, st.label),
+        range ? el("span", { class: "lg-r" }, range) : null);
+      tipFor(item, st.label + (range ? `  (${range})` : ""), () => [
+        { label: desc, value: "" },
+        { label: "จำนวนตอนนี้", value: `${nf(count(st.key))} ${M.unit}`, color: color(st) },
+      ]);
+      // แตะบนมือถือ: แสดง pop-up ใต้สัญลักษณ์
+      item.addEventListener("click", e => { const r = item.getBoundingClientRect(); showTip({ clientX: r.left, clientY: r.bottom }, st.label + (range ? `  (${range})` : ""), [
+        { label: desc, value: "" }, { label: "จำนวนตอนนี้", value: `${nf(count(st.key))} ${M.unit}`, color: color(st) }]); e.stopPropagation(); });
+      return item;
+    });
+    box.replaceChildren(...(onMap ? [el("div", { class: "lg-head" }, M.title)] : []), ...items);
+    if (RIV.data && onMap) {
       const k = el("i", { class: "rk" }); k.style.background = cssVar("--river");
-      const rk = el("span", { class: "riv-key" + (RIV.on ? "" : " off"), role: "button", tabindex: "0", title: "แตะเพื่อเปิด/ปิดเส้นแม่น้ำ" }, k, "แม่น้ำสายหลัก");
-      rk.addEventListener("click", () => setRivers(!RIV.on));
+      const rk = el("span", { class: "riv-key lg-item" + (RIV.on ? "" : " off"), role: "button", tabindex: "0" }, k, el("span", { class: "lg-l" }, "แม่น้ำสายหลัก"),
+        el("span", { class: "lg-r" }, RIV.on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"));
+      rk.addEventListener("click", e => { setRivers(!RIV.on); e.stopPropagation(); });
       rk.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setRivers(!RIV.on); } });
+      tipFor(rk, "แม่น้ำสายหลัก", () => [{ label: "รายชื่อจากกรมเจ้าท่า เส้นทางจาก OpenStreetMap", value: "" }]);
       box.append(rk);
     }
   }
+  document.addEventListener("click", hideTip);
 
   /* ---------- ชั้นเส้นทางแม่น้ำ ---------- */
   const RIV = { data: null, on: store.get("rid-rivers") !== "0" };
@@ -143,7 +189,7 @@
   function setRivers(on) {
     RIV.on = on; store.set("rid-rivers", on ? "1" : "0");
     document.querySelectorAll("[data-rivers]").forEach(b => b.classList.toggle("on", on));
-    document.querySelectorAll(".riv-key").forEach(k => k.classList.toggle("off", !on));
+    document.querySelectorAll(".riv-key").forEach(k => { k.classList.toggle("off", !on); const r = k.querySelector(".lg-r"); if (r) r.textContent = on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"; });
     maps.forEach(m => { if (m._riv) on ? m._riv.addTo(m) : m._riv.remove(); });
   }
   async function loadRivers(bust) {
