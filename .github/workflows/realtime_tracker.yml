@@ -35,13 +35,16 @@ jobs:
       - name: Daily Snapshot
         run: python snapshot.py
 
+      - name: Build Dashboard Data
+        run: python build_dashboard_data.py
+
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           if [ -f rid_realtime.geojson ]; then
-            git add rid_realtime.geojson history
+            git add rid_realtime.geojson history data
             git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update realtime data: $(date)" && git push)
           else
             echo "ไม่พบไฟล์ rid_realtime.geojson ระบบอาจดึงข้อมูลจาก API ไม่สำเร็จ"

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สถานการณ์น้ำ RID</title>
+<meta name="description" content="Dashboard ระดับน้ำสถานีวัดน้ำ กรมชลประทาน อัปเดตอัตโนมัติทุก 15 นาที">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="dashboard/style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>สถานการณ์ระดับน้ำ</h1>
+    <p class="sub">สถานีวัดน้ำกรมชลประทาน · <span id="updated">กำลังโหลด…</span></p>
+  </div>
+  <button id="themeBtn" class="ghost" type="button" aria-label="สลับธีม">◐</button>
+</header>
+
+<section class="filters" aria-label="ตัวกรอง">
+  <label>จังหวัด
+    <select id="fProv"><option value="">ทั้งประเทศ</option></select>
+  </label>
+  <label>สถานะ
+    <select id="fStatus"><option value="">ทั้งหมด</option></select>
+  </label>
+  <label>แนวโน้ม
+    <select id="fTrend">
+      <option value="">ทั้งหมด</option>
+      <option>เพิ่มขึ้น</option><option>คงที่</option><option>ลดลง</option>
+    </select>
+  </label>
+  <label class="grow">ค้นหาสถานี
+    <input id="fSearch" type="search" placeholder="ชื่อหรือรหัสสถานี">
+  </label>
+</section>
+
+<section class="kpis" id="kpis" aria-label="สรุป"></section>
+
+<section class="grid2">
+  <div class="card">
+    <div class="card-h"><h2>แผนที่สถานี</h2><span class="muted" id="mapCount"></span></div>
+    <div id="map" role="img" aria-label="แผนที่สถานีวัดน้ำ สีตามสถานะระดับน้ำ"></div>
+    <div class="legend" id="mapLegend"></div>
+  </div>
+  <div class="card" id="detail">
+    <div class="card-h"><h2 id="dTitle">เลือกสถานีบนแผนที่หรือในตาราง</h2></div>
+    <div id="dBody" class="muted">คลิกจุดบนแผนที่เพื่อดูระดับน้ำย้อนหลัง</div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-h">
+    <h2>จำนวนสถานีตามสถานะ รายวัน</h2>
+    <span class="muted" id="trendScope"></span>
+  </div>
+  <div id="trendChart" class="chart"></div>
+  <div class="legend" id="trendLegend"></div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h2>ตารางสถานี</h2><span class="muted" id="tableCount"></span></div>
+  <div class="table-wrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="code">รหัส</th><th data-k="name">สถานี</th><th data-k="prov">จังหวัด</th>
+        <th data-k="pct" class="num">% ตลิ่ง</th><th data-k="wl" class="num">ระดับน้ำ (ม.รทก.)</th>
+        <th data-k="diff" class="num">ห่างตลิ่ง (ม.)</th><th data-k="trend">แนวโน้ม</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button id="moreBtn" class="ghost" type="button">แสดงเพิ่ม</button>
+</section>
+
+<section class="card" id="dams">
+  <div class="card-h"><h2>เขื่อน / อ่างเก็บน้ำ</h2></div>
+  <p class="muted">ยังไม่มีข้อมูลเขื่อน — จะเชื่อมต่อเมื่อเพิ่มสคริปต์ดึงข้อมูลเขื่อน</p>
+</section>
+
+<footer class="muted">ที่มา: กรมชลประทาน (bigdata-swoc.rid.go.th) · เกณฑ์สถานะ: ≤30% น้ำน้อย, 30–70% ปกติ, 70–100% น้ำมาก, &gt;100% ล้นตลิ่ง</footer>
+
+<div id="tip" role="tooltip" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="dashboard/app.js"></script>
+</body>
+</html>
