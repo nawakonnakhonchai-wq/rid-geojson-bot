@@ -160,6 +160,13 @@ span.chip-t:hover { background: var(--card); }
 .leaflet-container { font: inherit; }
 .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
 .leaflet-tooltip-top:before { border-top-color: var(--card); }
+.seg.sm { padding: 2px; border-radius: 18px; }
+.seg.sm button { height: 30px; min-width: 34px; padding: 0 10px; font-size: 13px; border-radius: 15px; }
+.ctrl-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.trend-sum { margin-top: 4px; }
+.trend-sum b { color: var(--text); }
+.trend-sum .up { color: var(--s-flood); font-weight: 600; }
+.trend-sum .down { color: var(--s-normal); font-weight: 600; }
 .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--muted); }
 .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
 .legend-row .sw { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
