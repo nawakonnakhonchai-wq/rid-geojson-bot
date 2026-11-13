@@ -23,9 +23,9 @@ jobs:
       - name: Dispatch and wait for each repository workflow
         uses: actions/github-script@v7
         env:
-          SKIP_DAM: \${{ inputs.skip_dam }}
+          SKIP_DAM: ${{ inputs.skip_dam }}
         with:
-          github-token: \${{ secrets.CROSS_REPO_TOKEN }}
+          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
           script: |
             const owner = 'nawakonnakhonchai-wq';
             const controlRepo = 'rid-geojson-bot';
