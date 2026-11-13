@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "sample": true,
+  "status": "success",
+  "runId": 0,
+  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml",
+  "startedAt": "2026-11-13T01:00:00Z",
+  "updatedAt": "2026-11-13T01:04:00Z",
+  "completedAt": "2026-11-13T01:04:00Z",
+  "tasks": [
+    {
+      "repo": "Dam_Daily",
+      "workflow": "update_data.yml",
+      "label": "อัปเดตข้อมูลเขื่อน",
+      "icon": "🏞️",
+      "status": "success",
+      "startedAt": "2026-11-13T01:00:00Z",
+      "completedAt": "2026-11-13T01:00:48Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "rid-geojson-bot",
+      "workflow": "realtime_tracker.yml",
+      "label": "อัปเดตข้อมูลระดับน้ำ",
+      "icon": "🌊",
+      "status": "success",
+      "startedAt": "2026-11-13T01:00:48Z",
+      "completedAt": "2026-11-13T01:01:36Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "tmd-earthquake-geojson",
+      "workflow": "earthquake_cron.yml",
+      "label": "อัปเดตข้อมูลแผ่นดินไหว",
+      "icon": "🌏",
+      "status": "success",
+      "startedAt": "2026-11-13T01:01:36Z",
+      "completedAt": "2026-11-13T01:02:06Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "WeatherForecastDaily",
+      "workflow": "openmeteo_update.yml",
+      "label": "อัปเดตพยากรณ์ Open-Meteo",
+      "icon": "🌤️",
+      "status": "success",
+      "startedAt": "2026-11-13T01:02:06Z",
+      "completedAt": "2026-11-13T01:02:24Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "WeatherForecastDaily",
+      "workflow": "weather_update.yml",
+      "label": "อัปเดตพยากรณ์กรมอุตุฯ",
+      "icon": "🌦️",
+      "status": "success",
+      "startedAt": "2026-11-13T01:02:24Z",
+      "completedAt": "2026-11-13T01:03:00Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "WeatherWarningNews",
+      "workflow": "update_data.yml",
+      "label": "อัปเดตข่าวเตือนภัยอากาศ",
+      "icon": "⛈️",
+      "status": "success",
+      "startedAt": "2026-11-13T01:03:00Z",
+      "completedAt": "2026-11-13T01:03:30Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "hii-flood-alert",
+      "workflow": "auto_update.yml",
+      "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
+      "icon": "🚨",
+      "status": "success",
+      "startedAt": "2026-11-13T01:03:30Z",
+      "completedAt": "2026-11-13T01:04:00Z",
+      "detail": "workflow สำเร็จ"
+    }
+  ]
+}

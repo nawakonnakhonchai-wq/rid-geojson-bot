@@ -1,78 +1,279 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071426"><title>ศูนย์ควบคุม Agent · ข้อมูลรายวัน</title>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050d1a">
+<title>ศูนย์ควบคุม Agent · ข้อมูลรายวัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
 <style>
-:root{color-scheme:dark;--bg:#071426;--panel:#0d2036;--line:#244260;--text:#eff7ff;--muted:#9bb2c9;--cyan:#58d9ff;--green:#40df9d;--amber:#ffca68;--red:#ff7185}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#194b78 0,transparent 48%),linear-gradient(145deg,#071426,#0a1b2e);color:var(--text);font-family:Inter,"Segoe UI",Tahoma,sans-serif;min-height:100vh}a{color:inherit;text-decoration:none}.shell{max-width:1380px;margin:auto;padding:22px clamp(13px,3vw,38px) 32px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#167bc7,#48daf2);font-size:22px;box-shadow:0 0 24px #2ab9e844}.brand strong{font-size:16px;letter-spacing:.05em}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.actions{display:flex;align-items:center;gap:9px}.pill,.btn{border:1px solid var(--line);background:#10253c;color:var(--text);padding:10px 13px;border-radius:12px;font-size:12px}.pill{border-radius:99px;color:#baf4d9;border-color:#285942;background:#0d2a2a}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 10px var(--green);animation:pulse 1.5s infinite}.btn{cursor:pointer}.btn.primary{background:linear-gradient(110deg,#167bc7,#2769d7);border-color:#4aaef0;font-weight:700;box-shadow:0 7px 20px #147ac733}.hero{border:1px solid #285078;border-radius:22px;padding:clamp(20px,4vw,40px);background:linear-gradient(110deg,#102d4aee,#0b1b30ee);position:relative;overflow:hidden;box-shadow:0 18px 46px #02091580}.hero:after{content:"";position:absolute;inset:0;background-image:linear-gradient(#5bd5ff09 1px,transparent 1px),linear-gradient(90deg,#5bd5ff09 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(90deg,transparent,#000);pointer-events:none}.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center}.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.15em;font-weight:700}.hero h1{font-size:clamp(28px,4vw,46px);line-height:1.14;margin:10px 0}.hero p{max-width:660px;color:var(--muted);font-size:14px;line-height:1.7;margin:0}.hero-buttons{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}.summary{display:flex;align-items:center;justify-content:center;gap:18px}.ring{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--cyan) var(--progress,0%),#203951 0);position:relative;box-shadow:0 0 28px #36cbff25}.ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:#0d2036}.ring div{z-index:1;text-align:center}.ring strong{display:block;font-size:29px}.ring span{font-size:10px;color:var(--muted)}.summary-copy strong{font-size:17px}.summary-copy p{font-size:11px;margin:7px 0 0}.office{margin-top:15px;border:1px solid #285078;border-radius:20px;overflow:hidden;background:#08172a;box-shadow:0 14px 38px #02091680;position:relative}.office-caption{display:flex;justify-content:space-between;align-items:center;gap:10px;position:absolute;z-index:2;top:14px;left:18px;right:18px;color:#b6cde3;font-size:10px;letter-spacing:.12em;text-transform:uppercase;pointer-events:none}.office-caption strong{color:#eff8ff;font-size:11px;letter-spacing:.04em}.office svg{width:100%;height:auto;display:block}.scene-agent .scene-pill{fill:#102944;stroke:#345b79;stroke-width:1.5}.scene-agent .scene-dot{fill:var(--amber);filter:drop-shadow(0 0 5px var(--amber))}.scene-agent.success .scene-pill{fill:#10372f;stroke:#39df9a}.scene-agent.success .scene-dot{fill:#39df9a;filter:drop-shadow(0 0 7px #39df9a)}.scene-agent.running .scene-pill{fill:#0e3547;stroke:#58d9ff;stroke-width:2}.scene-agent.running .scene-dot{fill:#58d9ff;filter:drop-shadow(0 0 9px #58d9ff);animation:pulse 1s infinite}.scene-agent.failure .scene-pill{fill:#451d2d;stroke:#ff7185}.scene-agent.failure .scene-dot{fill:#ff7185;filter:drop-shadow(0 0 7px #ff7185)}.scene-agent.skipped .scene-pill{fill:#3c2d17;stroke:#ffca68}.core-glow{animation:core 2.6s ease-in-out infinite}.scene-agent.running{filter:drop-shadow(0 0 7px #58d9ff66)}@keyframes core{50%{opacity:.55}}@media(max-width:560px){.office{margin-top:11px;border-radius:15px}.office-caption{top:9px;left:11px;right:11px;font-size:8px}.office-caption strong{font-size:9px}}.section-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:27px 2px 13px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:11px;color:var(--muted);margin:5px 0 0}.legend{font-size:10px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.card{border:1px solid var(--line);border-radius:17px;padding:16px;background:linear-gradient(145deg,#10243a,#0a192b);min-height:143px;transition:.2s;position:relative;overflow:hidden}.card:hover{transform:translateY(-2px);border-color:#4b7398}.card.running{border-color:var(--cyan);box-shadow:0 0 22px #50d7ff22}.card.running:after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-35%;background:linear-gradient(90deg,transparent,#fff1,transparent);animation:sweep 2.4s infinite}.card-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.identity{display:flex;gap:10px;align-items:center}.avatar{height:42px;width:42px;border-radius:13px;background:#102f4c;border:1px solid #385776;display:grid;place-items:center;font-size:21px;flex:none}.running .avatar{animation:work .8s infinite alternate;border-color:var(--cyan)}.identity h3{font-size:13px;margin:0 0 4px}.repo{font-size:9px;color:var(--muted);word-break:break-word}.badge{font-size:10px;padding:5px 8px;border-radius:99px;color:var(--muted);background:#172a3e;white-space:nowrap}.badge.success{color:#a6f5d0;background:#10372e}.badge.running{color:#b1efff;background:#113849}.badge.failure{color:#ffabb7;background:#451d2b}.badge.skipped{color:#ffe0a4;background:#3c2d17}.track{height:3px;background:#20384f;border-radius:5px;margin-top:15px;overflow:hidden}.track i{display:block;height:100%;background:var(--green);transition:.4s}.running .track i{width:78%!important;background:var(--cyan);animation:load 1.4s infinite alternate}.foot{display:flex;justify-content:space-between;gap:8px;margin-top:11px;padding-top:9px;border-top:1px solid #1b334b;color:var(--muted);font-size:9px}.foot a{color:var(--cyan)}.lower{display:grid;grid-template-columns:1.1fr .9fr;gap:13px;margin-top:14px}.panel{border:1px solid var(--line);border-radius:17px;padding:16px;background:#0b1b2e}.panel h2{font-size:13px;margin:0 0 14px}.steps{display:flex;align-items:center;gap:8px}.step{font-size:9px;color:var(--muted);display:flex;align-items:center;gap:6px;flex:1}.step:not(:last-child):after{content:"";height:1px;background:#2c4862;flex:1}.step-icon{height:26px;width:26px;border:1px solid #2b4964;border-radius:50%;display:grid;place-items:center;flex:none}.step.done .step-icon{border-color:#28845c;color:var(--green)}.step.active{color:var(--cyan)}.step.active .step-icon{border-color:var(--cyan);animation:pulse 1.4s infinite}.activity{display:grid;gap:9px}.event{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:10px;line-height:1.45}.event strong{color:var(--text)}.event-icon{background:#142c44;border-radius:7px;width:24px;height:24px;display:grid;place-items:center;flex:none}.footer{display:flex;justify-content:space-between;gap:12px;margin-top:18px;color:#7892ac;font-size:10px}.footer a{color:var(--cyan)}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;background:#14334a;border:1px solid #34799a;padding:10px 15px;border-radius:12px;transition:.2s;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}@keyframes pulse{50%{opacity:.55}}@keyframes work{to{transform:translateY(-3px) rotate(2deg)}}@keyframes sweep{to{left:120%}}@keyframes load{to{width:92%}}@media(max-width:900px){.hero-inner{grid-template-columns:1fr}.summary{justify-content:flex-start}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}@media(max-width:560px){.shell{padding:13px 11px 24px}.top{margin-bottom:14px}.brand strong{font-size:12px}.brand small{font-size:9px}.mark{width:38px;height:38px}.pill,.btn{padding:9px 10px;font-size:10px}.desktop{display:none}.hero{padding:19px 16px;border-radius:17px}.hero h1{font-size:28px}.hero p{font-size:12px}.summary{gap:14px}.ring{width:105px;height:105px}.ring strong{font-size:25px}.section-head{align-items:flex-start;flex-direction:column;margin-top:23px}.grid{grid-template-columns:1fr;gap:9px}.card{min-height:132px;padding:14px}.steps{display:grid;grid-template-columns:1fr 1fr}.step:after{display:none!important}.footer{flex-direction:column}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-</style></head>
-<body><main class="shell">
-<header class="top"><a class="brand" href="./"><span class="mark">✦</span><span><strong>DATA AGENT CONTROL</strong><small>ศูนย์ควบคุมงานอัปเดตรายวัน</small></span></a><div class="actions"><span class="pill"><i class="dot" id="dot"></i><span id="connection">กำลังเชื่อมต่อ</span></span><button class="btn" id="refresh">↻ <span class="desktop">รีเฟรช</span></button></div></header>
-<section class="hero"><div class="hero-inner"><div><div class="eyebrow">GITHUB ACTIONS · SEQUENTIAL AGENT TEAM</div><h1 id="title">ทีมอัปเดตข้อมูล<br>พร้อมเริ่มงาน</h1><p id="message">ติดตามตัวแทนทั้ง 6 repo จากหน้าจอเดียว ระบบจะทำงานตามคิวและรอให้งานปัจจุบันเสร็จก่อนเริ่มงานถัดไป</p><div class="hero-buttons"><a class="btn primary" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml" target="_blank" rel="noopener">▶ เริ่มชุดงานใน GitHub</a><a class="btn" id="latest" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml" target="_blank" rel="noopener">ดูประวัติการทำงาน ↗</a></div></div><div class="summary"><div class="ring" id="ring"><div><strong id="count">0/7</strong><span>งานเสร็จแล้ว</span></div></div><div class="summary-copy"><strong id="overall">กำลังโหลดสถานะ</strong><p id="time">—</p><p id="active">กำลังอ่านข้อมูลจาก GitHub…</p></div></div></div></section>
-<section class="office" aria-label="ภาพจำลองออฟฟิศตัวแทน AI กำลังทำงานตามคิว">
-<div class="office-caption"><strong>AI DATA OPERATIONS OFFICE</strong><span>6 TEAMS · LIVE WORKFLOW STATUS</span></div>
-<svg viewBox="0 0 1200 560" role="img" aria-labelledby="scene-title scene-desc">
-<title id="scene-title">สำนักงานควบคุมงานอัปเดตข้อมูล</title><desc id="scene-desc">แผนผังสำนักงานแบบมุมมองไอโซเมตริก มีตัวแทนดูแลข้อมูลหกระบบรอบศูนย์ควบคุม แสดงสถานะตาม GitHub Actions</desc>
-<defs>
-<linearGradient id="wall" x2="0" y2="1"><stop stop-color="#0d2946"/><stop offset="1" stop-color="#10233a"/></linearGradient>
-<linearGradient id="floor" x2="0" y2="1"><stop stop-color="#173654"/><stop offset="1" stop-color="#0a1a2e"/></linearGradient>
-<linearGradient id="glass" x2="1" y2="1"><stop stop-color="#102945"/><stop offset=".55" stop-color="#153c62"/><stop offset="1" stop-color="#0b213a"/></linearGradient>
-<linearGradient id="core" x2="1" y2="1"><stop stop-color="#b1ffff"/><stop offset=".38" stop-color="#3ddaff"/><stop offset="1" stop-color="#635cff"/></linearGradient>
-<filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<pattern id="stars" width="90" height="70" patternUnits="userSpaceOnUse"><circle cx="12" cy="14" r="1" fill="#9ee8ff" opacity=".45"/><circle cx="68" cy="39" r="1.4" fill="#79cfff" opacity=".35"/></pattern>
-<clipPath id="floor-clip"><polygon points="0,235 600,345 1200,235 1200,560 600,450 0,560"/></clipPath>
-</defs>
-<rect width="1200" height="560" fill="#071426"/><path d="M0 0H1200V235L600 345 0 235Z" fill="url(#wall)"/>
-<rect x="0" y="0" width="1200" height="250" fill="url(#stars)" opacity=".7"/>
-<rect x="40" y="43" width="1120" height="147" rx="8" fill="url(#glass)" stroke="#31618b" stroke-width="3"/>
-<path d="M40 155h1120M320 43v147m280-147v147m280-147v147" stroke="#32628a" stroke-width="3"/>
-<g fill="#10233c" opacity=".94"><path d="M70 154V115h37v39zm45 0V91h54v63zm62 0V127h35v27zm83 0V106h44v48zm100 0V78h38v76zm49 0v-36h48v36zm74 0V95h65v59zm91 0v-54h38v54zm58 0V83h47v71zm62 0v-31h58v31zm70 0V105h36v49zm57 0V72h55v82zm66 0v-44h38v44z"/></g>
-<g stroke="#64d8ff" opacity=".2"><path d="M0 222L600 333 1200 222M120 245l480 88 480-88M0 255l600 110 600-110"/></g>
-<polygon points="0,235 600,345 1200,235 1200,560 600,450 0,560" fill="url(#floor)" stroke="#34709a" stroke-width="3"/>
-<g clip-path="url(#floor-clip)" stroke="#46cfff" opacity=".15">
-<path d="M-100 270L600 405 1300 270M-120 320L600 456 1320 320M-140 370L600 507 1340 370M-160 420L600 558 1360 420M60 210L250 600M210 235L370 600M380 265L500 600M820 265L700 600M990 235L830 600M1140 210L950 600"/>
-</g>
-<path d="M0 235L600 345 1200 235" fill="none" stroke="#45cfff" stroke-width="3" opacity=".8" filter="url(#glow)"/>
-<!-- central control platform -->
-<g class="core-glow" filter="url(#glow)">
-<polygon points="600,250 704,292 600,335 496,292" fill="#174f82" stroke="#55eaff" stroke-width="3"/>
-<polygon points="600,266 680,298 600,331 520,298" fill="#0f2e51" stroke="#53ceff" stroke-width="2"/>
-<path d="M559 273l41-24 41 24v48l-41 23-41-23z" fill="url(#core)" opacity=".76" stroke="#c3ffff" stroke-width="2"/>
-<path d="M600 249v96m-41-72 82 48m0-48-82 48" stroke="#dcffff" stroke-width="2" opacity=".82"/>
-<path d="M584 263l16-9 16 9v18l-16 9-16-9zM584 298l16-9 16 9v18l-16 9-16-9z" fill="#e9ffff" opacity=".8"/>
-<path d="M520 338l80 32 80-32" fill="none" stroke="#3fdcff" stroke-width="4"/>
-</g>
-<text x="600" y="387" text-anchor="middle" fill="#8deeff" font-size="13" font-weight="700" letter-spacing="3">AI CONTROL CORE</text>
-<!-- agent stations -->
-<g id="scene-dam" class="scene-agent queued" transform="translate(145 285)">
-<rect class="scene-pill" x="-68" y="-93" width="136" height="27" rx="8"/><circle class="scene-dot" cx="-55" cy="-79.5" r="4"/><text x="-45" y="-76" fill="#e9f5ff" font-size="11" font-weight="700">เขื่อน</text><text id="scene-state-dam" x="55" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="-32" y="-57" width="27" height="24" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><path d="M-28-50h18m-18 6h13" stroke="#7de6ff" stroke-width="2"/><circle cx="15" cy="-22" r="10" fill="#ffd0ab"/><path d="M5-23q10-18 20 0v-5q-10-12-20 0" fill="#513454"/><path d="M5-8q10-9 20 0v13H5z" fill="#42a7da"/>
-</g>
-<g id="scene-rid" class="scene-agent queued" transform="translate(352 207)">
-<rect class="scene-pill" x="-68" y="-93" width="136" height="27" rx="8"/><circle class="scene-dot" cx="-55" cy="-79.5" r="4"/><text x="-45" y="-76" fill="#e9f5ff" font-size="11" font-weight="700">ระดับน้ำ</text><text id="scene-state-rid" x="55" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="7" y="-58" width="31" height="27" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><path d="M11-39q6-10 11 0t11 0" fill="none" stroke="#64ecff" stroke-width="2"/><circle cx="-18" cy="-22" r="10" fill="#ffd0ab"/><path d="M-28-23q10-18 20 0v-5q-10-12-20 0" fill="#243c70"/><path d="M-28-8q10-9 20 0v13h-20z" fill="#417ee7"/>
-</g>
-<g id="scene-tmd" class="scene-agent queued" transform="translate(848 207)">
-<rect class="scene-pill" x="-68" y="-93" width="136" height="27" rx="8"/><circle class="scene-dot" cx="-55" cy="-79.5" r="4"/><text x="-45" y="-76" fill="#e9f5ff" font-size="11" font-weight="700">แผ่นดินไหว</text><text id="scene-state-tmd" x="55" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="-38" y="-57" width="29" height="25" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><path d="M-34-40h6l4-10 5 13 5-8h4" fill="none" stroke="#8af4ff" stroke-width="2"/><circle cx="18" cy="-22" r="10" fill="#ffd0ab"/><path d="M8-23q10-18 20 0v-5q-10-12-20 0" fill="#4e3154"/><path d="M8-8q10-9 20 0v13H8z" fill="#a15ee3"/>
-</g>
-<g id="scene-weather" class="scene-agent queued" transform="translate(1055 285)">
-<rect class="scene-pill" x="-75" y="-93" width="150" height="27" rx="8"/><circle class="scene-dot" cx="-62" cy="-79.5" r="4"/><text x="-52" y="-76" fill="#e9f5ff" font-size="10" font-weight="700">พยากรณ์อากาศ ×2</text><text id="scene-state-weather" x="65" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="-39" y="-57" width="29" height="25" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><circle cx="-25" cy="-45" r="6" fill="#ffc45c"/><path d="M-32-39h14" stroke="#82eaff" stroke-width="2"/><circle cx="18" cy="-22" r="10" fill="#ffd0ab"/><path d="M8-23q10-18 20 0v-5q-10-12-20 0" fill="#27385c"/><path d="M8-8q10-9 20 0v13H8z" fill="#42b8d5"/>
-</g>
-<g id="scene-news" class="scene-agent queued" transform="translate(350 420)">
-<rect class="scene-pill" x="-68" y="-93" width="136" height="27" rx="8"/><circle class="scene-dot" cx="-55" cy="-79.5" r="4"/><text x="-45" y="-76" fill="#e9f5ff" font-size="10" font-weight="700">ข่าวเตือนภัย</text><text id="scene-state-news" x="55" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="8" y="-57" width="29" height="25" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><path d="M13-50h18m-18 6h15" stroke="#9eeeff" stroke-width="2"/><circle cx="-17" cy="-22" r="10" fill="#ffd0ab"/><path d="M-27-23q10-18 20 0v-5q-10-12-20 0" fill="#3d294a"/><path d="M-27-8q10-9 20 0v13h-20z" fill="#e26188"/>
-</g>
-<g id="scene-flood" class="scene-agent queued" transform="translate(850 420)">
-<rect class="scene-pill" x="-68" y="-93" width="136" height="27" rx="8"/><circle class="scene-dot" cx="-55" cy="-79.5" r="4"/><text x="-45" y="-76" fill="#e9f5ff" font-size="10" font-weight="700">เฝ้าระวังน้ำท่วม</text><text id="scene-state-flood" x="55" y="-76" text-anchor="end" fill="#a8c1d8" font-size="9">รอคิว</text>
-<path d="M-46-14l46-22 46 22L0 10z" fill="#225079" stroke="#50bbef" stroke-width="2"/><path d="M-38 0v32m76-32v32M0 10v29" stroke="#3077a3" stroke-width="4"/><rect x="-38" y="-57" width="29" height="25" rx="3" fill="#103b61" stroke="#55d9ff" stroke-width="2"/><path d="M-34-43h20m-16-6 8 12 8-12" fill="none" stroke="#8af4ff" stroke-width="2"/><circle cx="18" cy="-22" r="10" fill="#ffd0ab"/><path d="M8-23q10-18 20 0v-5q-10-12-20 0" fill="#274b55"/><path d="M8-8q10-9 20 0v13H8z" fill="#39b8a4"/>
-</g>
-</svg></section><div class="section-head"><div><h2>Agent Stations</h2><p>ตัวแทนประจำแต่ละ workflow · ทำงานเรียงตามคิว</p></div><div class="legend">🟢 สำเร็จ　🔵 กำลังทำงาน　🟡 รอคิว</div></div><section class="grid" id="grid" aria-live="polite"></section>
-<section class="lower"><div class="panel"><h2>ลำดับการทำงาน</h2><div class="steps" id="steps"></div></div><div class="panel"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></div></section>
-<footer class="footer"><span>รีเฟรชสถานะอัตโนมัติ · เวลาไทย</span><span>ข้อมูลจาก <a href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener">rid-geojson-bot</a></span></footer></main><div class="toast" id="toast">กำลังรีเฟรชสถานะ</div>
+:root{
+  color-scheme:dark;
+  --bg:#050d1a; --panel:#0b1a2d; --panel-2:#0f2338; --line:#1f3b58; --line-2:#2c5378;
+  --text:#eef6ff; --muted:#93abc4;
+  --cyan:#4fd8ff; --green:#3fe0a0; --amber:#ffc566; --red:#ff6b81; --slate:#8fa3b8;
+}
+*{box-sizing:border-box}
+html{background:#06111f}
+body{
+  margin:0; min-height:100vh; color:var(--text);
+  font-family:"IBM Plex Sans Thai","Noto Sans Thai","Leelawadee UI",Loma,Tahoma,"Segoe UI",sans-serif;
+  background:radial-gradient(ellipse at 50% -10%,#123a5f 0,transparent 55%),linear-gradient(160deg,#050d1a,#08172a) no-repeat #06111f;
+}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.shell{max-width:1380px;margin:auto;padding:20px clamp(12px,3vw,36px) 32px}
+
+/* ---------- top bar ---------- */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+  background:linear-gradient(145deg,#136fb5,#43d4ee);box-shadow:0 0 24px #2ab9e844}
+.brand strong{font-size:15px;letter-spacing:.06em}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.actions{display:flex;align-items:center;gap:8px}
+.pill,.btn{border:1px solid var(--line);background:#0d2136;color:var(--text);padding:9px 13px;border-radius:12px;font:inherit;font-size:13px}
+.pill{border-radius:99px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.brand strong{white-space:nowrap}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--slate)}
+.pill.ok .conn-dot{background:var(--green);box-shadow:0 0 10px var(--green)}
+.pill.bad .conn-dot{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .2s,background .2s}
+.btn:hover{border-color:var(--line-2);background:#12304c}
+.btn.primary{background:linear-gradient(110deg,#1273bd,#2563d2);border-color:#4aaef0;font-weight:600;box-shadow:0 7px 20px #147ac733}
+.btn.primary:hover{background:linear-gradient(110deg,#1784d6,#2d70e6)}
+
+/* ---------- summary band ---------- */
+.summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 28px;align-items:center;margin-bottom:14px}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.16em;font-weight:600}
+.summary h1{font-size:clamp(24px,3.2vw,38px);line-height:1.2;margin:6px 0 8px;font-weight:700}
+.summary p{color:var(--muted);font-size:14px;line-height:1.65;margin:0;max-width:680px}
+.hero-buttons{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.meter{display:flex;align-items:center;gap:16px}
+.ring{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;position:relative;flex:none;
+  background:conic-gradient(var(--ring-color,var(--cyan)) var(--progress,0%),#1b3149 0)}
+.ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:#0a1829}
+.ring div{position:relative;text-align:center}
+.ring strong{display:block;font-size:26px;line-height:1.1}
+.ring span{font-size:11px;color:var(--muted)}
+.meter-copy strong{font-size:17px}
+.meter-copy p{font-size:12px;margin:5px 0 0}
+.notice{display:none;margin:0 0 12px;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;
+  border:1px solid #6d5320;background:#2b2110;color:#ffe2a8}
+.notice.show{display:block}
+
+/* ---------- scene ---------- */
+.office{position:relative;border:1px solid var(--line-2);border-radius:20px;overflow:hidden;background:#040b16;
+  box-shadow:0 20px 50px #010610b0}
+.scene-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.scene-scroll::-webkit-scrollbar{display:none}
+.stage{position:relative;aspect-ratio:2720/1536;min-width:720px;container-type:inline-size;isolation:isolate;overflow:hidden}
+.stage picture,.stage img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage img{object-fit:cover}
+/* light layers: positioned without transforms so blend modes reach the artwork */
+.h{position:absolute;pointer-events:none;border-radius:50%;
+  left:calc(var(--x)*1% - 15%);top:calc(var(--y)*1% - 19%);width:30%;height:38%;transition:opacity .6s}
+.h-dim{background:radial-gradient(closest-side,rgba(3,8,18,.62) 35%,transparent 100%);opacity:0}
+.h-tint{background:var(--c,transparent);mix-blend-mode:color;opacity:0;
+  -webkit-mask:radial-gradient(closest-side,#000 50%,transparent 100%);mask:radial-gradient(closest-side,#000 50%,transparent 100%)}
+.h-glow{background:radial-gradient(closest-side,var(--c,transparent) 0,transparent 78%);mix-blend-mode:screen;opacity:0}
+[data-state=queued]{--c:var(--amber)} [data-state=running]{--c:var(--cyan)} [data-state=success]{--c:var(--green)}
+[data-state=failure]{--c:var(--red)} [data-state=skipped],[data-state=notstarted],[data-state=unknown]{--c:var(--slate)}
+.h-dim[data-state=queued]{opacity:.75} .h-tint[data-state=queued]{opacity:.8} .h-glow[data-state=queued]{opacity:.06}
+.h-tint[data-state=success]{opacity:.9} .h-glow[data-state=success]{opacity:.2}
+.h-tint[data-state=failure]{opacity:.95} .h-glow[data-state=failure]{opacity:.28}
+.h-dim[data-state=skipped],.h-dim[data-state=notstarted],.h-dim[data-state=unknown]{opacity:.9}
+.h-tint[data-state=skipped],.h-tint[data-state=notstarted],.h-tint[data-state=unknown]{opacity:.9}
+.h-glow[data-state=running]{opacity:.34;animation:breathe 1.8s ease-in-out infinite}
+.core{--x:50;--y:43.6;width:26%;height:40%;left:37%;top:23.6%}
+.core.h-glow{--c:var(--cyan)}
+.run-active .core.h-glow{opacity:.3;animation:breathe 2.4s ease-in-out infinite}
+.run-failed .core.h-tint{--c:var(--red);opacity:.55}
+.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
+.links line{stroke:var(--cyan);stroke-width:.32;stroke-linecap:round;stroke-dasharray:1.6 2.6;opacity:0;filter:drop-shadow(0 0 .6px var(--cyan))}
+.links line.on{opacity:.95;animation:flow 1.1s linear infinite}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,11,22,.5) 0,transparent 16%,transparent 78%,rgba(4,11,22,.82) 100%)}
+
+/* station labels (HTML, data-driven) */
+.tag{position:absolute;left:calc(var(--lx)*1%);top:calc(var(--ly)*1%);transform:translate(-50%,-100%);
+  display:block;padding:.55em .8em .6em;border-radius:.9em;white-space:nowrap;
+  font-size:clamp(10.5px,1.02cqw,14px);line-height:1.3;
+  background:rgba(6,16,30,.82);border:1px solid color-mix(in srgb,var(--c) 60%,transparent);
+  box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 14px color-mix(in srgb,var(--c) 22%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .4s,box-shadow .4s}
+.tag:after{content:"";position:absolute;left:50%;top:100%;width:1px;height:.9em;background:linear-gradient(var(--c),transparent)}
+.tag:hover{background:rgba(10,26,46,.94)}
+.tag b{display:block;font-weight:600;font-size:1em}
+.tag .row{display:flex;align-items:center;gap:.45em;color:#c9d9ea;font-size:.88em;margin-top:.15em}
+.tag .row i{width:.6em;height:.6em;border-radius:50%;background:var(--rc);box-shadow:0 0 .6em var(--rc);flex:none}
+.tag .row em{font-style:normal;color:var(--rc);font-weight:600}
+.tag[data-state=notstarted],.tag[data-state=skipped],.tag[data-state=unknown]{border-style:dashed}
+.tag[data-state=running]{box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 22px color-mix(in srgb,var(--c) 50%,transparent)}
+.row[data-s=running] i{animation:blink 1s ease-in-out infinite}
+[data-s=queued]{--rc:var(--amber)} [data-s=running]{--rc:var(--cyan)} [data-s=success]{--rc:var(--green)}
+[data-s=failure]{--rc:var(--red)} [data-s=skipped],[data-s=notstarted],[data-s=unknown]{--rc:var(--slate)}
+.scene-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap;
+  padding:10px 16px 12px;font-size:12px;color:#b9cde2;pointer-events:none}
+.scene-foot strong{color:var(--text);font-weight:600;letter-spacing:.04em}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:50%;background:var(--rc);box-shadow:0 0 8px var(--rc)}
+.pan-hint{display:none}
+
+/* ---------- cards ---------- */
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:26px 2px 12px}
+.section-head h2{font-size:18px;margin:0;font-weight:600}
+.section-head p{font-size:13px;color:var(--muted);margin:4px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:16px;padding:15px 16px 13px;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,var(--panel-2),var(--panel));scroll-margin-top:16px;transition:border-color .2s,box-shadow .2s}
+.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rc,var(--line))}
+.card:hover{border-color:var(--line-2)}
+.card:target{box-shadow:0 0 0 2px var(--cyan)}
+.card[data-s=running]{border-color:color-mix(in srgb,var(--cyan) 70%,transparent);box-shadow:0 0 24px #4fd8ff22}
+.card[data-s=failure]{border-color:color-mix(in srgb,var(--red) 55%,transparent)}
+.card[data-s=running]:after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-35%;background:linear-gradient(90deg,transparent,#ffffff12,transparent);animation:sweep 2.4s infinite}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.identity{display:flex;gap:11px;align-items:center;min-width:0}
+.avatar{height:42px;width:42px;border-radius:12px;background:#0f2c47;border:1px solid #2f5273;display:grid;place-items:center;font-size:21px;flex:none}
+.identity h3{font-size:14.5px;margin:0 0 3px;font-weight:600;line-height:1.35}
+.repo{display:block;font-size:11.5px;color:var(--muted);word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.badge{font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;white-space:nowrap;color:var(--rc);
+  background:color-mix(in srgb,var(--rc) 14%,#0b1a2d);border:1px solid color-mix(in srgb,var(--rc) 35%,transparent)}
+.detail{margin:12px 0 0;font-size:13px;line-height:1.5;color:#c4d5e7;min-height:1.5em}
+.card[data-s=failure] .detail{color:#ffc2cb}
+.foot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid #1a3049;color:var(--muted);font-size:12px}
+.foot a{color:var(--cyan)} .foot a:hover{text-decoration:underline}
+
+/* ---------- lower panels ---------- */
+.lower{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-top:12px}
+.panel{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel)}
+.panel h2{font-size:14px;margin:0 0 14px;font-weight:600}
+.steps{display:flex;align-items:center;gap:8px}
+.step{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;flex:1}
+.step:not(:last-child):after{content:"";height:1px;background:#274560;flex:1}
+.step-icon{height:28px;width:28px;border:1px solid #2b4964;border-radius:50%;display:grid;place-items:center;flex:none}
+.step.done{color:#bfe9d6}.step.done .step-icon{border-color:#28845c;color:var(--green)}
+.step.active{color:var(--cyan)}.step.active .step-icon{border-color:var(--cyan);animation:blink 1.4s infinite}
+.step.bad{color:#ffc2cb}.step.bad .step-icon{border-color:var(--red);color:var(--red)}
+.activity{display:grid;gap:10px}
+.event{display:flex;align-items:flex-start;gap:10px;color:var(--muted);font-size:12.5px;line-height:1.5}
+.event strong{color:var(--text);font-weight:600}
+.event-icon{background:#132a42;border-radius:8px;width:26px;height:26px;display:grid;place-items:center;flex:none;color:var(--rc,var(--muted))}
+.footer{display:flex;justify-content:space-between;gap:12px;margin-top:18px;color:#7892ac;font-size:12px}
+.footer a{color:var(--cyan)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#14334a;border:1px solid #34799a;padding:10px 15px;border-radius:12px;transition:.2s;font-size:13px}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes breathe{50%{opacity:.12}}
+@keyframes blink{50%{opacity:.4}}
+@keyframes flow{to{stroke-dashoffset:-4.2}}
+@keyframes sweep{to{left:120%}}
+
+@media(max-width:900px){
+  .summary{grid-template-columns:1fr}
+  .lower{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  .pan-hint{display:inline}
+  .scene-foot{position:static;padding:9px 12px 11px;background:#06101e;border-top:1px solid var(--line)}
+  .vignette{background:linear-gradient(180deg,rgba(4,11,22,.4) 0,transparent 14%)}
+  .office{border-radius:15px}
+}
+@media(max-width:560px){
+  .shell{padding:12px 11px 24px}
+  .brand strong{font-size:12px;letter-spacing:.03em}.brand small{display:none}
+  .pill,.btn{padding:8px 11px;font-size:12px}
+  .mark{width:38px;height:38px}
+  .desktop{display:none}
+  .ring{width:92px;height:92px}.ring strong{font-size:22px}
+  .section-head{margin-top:22px}
+  .grid{grid-template-columns:1fr;gap:9px}
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .step:after{display:none!important}
+  .footer{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+/* a stale "running" snapshot must not look alive */
+.stale *,.stale *:before,.stale *:after{animation:none!important}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+  <a class="brand" href="./"><span class="mark" aria-hidden="true">✦</span><span><strong>DATA AGENT CONTROL</strong><small>ศูนย์ควบคุมงานอัปเดตรายวัน</small></span></a>
+  <div class="actions">
+    <span class="pill" id="conn"><i class="conn-dot"></i><span id="connection">กำลังเชื่อมต่อ</span></span>
+    <button class="btn" id="refresh" type="button" aria-label="รีเฟรชสถานะ">↻ <span class="desktop">รีเฟรช</span></button>
+  </div>
+</header>
+
+<section class="summary">
+  <div>
+    <div class="eyebrow">GITHUB ACTIONS · ทีม AGENT ทำงานเรียงคิว</div>
+    <h1 id="title">กำลังโหลดสถานะ…</h1>
+    <p id="message">ติดตามตัวแทนทั้ง 6 repo จากหน้าจอเดียว ระบบจะทำงานตามคิวและรอให้งานปัจจุบันเสร็จก่อนเริ่มงานถัดไป</p>
+    <div class="hero-buttons">
+      <a class="btn primary" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml" target="_blank" rel="noopener">▶ เริ่มชุดงานใน GitHub</a>
+      <a class="btn" id="latest" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml" target="_blank" rel="noopener">ดูรอบล่าสุด ↗</a>
+    </div>
+  </div>
+  <div class="meter">
+    <div class="ring" id="ring"><div><strong id="count">–/7</strong><span>งานสำเร็จ</span></div></div>
+    <div class="meter-copy"><strong id="overall">กำลังโหลด</strong><p id="time">—</p><p id="active">กำลังอ่านข้อมูลจาก GitHub…</p></div>
+  </div>
+</section>
+
+<div class="notice" id="notice" role="status"></div>
+
+<section class="office" aria-label="ภาพออฟฟิศศูนย์ปฏิบัติการข้อมูล แสดงสถานะของทีมทั้งหกตาม GitHub Actions">
+  <div class="scene-scroll" id="scroll">
+    <div class="stage" id="stage">
+      <picture>
+        <source type="image/webp" srcset="assets/office-1100.webp 1100w, assets/office-1920.webp 1920w" sizes="(max-width:720px) 720px, min(100vw, 1380px)">
+        <img src="assets/office-1600.jpg" width="1600" height="904" alt="" decoding="async" fetchpriority="high">
+      </picture>
+      <div id="lights"></div>
+      <div class="h h-tint core"></div><div class="h h-glow core"></div>
+      <svg class="links" id="links" viewBox="0 0 100 56.47" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="vignette"></div>
+      <nav id="tags" aria-label="สถานะรายสถานี"></nav>
+    </div>
+  </div>
+  <div class="scene-foot">
+    <span><strong>ศูนย์ปฏิบัติการข้อมูล</strong> · 6 ทีม · 7 workflow<span class="pan-hint"> · เลื่อนซ้าย–ขวาเพื่อดูทั้งห้อง</span></span>
+    <span class="legend" aria-label="คำอธิบายสี">
+      <span data-s="queued"><i></i>รอคิว</span><span data-s="running"><i></i>กำลังทำงาน</span><span data-s="success"><i></i>สำเร็จ</span><span data-s="failure"><i></i>ไม่สำเร็จ</span><span data-s="skipped"><i></i>ข้าม / ไม่ได้เริ่ม</span>
+    </span>
+  </div>
+</section>
+
+<div class="section-head"><div><h2>รายละเอียด workflow</h2><p>ทั้ง 7 งาน เรียงตามลำดับคิว</p></div></div>
+<section class="grid" id="grid" aria-live="polite"></section>
+
+<section class="lower">
+  <div class="panel"><h2>ลำดับการทำงาน</h2><div class="steps" id="steps"></div></div>
+  <div class="panel"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></div>
+</section>
+<footer class="footer"><span>รีเฟรชสถานะอัตโนมัติทุก 30 วินาที · เวลาไทย</span><span>ข้อมูลจาก <a href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener">rid-geojson-bot</a></span></footer>
+</main>
+<div class="toast" id="toast" role="status">กำลังรีเฟรชสถานะ</div>
+
 <script>
 (function(){
+"use strict";
 const owner="nawakonnakhonchai-wq", repo="rid-geojson-bot";
-const statusUrl="https://raw.githubusercontent.com/"+owner+"/"+repo+"/main/agent-dashboard/status.json";
+const controllerUrl="https://github.com/"+owner+"/"+repo+"/actions/workflows/run_all_repos.yml";
+// ?sample=<name> loads agent-dashboard/samples/<name>.json for visual checks. Never used unless asked for.
+const sample=(new URLSearchParams(location.search).get("sample")||"").match(/^[a-z0-9-]{1,40}$/);
+const statusUrl=sample?"samples/"+sample[0]+".json":"https://raw.githubusercontent.com/"+owner+"/"+repo+"/main/agent-dashboard/status.json";
+const STALE_MS=6.5*60*60*1000; // controller job times out at 6 h
+
 const base=[
 ["Dam_Daily","update_data.yml","อัปเดตข้อมูลเขื่อน","🏞️"],
 ["rid-geojson-bot","realtime_tracker.yml","อัปเดตข้อมูลระดับน้ำ","🌊"],
@@ -81,61 +282,155 @@ const base=[
 ["WeatherForecastDaily","weather_update.yml","อัปเดตพยากรณ์กรมอุตุฯ","🌦️"],
 ["WeatherWarningNews","update_data.yml","อัปเดตข่าวเตือนภัยอากาศ","⛈️"],
 ["hii-flood-alert","auto_update.yml","อัปเดตพื้นที่เฝ้าระวังน้ำท่วม","🚨"]];
-const labels={queued:"รอคิว",running:"กำลังทำงาน",success:"สำเร็จ",failure:"ไม่สำเร็จ",skipped:"ข้ามแล้ว",cancelled:"ยกเลิก"};
+// x,y = desk centre in the artwork (% of width/height); lx,ly = where the label's bottom edge sits.
+const stations=[
+{key:"dam",    name:"เขื่อน",           tasks:[0],   x:25,   y:30,   lx:24.5, ly:18},
+{key:"water",  name:"ระดับน้ำ",         tasks:[1],   x:50.4, y:25,   lx:49.5, ly:13.5},
+{key:"quake",  name:"แผ่นดินไหว",       tasks:[2],   x:75.7, y:32,   lx:75,   ly:20},
+{key:"weather",name:"พยากรณ์อากาศ",     tasks:[3,4], x:20,   y:66,   lx:19.5, ly:51, sub:["Open-Meteo","กรมอุตุฯ"]},
+{key:"warn",   name:"ข่าวเตือนภัย",     tasks:[5],   x:50,   y:75,   lx:49,   ly:63},
+{key:"flood",  name:"เฝ้าระวังน้ำท่วม", tasks:[6],   x:80.7, y:68,   lx:80,   ly:52.5}];
+const CORE={x:50,y:43.6};
+const labels={queued:"รอคิว",running:"กำลังทำงาน",success:"สำเร็จ",failure:"ไม่สำเร็จ",cancelled:"ยกเลิก",skipped:"ข้าม",notstarted:"ไม่ได้เริ่ม",unknown:"ไม่ทราบสถานะ"};
+const FINAL=["success","failure","cancelled"];
+const $=function(id){return document.getElementById(id)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-function date(s){return s?new Intl.DateTimeFormat("th-TH",{dateStyle:"medium",timeStyle:"short"}).format(new Date(s)):"—"}
-function render(d){
-const tasks=base.map(function(b,i){return Object.assign({repo:b[0],workflow:b[1],label:b[2],icon:b[3],status:"queued"},(d.tasks||[])[i]||{})});
-const done=tasks.filter(t=>["success","failure","skipped","cancelled"].includes(t.status)).length;
-const passed=tasks.filter(t=>["success","skipped"].includes(t.status)).length;
-const running=tasks.find(t=>t.status==="running");
-const failed=tasks.some(t=>["failure","cancelled"].includes(t.status));
-const finished=["success","failure","cancelled"].includes(d.status);
-document.getElementById("grid").innerHTML=tasks.map(function(t,i){
-const state=t.status, badge=state==="success"?"success":state==="running"?"running":["failure","cancelled"].includes(state)?"failure":state==="skipped"?"skipped":"";
-const detail=state==="running"?"เริ่ม "+date(t.startedAt):state==="success"?(t.completedAt?"เสร็จ "+date(t.completedAt):(t.detail||"สำเร็จจากรอบก่อน")):state==="failure"?"จบ "+date(t.completedAt):state==="skipped"?(t.detail||"ข้ามตามที่เลือก"):"ลำดับ "+(i+1)+" · รอเริ่ม";
-const url=t.runUrl||("https://github.com/"+owner+"/"+t.repo+"/actions/workflows/"+encodeURIComponent(t.workflow));
-return '<article class="card '+(state==="running"?"running":"")+'"><div class="card-head"><div class="identity"><span class="avatar">'+esc(t.icon)+'</span><span><h3>'+esc(t.label)+'</h3><span class="repo">'+esc(t.repo)+" · "+esc(t.workflow)+'</span></span></div><span class="badge '+badge+'">'+(labels[state]||esc(state))+'</span></div><div class="track"><i style="width:'+(["success","skipped","failure"].includes(state)?"100":"0")+'%"></i></div><div class="foot"><span>'+esc(detail)+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener">เปิด workflow ↗</a></div></article>'
-}).join("");
-document.getElementById("count").textContent=passed+"/7";
-document.getElementById("ring").style.setProperty("--progress",Math.round(done/7*100)+"%");
-document.getElementById("overall").textContent=running?"กำลังทำงาน":failed?"มีงานต้องตรวจสอบ":finished?"ชุดงานเสร็จแล้ว":"พร้อมเริ่มชุดงาน";
-document.getElementById("message").textContent=running?"กำลังทำ "+(running.label||running.repo)+" เมื่อเสร็จแล้วระบบจะเริ่มงานถัดไปโดยอัตโนมัติ":finished?"ชุดงานรอบล่าสุดสิ้นสุดแล้ว ดูผลแยกตาม workflow และเปิดรายละเอียดบน GitHub ได้จากแต่ละการ์ด":"ติดตามตัวแทนทั้ง 6 repo จากหน้าจอเดียว ระบบจะทำงานตามคิวและรอให้งานปัจจุบันเสร็จก่อนเริ่มงานถัดไป";
-document.getElementById("time").textContent=d.startedAt?"เริ่มรอบนี้ "+date(d.startedAt):"ยังไม่มีรอบที่กำลังทำงาน";
-document.getElementById("active").textContent=running?"กำลังติดตาม "+running.repo:"ตรวจสถานะล่าสุด "+date(d.updatedAt);
-document.getElementById("latest").href=d.runUrl||"https://github.com/"+owner+"/"+repo+"/actions/workflows/run_all_repos.yml";
-const stationGroups=[["dam",[0]],["rid",[1]],["tmd",[2]],["weather",[3,4]],["news",[5]],["flood",[6]]];
-stationGroups.forEach(function(group){
-const agentTasks=group[1].map(function(i){return tasks[i]});
-const state=agentTasks.some(function(t){return t.status==="running"})?"running":agentTasks.some(function(t){return t.status==="failure"||t.status==="cancelled"})?"failure":agentTasks.every(function(t){return t.status==="success"||t.status==="skipped"})?(agentTasks.some(function(t){return t.status==="success"})?"success":"skipped"):"queued";
-const node=document.getElementById("scene-"+group[0]);if(node)node.setAttribute("class","scene-agent "+state);
-const label=document.getElementById("scene-state-"+group[0]);if(label)label.textContent=state==="success"?"สำเร็จ":state==="running"?"ทำงาน":state==="failure"?"ขัดข้อง":state==="skipped"?"ข้าม":"รอคิว";
-});
+function date(s){const t=s?new Date(s):null;return t&&!isNaN(t)?new Intl.DateTimeFormat("th-TH",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Bangkok"}).format(t):"—"}
+function duration(a,b){const s=Math.round((new Date(b)-new Date(a))/1000);if(!(s>=0))return "";return s<60?s+" วินาที":Math.floor(s/60)+" นาที"+(s%60?" "+(s%60)+" วินาที":"")}
+function safeUrl(u,fallback){return typeof u==="string"&&/^https:\/\/github\.com\//.test(u)?u:fallback}
+// Visual state for one task. A task still "queued" after the run has ended never started — say so.
+function view(t,d){
+  if(t.status==="queued")return FINAL.includes(d.status)?"notstarted":"queued";
+  if(t.status==="cancelled")return "failure";
+  return ["running","success","failure","skipped"].includes(t.status)?t.status:"unknown";
+}
+function group(states){
+  if(states.includes("running"))return "running";
+  if(states.includes("failure"))return "failure";
+  if(states.includes("unknown"))return "unknown";
+  if(states.includes("notstarted"))return "notstarted";
+  if(states.every(function(s){return s==="skipped"}))return "skipped";
+  if(states.every(function(s){return s==="success"||s==="skipped"}))return "success";
+  return "queued";
+}
 
-const steps=[["เริ่มชุดงาน","▶",!!d.startedAt,false],["ทำงานตามคิว","⚙",finished,!!running],["ตรวจผลลัพธ์","✓",finished,finished],["เสร็จสมบูรณ์","✦",d.status==="success",false]];
-document.getElementById("steps").innerHTML=steps.map(function(s){return '<div class="step '+(s[2]?"done ":"")+(s[3]?"active":"")+'"><span class="step-icon">'+s[1]+'</span><span>'+s[0]+'</span></div>'}).join("");
-const events=[];
-if(running)events.push(["⟳","<strong>"+esc(running.label||running.repo)+"</strong> กำลังทำงาน",date(running.startedAt)]);
-tasks.slice().reverse().filter(t=>t.completedAt).slice(0,3).forEach(function(t){events.push([t.status==="success"?"✓":"!","<strong>"+esc(t.label)+"</strong> "+(labels[t.status]||"เสร็จแล้ว"),date(t.completedAt)])});
-if(!events.length)events.push(["◷","<strong>พร้อมเริ่มงาน</strong> กดปุ่มเริ่มชุดงานเพื่อเรียก workflow",date(d.updatedAt)]);
-document.getElementById("activity").innerHTML=events.map(function(e){return '<div class="event"><span class="event-icon">'+e[0]+'</span><span>'+e[1]+'<br>'+esc(e[2])+'</span></div>'}).join("");
-document.title=(running?"กำลังทำงาน: "+running.repo:finished?"รอบล่าสุดเสร็จแล้ว":"พร้อมใช้งาน")+" · Data Agent Control";
+// Build the scene overlays once; render() only updates their state.
+$("lights").innerHTML=stations.map(function(s){
+  return ["dim","tint","glow"].map(function(k){return '<div class="h h-'+k+'" data-st="'+s.key+'" data-state="unknown" style="--x:'+s.x+';--y:'+s.y+'"></div>'}).join("");
+}).join("");
+$("links").innerHTML=stations.map(function(s){
+  return '<line data-st="'+s.key+'" x1="'+CORE.x+'" y1="'+(CORE.y*.5647).toFixed(2)+'" x2="'+s.x+'" y2="'+(s.y*.5647).toFixed(2)+'"/>';
+}).join("");
+$("tags").innerHTML=stations.map(function(s){
+  return '<a class="tag" id="tag-'+s.key+'" href="#task-'+(s.tasks[0]+1)+'" data-state="unknown" style="--lx:'+s.lx+';--ly:'+s.ly+'"></a>';
+}).join("");
+
+let lastFocus=null;
+function focusScene(key){
+  if(key===lastFocus)return; lastFocus=key;
+  const sc=$("scroll"), st=$("stage"); if(st.scrollWidth<=sc.clientWidth)return;
+  const s=stations.find(function(v){return v.key===key}); const x=s?s.x:CORE.x;
+  sc.scrollLeft=Math.max(0,st.scrollWidth*x/100-sc.clientWidth/2);
 }
+
+function render(d){
+  const tasks=base.map(function(b,i){return Object.assign({repo:b[0],workflow:b[1],label:b[2],icon:b[3],status:"queued"},(d.tasks||[])[i]||{})});
+  const states=tasks.map(function(t){return view(t,d)});
+  const stale=!sample&&d.status==="running"&&d.updatedAt&&Date.now()-new Date(d.updatedAt)>STALE_MS;
+  const running=stale?null:tasks[states.indexOf("running")]||null;
+  const passed=states.filter(function(s){return s==="success"}).length;
+  const skipped=states.filter(function(s){return s==="skipped"}).length;
+  const done=states.filter(function(s){return ["success","failure","skipped"].includes(s)}).length;
+  const failedN=states.filter(function(s){return s==="failure"}).length;
+  const missedN=states.filter(function(s){return s==="notstarted"}).length;
+  const finished=FINAL.includes(d.status);
+  const unknown=d.status==="unknown";
+  const between=d.status==="running"&&!running&&!stale; // controller alive, between two tasks
+  document.body.classList.toggle("stale",!!stale);
+  document.body.classList.toggle("run-active",!!running);
+  document.body.classList.toggle("run-failed",failedN>0);
+
+  // --- scene ---
+  let focus=null;
+  stations.forEach(function(s){
+    const ss=s.tasks.map(function(i){return states[i]}), g=group(ss);
+    document.querySelectorAll('[data-st="'+s.key+'"]').forEach(function(n){
+      if(n.tagName.toLowerCase()==="line")n.setAttribute("class",g==="running"?"on":"");else n.dataset.state=g;
+    });
+    const tag=$("tag-"+s.key); tag.dataset.state=g;
+    tag.innerHTML="<b>"+esc(s.name)+"</b>"+s.tasks.map(function(i,n){
+      return '<span class="row" data-s="'+ss[n]+'"><i></i>'+(s.sub?esc(s.sub[n])+" · ":"")+"<em>"+labels[ss[n]]+"</em></span>";
+    }).join("");
+    tag.setAttribute("aria-label",s.name+": "+ss.map(function(v,n){return (s.sub?s.sub[n]+" ":"")+labels[v]}).join(", "));
+    if(!focus&&g==="running")focus=s.key;
+  });
+  if(!focus){const f=stations.find(function(s){return s.tasks.some(function(i){return states[i]==="failure"})});focus=f?f.key:"core"}
+  focusScene(focus);
+
+  // --- cards ---
+  $("grid").innerHTML=tasks.map(function(t,i){
+    const s=states[i], took=t.startedAt&&t.completedAt?duration(t.startedAt,t.completedAt):"";
+    let detail, when="";
+    if(s==="running"){detail=t.detail||"กำลังทำงาน";when="เริ่ม "+date(t.startedAt)}
+    else if(s==="success"){detail=t.completedAt?"เสร็จ "+date(t.completedAt)+(took?" · ใช้เวลา "+took:""):(t.detail||"สำเร็จ");when=""}
+    else if(s==="failure"){detail=t.detail||(t.status==="cancelled"?"ถูกยกเลิก":"workflow ไม่สำเร็จ");when=t.completedAt?"จบ "+date(t.completedAt):""}
+    else if(s==="skipped"){detail=t.detail||"ข้ามตามที่เลือก"}
+    else if(s==="notstarted"){detail=t.detail||"ไม่ได้เริ่มในรอบนี้"}
+    else if(s==="unknown"){detail="อ่านสถานะไม่ได้"}
+    else{detail="รอเริ่มตามคิว"}
+    const url=safeUrl(t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(t.repo)+"/actions/workflows/"+encodeURIComponent(t.workflow));
+    return '<article class="card" id="task-'+(i+1)+'" data-s="'+s+'"><div class="card-head"><div class="identity"><span class="avatar" aria-hidden="true">'+esc(t.icon)+'</span><span><h3>'+esc(t.label)+'</h3><span class="repo">'+esc(t.repo)+" · "+esc(t.workflow)+'</span></span></div><span class="badge">'+(t.status==="cancelled"?labels.cancelled:labels[s])+'</span></div><p class="detail">'+esc(detail)+'</p><div class="foot"><span>ลำดับ '+(i+1)+(when?" · "+esc(when):"")+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener">'+(t.runUrl?"เปิดผลการรัน":"เปิด workflow")+' ↗</a></div></article>';
+  }).join("");
+
+  // --- summary ---
+  const headline=unknown?"อ่านสถานะไม่ได้":stale?"สถานะอาจค้างอยู่":running||between?"กำลังทำงาน":failedN||missedN?"มีงานต้องตรวจสอบ":d.status==="success"?"ชุดงานเสร็จแล้ว":"พร้อมเริ่มชุดงาน";
+  $("title").textContent=unknown?"ยังอ่านสถานะจาก GitHub ไม่ได้":stale?"ไม่มีการอัปเดตจากชุดงานนานผิดปกติ":running?"กำลังทำ: "+(running.label||running.repo):between?"ชุดงานเริ่มแล้ว กำลังเตรียมงานถัดไป":failedN||missedN?"รอบล่าสุดมีงานที่ต้องตรวจสอบ":d.status==="success"?"รอบล่าสุดเสร็จครบทุกงาน":"ทีมอัปเดตข้อมูลพร้อมเริ่มงาน";
+  $("message").textContent=unknown?"ระบบจะลองใหม่อัตโนมัติ ระหว่างนี้เปิดดูผลล่าสุดได้โดยตรงบน GitHub Actions"
+    :stale?"ไฟล์สถานะยังระบุว่ากำลังทำงาน แต่ไม่ได้อัปเดตตั้งแต่ "+date(d.updatedAt)+" โปรดตรวจรอบล่าสุดบน GitHub"
+    :running?"เมื่องานนี้เสร็จ ระบบจะเริ่มงานถัดไปในคิวโดยอัตโนมัติ"
+    :failedN||missedN?(failedN?failedN+" งานไม่สำเร็จ":"")+(failedN&&missedN?" และ ":"")+(missedN?missedN+" งานไม่ได้เริ่ม":"")+" ดูรายละเอียดในการ์ดด้านล่างหรือเปิดผลการรันบน GitHub"
+    :finished?"ดูผลแยกตาม workflow และเปิดรายละเอียดบน GitHub ได้จากแต่ละการ์ด"
+    :"ติดตามตัวแทนทั้ง 6 repo จากหน้าจอเดียว ระบบจะทำงานตามคิวและรอให้งานปัจจุบันเสร็จก่อนเริ่มงานถัดไป";
+  $("count").textContent=(unknown?"–":passed)+"/7";
+  $("ring").style.setProperty("--progress",Math.round(done/7*100)+"%");
+  $("ring").style.setProperty("--ring-color",failedN?"var(--red)":running?"var(--cyan)":"var(--green)");
+  $("overall").textContent=headline;
+  $("time").textContent=d.startedAt?"เริ่มรอบนี้ "+date(d.startedAt):"ยังไม่มีข้อมูลรอบการทำงาน";
+  $("active").textContent=(skipped?"ข้าม "+skipped+" งาน · ":"")+"อัปเดตล่าสุด "+date(d.updatedAt);
+  $("latest").href=safeUrl(d.runUrl,controllerUrl);
+
+  const queueBad=failedN>0||missedN>0;
+  const steps=[["เริ่มชุดงาน","▶",d.startedAt?"done":""],["ทำงานตามคิว","⚙",running||between?"active":finished?(queueBad?"bad":"done"):""],["ตรวจผลลัพธ์","✓",finished?(queueBad?"bad":"done"):""],["เสร็จสมบูรณ์","✦",d.status==="success"&&!queueBad?"done":""]];
+  $("steps").innerHTML=steps.map(function(s){return '<div class="step '+s[2]+'"><span class="step-icon" aria-hidden="true">'+s[1]+'</span><span>'+s[0]+'</span></div>'}).join("");
+
+  const events=[];
+  if(running)events.push(["⟳","running","<strong>"+esc(running.label||running.repo)+"</strong> กำลังทำงาน",date(running.startedAt)]);
+  tasks.map(function(t,i){return [t,states[i]]}).filter(function(p){return p[0].completedAt}).sort(function(a,b){return new Date(b[0].completedAt)-new Date(a[0].completedAt)}).slice(0,4).forEach(function(p){
+    events.push([p[1]==="success"?"✓":"!",p[1],"<strong>"+esc(p[0].label)+"</strong> "+(p[0].status==="cancelled"?labels.cancelled:labels[p[1]]),date(p[0].completedAt)]);
+  });
+  if(!events.length)events.push(["◷","unknown",unknown?"<strong>ยังไม่มีข้อมูล</strong> อ่านไฟล์สถานะไม่ได้":"<strong>ยังไม่มีกิจกรรมในรอบนี้</strong>",date(d.updatedAt)]);
+  $("activity").innerHTML=events.map(function(e){return '<div class="event" data-s="'+e[1]+'"><span class="event-icon" aria-hidden="true">'+e[0]+'</span><span>'+e[2]+'<br>'+esc(e[3])+'</span></div>'}).join("");
+  document.title=(running?"กำลังทำงาน: "+running.repo:queueBad?"ต้องตรวจสอบ":finished?"รอบล่าสุดเสร็จแล้ว":"พร้อมใช้งาน")+" · Data Agent Control";
+}
+
+function note(text){const n=$("notice");n.textContent=text||"";n.classList.toggle("show",!!text)}
+let ready=false;
 async function refresh(){
-try{
-const r=await fetch(statusUrl+"?t="+Date.now(),{cache:"no-store"});
-if(!r.ok)throw new Error("HTTP "+r.status);
-const data=await r.json();render(data);
-document.getElementById("connection").textContent="เชื่อมต่อแล้ว";
-document.getElementById("dot").style.background="var(--green)";
-}catch(e){
-document.getElementById("connection").textContent="อ่านสถานะไม่ได้";
-document.getElementById("dot").style.background="var(--amber)";
-if(!window.dashboardReady){render({status:"idle",tasks:base.map(function(b){return {repo:b[0],workflow:b[1],label:b[2],icon:b[3],status:"queued"}})});}
+  try{
+    const r=await fetch(statusUrl+(sample?"":"?t="+Date.now()),{cache:"no-store"});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    render(await r.json()); ready=true;
+    $("connection").textContent=sample?"ข้อมูลตัวอย่าง":"เชื่อมต่อแล้ว"; $("conn").className="pill "+(sample?"bad":"ok");
+    note(sample?"โหมดตัวอย่าง: หน้านี้กำลังแสดงข้อมูลจำลองเพื่อทดสอบหน้าตา ไม่ใช่สถานะจริงของ workflow":"");
+  }catch(e){
+    $("connection").textContent="อ่านสถานะไม่ได้"; $("conn").className="pill bad";
+    if(ready)note("อ่านสถานะล่าสุดไม่ได้ ข้อมูลที่แสดงอาจไม่เป็นปัจจุบัน ระบบจะลองใหม่อัตโนมัติ");
+    else render({status:"unknown",tasks:base.map(function(){return {status:"unknown"}})});
+  }
 }
-window.dashboardReady=true;
-}
-document.getElementById("refresh").addEventListener("click",function(){refresh();const t=document.getElementById("toast");t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1300)});
+$("refresh").addEventListener("click",function(){refresh();const t=$("toast");t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1300)});
 refresh();setInterval(refresh,30000);
 })();
-</script></body></html>
+</script>
+</body>
+</html>
