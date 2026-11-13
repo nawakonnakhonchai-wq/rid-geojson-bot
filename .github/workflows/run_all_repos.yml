@@ -22,11 +22,10 @@ jobs:
     steps:
       - name: Dispatch and wait for each repository workflow
         uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
         env:
           SKIP_DAM: ${{ inputs.skip_dam }}
         with:
+          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
           script: |
             const owner = 'nawakonnakhonchai-wq';
             const queue = [
