@@ -2,6 +2,12 @@ name: Run daily repository updates
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_dam:
+        description: 'ข้าม Dam_Daily หากงานเขื่อนของรอบที่สะดุดทำสำเร็จแล้ว'
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -18,6 +24,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.CROSS_REPO_TOKEN }}
+        env:
+          SKIP_DAM: ${{ inputs.skip_dam }}
+        with:
           script: |
             const owner = 'nawakonnakhonchai-wq';
             const queue = [
@@ -30,6 +39,10 @@ jobs:
               { repo: 'hii-flood-alert', workflow: 'auto_update.yml', label: 'อัปเดตพื้นที่เฝ้าระวังน้ำท่วม' },
             ];
             const results = [];
+            if (process.env.SKIP_DAM === 'true') {
+              results.push({ ...queue[0], status: 'สำเร็จแล้วในรอบก่อน (ข้าม)' });
+              queue.shift();
+            }
             const deadline = Date.now() + 5 * 60 * 60 * 1000;
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
             const markNotStarted = (items, reason) => {
@@ -49,7 +62,10 @@ jobs:
               try {
                 dispatch = await github.request(
                   'POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches?return_run_details=true',
-                  { owner, repo: item.repo, workflow_id: item.workflow, ref: 'main' },
+                  {
+                    owner, repo: item.repo, workflow_id: item.workflow, ref: 'main',
+                    headers: { 'X-GitHub-Api-Version': '2026-03-10' },
+                  },
                 );
               } catch (error) {
                 results.push({ ...item, status: `สั่งงานหรือยืนยันผลตอบกลับไม่ได้: ${error.message}` });
