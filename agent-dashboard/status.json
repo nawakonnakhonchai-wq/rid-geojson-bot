@@ -1,72 +1,59 @@
 {
   "version": 1,
-  "status": "success",
-  "runId": 43391475397,
-  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43391475397",
-  "startedAt": "2026-11-13T08:12:57Z",
-  "updatedAt": "2026-11-13T08:16:16Z",
+  "status": "running",
+  "runId": 43400278443,
+  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43400278443",
+  "startedAt": "2026-11-13T09:19:03.601Z",
+  "updatedAt": "2026-11-13T09:19:03.606Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
       "workflow": "update_data.yml",
       "label": "อัปเดตข้อมูลเขื่อน",
       "icon": "🏞️",
-      "status": "success",
-      "detail": "สำเร็จจากรอบก่อน"
+      "status": "queued"
     },
     {
       "repo": "rid-geojson-bot",
       "workflow": "realtime_tracker.yml",
       "label": "อัปเดตข้อมูลระดับน้ำ",
       "icon": "🌊",
-      "status": "success",
-      "startedAt": "2026-11-13T08:13:02Z",
-      "completedAt": "2026-11-13T08:13:50Z"
+      "status": "queued"
     },
     {
       "repo": "tmd-earthquake-geojson",
       "workflow": "earthquake_cron.yml",
       "label": "อัปเดตข้อมูลแผ่นดินไหว",
       "icon": "🌏",
-      "status": "success",
-      "startedAt": "2026-11-13T08:13:50Z",
-      "completedAt": "2026-11-13T08:14:22Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherForecastDaily",
       "workflow": "openmeteo_update.yml",
       "label": "อัปเดตพยากรณ์ Open-Meteo",
       "icon": "🌤️",
-      "status": "success",
-      "startedAt": "2026-11-13T08:14:22Z",
-      "completedAt": "2026-11-13T08:14:39Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherForecastDaily",
       "workflow": "weather_update.yml",
       "label": "อัปเดตพยากรณ์กรมอุตุฯ",
       "icon": "🌦️",
-      "status": "success",
-      "startedAt": "2026-11-13T08:14:39Z",
-      "completedAt": "2026-11-13T08:15:11Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherWarningNews",
       "workflow": "update_data.yml",
       "label": "อัปเดตข่าวเตือนภัยอากาศ",
       "icon": "⛈️",
-      "status": "success",
-      "startedAt": "2026-11-13T08:15:11Z",
-      "completedAt": "2026-11-13T08:15:43Z"
+      "status": "queued"
     },
     {
       "repo": "hii-flood-alert",
       "workflow": "auto_update.yml",
       "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
       "icon": "🚨",
-      "status": "success",
-      "startedAt": "2026-11-13T08:15:43Z",
-      "completedAt": "2026-11-13T08:16:15Z"
+      "status": "queued"
     }
   ]
 }
