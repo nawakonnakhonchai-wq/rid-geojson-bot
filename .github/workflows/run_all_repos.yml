@@ -1,0 +1,97 @@
+name: Run daily repository updates
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: daily-repository-updates
+  cancel-in-progress: false
+
+jobs:
+  run-updates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Dispatch and wait for each repository workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
+          script: |
+            const owner = 'nawakonnakhonchai-wq';
+            const queue = [
+              { repo: 'Dam_Daily', workflow: 'update_data.yml', label: 'อัปเดตข้อมูลเขื่อน' },
+              { repo: 'rid-geojson-bot', workflow: 'realtime_tracker.yml', label: 'อัปเดตข้อมูลระดับน้ำ' },
+              { repo: 'tmd-earthquake-geojson', workflow: 'earthquake_cron.yml', label: 'อัปเดตข้อมูลแผ่นดินไหว' },
+              { repo: 'WeatherForecastDaily', workflow: 'openmeteo_update.yml', label: 'อัปเดตพยากรณ์ Open-Meteo' },
+              { repo: 'WeatherForecastDaily', workflow: 'weather_update.yml', label: 'อัปเดตพยากรณ์กรมอุตุฯ' },
+              { repo: 'WeatherWarningNews', workflow: 'update_data.yml', label: 'อัปเดตข่าวเตือนภัยอากาศ' },
+              { repo: 'hii-flood-alert', workflow: 'auto_update.yml', label: 'อัปเดตพื้นที่เฝ้าระวังน้ำท่วม' },
+            ];
+            const results = [];
+            const deadline = Date.now() + 5 * 60 * 60 * 1000;
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            for (let index = 0; index < queue.length; index++) {
+              const item = queue[index];
+              const repoPath = `${owner}/${item.repo}`;
+              if (Date.now() >= deadline) {
+                results.push({ ...item, status: 'ไม่ได้เริ่ม: ถึงเวลาสูงสุดของชุดงาน' });
+                for (const pending of queue.slice(index + 1)) {
+                  results.push({ ...pending, status: 'ไม่ได้เริ่ม: ชุดงานหยุดก่อนถึงคิว' });
+                }
+                break;
+              }
+
+              core.info(`เริ่ม ${repoPath} / ${item.workflow}`);
+              try {
+                const dispatch = await github.request(
+                  'POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches?return_run_details=true',
+                  { owner, repo: item.repo, workflow_id: item.workflow, ref: 'main' },
+                );
+                const runId = dispatch.data?.workflow_run_id;
+                if (!runId) throw new Error('GitHub ไม่ได้ส่ง workflow_run_id กลับมา');
+                const runUrl = dispatch.data.html_url;
+                let finished = false;
+                while (Date.now() < deadline) {
+                  await sleep(15000);
+                  const { data: run } = await github.rest.actions.getWorkflowRun({
+                    owner, repo: item.repo, run_id: runId,
+                  });
+                  if (run.status === 'completed') {
+                    const status = run.conclusion === 'success' ? 'สำเร็จ' : `ล้มเหลว (${run.conclusion || 'ไม่ทราบผล'})`;
+                    results.push({ ...item, status, url: run.html_url || runUrl });
+                    core.info(`${repoPath}: ${status}`);
+                    finished = true;
+                    break;
+                  }
+                }
+                if (!finished) {
+                  results.push({ ...item, status: 'เกินเวลารอ; หยุดชุดงานเพื่อไม่ให้คิวซ้อนกัน', url: runUrl });
+                  for (const pending of queue.slice(index + 1)) {
+                    results.push({ ...pending, status: 'ไม่ได้เริ่ม: งานก่อนหน้าเกินเวลารอ' });
+                  }
+                  break;
+                }
+              } catch (error) {
+                results.push({ ...item, status: `เรียกงานไม่สำเร็จ: ${error.message}` });
+                core.error(`${repoPath}: ${error.message}`);
+              }
+            }
+
+            await core.summary
+              .addHeading('สรุปการอัปเดตข้อมูลรายวัน')
+              .addTable([
+                [{ data: 'Repo', header: true }, { data: 'งาน', header: true }, { data: 'สถานะ', header: true }],
+                ...results.map((result) => [
+                  result.url ? `[${result.repo}](${result.url})` : result.repo,
+                  result.label,
+                  result.status,
+                ]),
+              ])
+              .write();
+
+            if (results.some((result) => !result.status.startsWith('สำเร็จ'))) {
+              core.setFailed('มีงานล้มเหลวหรือไม่ได้เริ่ม ดูตารางสรุปด้านบน');
+            }
