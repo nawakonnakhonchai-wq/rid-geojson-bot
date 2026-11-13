@@ -86,13 +86,13 @@ a{color:inherit;text-decoration:none}
 .h-tint[data-state=failure]{opacity:.95} .h-glow[data-state=failure]{opacity:.28}
 .h-dim[data-state=skipped],.h-dim[data-state=notstarted],.h-dim[data-state=unknown]{opacity:.9}
 .h-tint[data-state=skipped],.h-tint[data-state=notstarted],.h-tint[data-state=unknown]{opacity:.9}
-.h-glow[data-state=running]{opacity:.34;animation:breathe 1.8s ease-in-out infinite}
+.h-glow[data-state=running]{opacity:.6;animation:breathe 1.6s ease-in-out infinite}
 .core{--x:50;--y:43.6;width:26%;height:40%;left:37%;top:23.6%}
 .core.h-glow{--c:var(--cyan)}
 .run-active .core.h-glow{opacity:.3;animation:breathe 2.4s ease-in-out infinite}
 .run-failed .core.h-tint{--c:var(--red);opacity:.55}
 .links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
-.links line{stroke:var(--cyan);stroke-width:.32;stroke-linecap:round;stroke-dasharray:1.6 2.6;opacity:0;filter:drop-shadow(0 0 .6px var(--cyan))}
+.links line{stroke:var(--cyan);stroke-width:.22;stroke-linecap:round;stroke-dasharray:1.6 2.6;opacity:0;filter:drop-shadow(0 0 .6px var(--cyan))}
 .links line.on{opacity:.95;animation:flow 1.1s linear infinite}
 .vignette{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(4,11,22,.5) 0,transparent 16%,transparent 78%,rgba(4,11,22,.82) 100%)}
@@ -112,7 +112,31 @@ a{color:inherit;text-decoration:none}
 .tag .row em{font-style:normal;color:var(--rc);font-weight:600}
 .tag[data-state=notstarted],.tag[data-state=skipped],.tag[data-state=unknown]{border-style:dashed}
 .tag[data-state=running]{box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 22px color-mix(in srgb,var(--c) 50%,transparent)}
-.row[data-s=running] i{animation:blink 1s ease-in-out infinite}
+.row[data-s=running] i{background:none;box-shadow:none;width:.85em;height:.85em;border:.16em solid color-mix(in srgb,var(--cyan) 25%,transparent);border-top-color:var(--cyan);animation:spin .8s linear infinite}
+.row[data-s=running] em:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:dots 1.4s steps(4,end) infinite}
+/* --- activity effects: shown only for a station whose workflow is really running --- */
+.fx{display:none;position:absolute;pointer-events:none}
+.fx[data-state=running]{display:block}
+.ripple{left:calc(var(--x)*1% - 13%);top:calc(var(--y)*1% - 9%);width:26%;height:26%;border-radius:50%;
+  border:2px solid var(--cyan);box-shadow:0 0 14px var(--cyan),inset 0 0 14px color-mix(in srgb,var(--cyan) 50%,transparent);
+  mix-blend-mode:screen;opacity:0;animation:ripple 2.4s cubic-bezier(.2,.6,.4,1) infinite}
+.ripple.r2{animation-delay:.8s}.ripple.r3{animation-delay:1.6s}
+.pkt{width:1.1cqw;height:1.1cqw;min-width:7px;min-height:7px;margin:-.55cqw 0 0 -.55cqw;border-radius:50%;background:#eaffff;
+  box-shadow:0 0 .6cqw .25cqw var(--cyan),0 0 1.8cqw .6cqw color-mix(in srgb,var(--cyan) 55%,transparent);
+  left:calc(var(--x)*1%);top:calc(var(--y)*1%);animation:travel 1.8s linear infinite}
+.pkt.p2{animation-delay:.6s}.pkt.p3{animation-delay:1.2s}
+.typing{left:calc(var(--ax)*1%);top:calc(var(--ay)*1%);transform:translate(-50%,-100%);gap:.35cqw;
+  padding:.45cqw .6cqw;border-radius:1cqw;background:rgba(6,16,30,.88);border:1px solid color-mix(in srgb,var(--cyan) 70%,transparent);
+  box-shadow:0 0 12px color-mix(in srgb,var(--cyan) 40%,transparent)}
+.typing[data-state=running]{display:flex}
+.typing i{width:.55cqw;height:.55cqw;min-width:4px;min-height:4px;border-radius:50%;background:var(--cyan);animation:bounce 1s ease-in-out infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+.orbit{display:none;position:absolute;pointer-events:none;left:50%;top:43.6%;width:19%;aspect-ratio:1;transform:translate(-50%,-50%) scaleY(.42)}
+.run-active .orbit{display:block}
+.orbit:before,.orbit:after{content:"";position:absolute;inset:0;border-radius:50%;border:.35cqw solid transparent;border-top-color:#bff6ff;border-right-color:var(--cyan);
+  filter:drop-shadow(0 0 .5cqw var(--cyan));animation:spin 2.6s linear infinite}
+.orbit:after{inset:14%;border-top-color:transparent;border-right-color:transparent;border-bottom-color:#bff6ff;border-left-color:var(--cyan);animation-duration:1.9s;animation-direction:reverse}
+.card[data-s=running] .avatar{animation:bob .9s ease-in-out infinite alternate;border-color:var(--cyan)}
 [data-s=queued]{--rc:var(--amber)} [data-s=running]{--rc:var(--cyan)} [data-s=success]{--rc:var(--green)}
 [data-s=failure]{--rc:var(--red)} [data-s=skipped],[data-s=notstarted],[data-s=unknown]{--rc:var(--slate)}
 .scene-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap;
@@ -169,6 +193,12 @@ a{color:inherit;text-decoration:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 @keyframes breathe{50%{opacity:.12}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@keyframes ripple{0%{transform:scale(.35,.2);opacity:.95}100%{transform:scale(1.25,.72);opacity:0}}
+@keyframes travel{0%{left:calc(var(--x)*1%);top:calc(var(--y)*1%);opacity:0}12%{opacity:1}88%{opacity:1}100%{left:50%;top:43.6%;opacity:0}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-.5cqw);opacity:1}}
+@keyframes bob{to{transform:translateY(-3px) rotate(3deg)}}
 @keyframes blink{50%{opacity:.4}}
 @keyframes flow{to{stroke-dashoffset:-4.2}}
 @keyframes sweep{to{left:120%}}
@@ -240,6 +270,7 @@ a{color:inherit;text-decoration:none}
       </picture>
       <div id="lights"></div>
       <div class="h h-tint core"></div><div class="h h-glow core"></div>
+      <div class="orbit"></div>
       <svg class="links" id="links" viewBox="0 0 100 56.47" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="vignette"></div>
       <nav id="tags" aria-label="สถานะรายสถานี"></nav>
@@ -284,12 +315,12 @@ const base=[
 ["hii-flood-alert","auto_update.yml","อัปเดตพื้นที่เฝ้าระวังน้ำท่วม","🚨"]];
 // x,y = desk centre in the artwork (% of width/height); lx,ly = where the label's bottom edge sits.
 const stations=[
-{key:"dam",    name:"เขื่อน",           tasks:[0],   x:25,   y:30,   lx:24.5, ly:18},
-{key:"water",  name:"ระดับน้ำ",         tasks:[1],   x:50.4, y:25,   lx:49.5, ly:13.5},
-{key:"quake",  name:"แผ่นดินไหว",       tasks:[2],   x:75.7, y:32,   lx:75,   ly:20},
-{key:"weather",name:"พยากรณ์อากาศ",     tasks:[3,4], x:20,   y:66,   lx:19.5, ly:51, sub:["Open-Meteo","กรมอุตุฯ"]},
-{key:"warn",   name:"ข่าวเตือนภัย",     tasks:[5],   x:50,   y:75,   lx:49,   ly:63},
-{key:"flood",  name:"เฝ้าระวังน้ำท่วม", tasks:[6],   x:80.7, y:68,   lx:80,   ly:52.5}];
+{key:"dam",ax:17.5,ay:21,    name:"เขื่อน",           tasks:[0],   x:25,   y:30,   lx:24.5, ly:18},
+{key:"water",ax:45.4,ay:15,  name:"ระดับน้ำ",         tasks:[1],   x:50.4, y:25,   lx:49.5, ly:13.5},
+{key:"quake",ax:69.3,ay:21,  name:"แผ่นดินไหว",       tasks:[2],   x:75.7, y:32,   lx:75,   ly:20},
+{key:"weather",ax:12.9,ay:56,name:"พยากรณ์อากาศ",     tasks:[3,4], x:20,   y:66,   lx:19.5, ly:51, sub:["Open-Meteo","กรมอุตุฯ"]},
+{key:"warn",ax:44.3,ay:69.5,   name:"ข่าวเตือนภัย",     tasks:[5],   x:50,   y:75,   lx:49,   ly:63},
+{key:"flood",ax:74.3,ay:57.5,  name:"เฝ้าระวังน้ำท่วม", tasks:[6],   x:80.7, y:68,   lx:80,   ly:52.5}];
 const CORE={x:50,y:43.6};
 const labels={queued:"รอคิว",running:"กำลังทำงาน",success:"สำเร็จ",failure:"ไม่สำเร็จ",cancelled:"ยกเลิก",skipped:"ข้าม",notstarted:"ไม่ได้เริ่ม",unknown:"ไม่ทราบสถานะ"};
 const FINAL=["success","failure","cancelled"];
@@ -316,7 +347,11 @@ function group(states){
 
 // Build the scene overlays once; render() only updates their state.
 $("lights").innerHTML=stations.map(function(s){
-  return ["dim","tint","glow"].map(function(k){return '<div class="h h-'+k+'" data-st="'+s.key+'" data-state="unknown" style="--x:'+s.x+';--y:'+s.y+'"></div>'}).join("");
+  const at=' data-st="'+s.key+'" data-state="unknown" style="--x:'+s.x+';--y:'+s.y+';--ax:'+s.ax+';--ay:'+s.ay+'"';
+  return ["dim","tint","glow"].map(function(k){return '<div class="h h-'+k+'"'+at+'></div>'}).join("")
+    +["r1","r2","r3"].map(function(k){return '<div class="fx ripple '+k+'"'+at+'></div>'}).join("")
+    +["p1","p2","p3"].map(function(k){return '<div class="fx pkt '+k+'"'+at+'></div>'}).join("")
+    +'<div class="fx typing"'+at+'><i></i><i></i><i></i></div>';
 }).join("");
 $("links").innerHTML=stations.map(function(s){
   return '<line data-st="'+s.key+'" x1="'+CORE.x+'" y1="'+(CORE.y*.5647).toFixed(2)+'" x2="'+s.x+'" y2="'+(s.y*.5647).toFixed(2)+'"/>';
