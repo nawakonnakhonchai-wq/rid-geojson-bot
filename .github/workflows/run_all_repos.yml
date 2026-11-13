@@ -23,40 +23,86 @@ jobs:
       - name: Dispatch and wait for each repository workflow
         uses: actions/github-script@v7
         env:
-          SKIP_DAM: ${{ inputs.skip_dam }}
+          SKIP_DAM: \${{ inputs.skip_dam }}
         with:
-          github-token: ${{ secrets.CROSS_REPO_TOKEN }}
+          github-token: \${{ secrets.CROSS_REPO_TOKEN }}
           script: |
             const owner = 'nawakonnakhonchai-wq';
+            const controlRepo = 'rid-geojson-bot';
+            const statusPath = 'agent-dashboard/status.json';
             const queue = [
-              { repo: 'Dam_Daily', workflow: 'update_data.yml', label: 'อัปเดตข้อมูลเขื่อน' },
-              { repo: 'rid-geojson-bot', workflow: 'realtime_tracker.yml', label: 'อัปเดตข้อมูลระดับน้ำ' },
-              { repo: 'tmd-earthquake-geojson', workflow: 'earthquake_cron.yml', label: 'อัปเดตข้อมูลแผ่นดินไหว' },
-              { repo: 'WeatherForecastDaily', workflow: 'openmeteo_update.yml', label: 'อัปเดตพยากรณ์ Open-Meteo' },
-              { repo: 'WeatherForecastDaily', workflow: 'weather_update.yml', label: 'อัปเดตพยากรณ์กรมอุตุฯ' },
-              { repo: 'WeatherWarningNews', workflow: 'update_data.yml', label: 'อัปเดตข่าวเตือนภัยอากาศ' },
-              { repo: 'hii-flood-alert', workflow: 'auto_update.yml', label: 'อัปเดตพื้นที่เฝ้าระวังน้ำท่วม' },
+              { repo: 'Dam_Daily', workflow: 'update_data.yml', label: 'อัปเดตข้อมูลเขื่อน', icon: '🏞️' },
+              { repo: 'rid-geojson-bot', workflow: 'realtime_tracker.yml', label: 'อัปเดตข้อมูลระดับน้ำ', icon: '🌊' },
+              { repo: 'tmd-earthquake-geojson', workflow: 'earthquake_cron.yml', label: 'อัปเดตข้อมูลแผ่นดินไหว', icon: '🌏' },
+              { repo: 'WeatherForecastDaily', workflow: 'openmeteo_update.yml', label: 'อัปเดตพยากรณ์ Open-Meteo', icon: '🌤️' },
+              { repo: 'WeatherForecastDaily', workflow: 'weather_update.yml', label: 'อัปเดตพยากรณ์กรมอุตุฯ', icon: '🌦️' },
+              { repo: 'WeatherWarningNews', workflow: 'update_data.yml', label: 'อัปเดตข่าวเตือนภัยอากาศ', icon: '⛈️' },
+              { repo: 'hii-flood-alert', workflow: 'auto_update.yml', label: 'อัปเดตพื้นที่เฝ้าระวังน้ำท่วม', icon: '🚨' },
             ];
-            const results = [];
-            if (process.env.SKIP_DAM === 'true') {
-              results.push({ ...queue[0], status: 'สำเร็จแล้วในรอบก่อน (ข้าม)' });
-              queue.shift();
-            }
-            const deadline = Date.now() + 5 * 60 * 60 * 1000;
+            const startedAt = new Date().toISOString();
+            const dashboard = {
+              version: 1,
+              status: 'running',
+              runId: context.runId,
+              runUrl: 'https://github.com/' + owner + '/' + controlRepo + '/actions/runs/' + context.runId,
+              startedAt,
+              updatedAt: startedAt,
+              tasks: queue.map((item) => ({ ...item, status: 'queued' })),
+            };
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-            const markNotStarted = (items, reason) => {
-              for (const item of items) results.push({ ...item, status: `ไม่ได้เริ่ม: ${reason}` });
+            const publishStatus = async () => {
+              dashboard.updatedAt = new Date().toISOString();
+              try {
+                let sha;
+                try {
+                  const current = await github.rest.repos.getContent({
+                    owner, repo: controlRepo, path: statusPath, ref: 'main',
+                  });
+                  sha = current.data.sha;
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+                const payload = {
+                  owner,
+                  repo: controlRepo,
+                  path: statusPath,
+                  message: 'Update agent dashboard status',
+                  content: Buffer.from(JSON.stringify(dashboard, null, 2)).toString('base64'),
+                  branch: 'main',
+                };
+                if (sha) payload.sha = sha;
+                await github.rest.repos.createOrUpdateFileContents(payload);
+              } catch (error) {
+                core.warning('แดชบอร์ดอัปเดตสถานะไม่ได้: ' + error.message + ' (ตรวจสิทธิ์ Contents: write ของ CROSS_REPO_TOKEN)');
+              }
             };
 
+            if (process.env.SKIP_DAM === 'true') {
+              dashboard.tasks[0].status = 'skipped';
+              dashboard.tasks[0].detail = 'ข้ามตามตัวเลือกในรอบนี้';
+            }
+            await publishStatus();
+
+            const deadline = Date.now() + 5 * 60 * 60 * 1000;
             for (let index = 0; index < queue.length; index++) {
               const item = queue[index];
-              const repoPath = `${owner}/${item.repo}`;
+              const task = dashboard.tasks[index];
+              if (task.status === 'skipped') continue;
+              const repoPath = owner + '/' + item.repo;
               if (Date.now() >= deadline) {
-                markNotStarted(queue.slice(index), 'ถึงเวลาสูงสุดของชุดงาน');
+                task.status = 'queued';
+                task.detail = 'ไม่ได้เริ่ม: ถึงเวลาสูงสุดของชุดงาน';
+                for (const pending of dashboard.tasks.slice(index + 1)) pending.detail = 'ไม่ได้เริ่ม: ถึงเวลาสูงสุดของชุดงาน';
+                await publishStatus();
                 break;
               }
 
-              core.info(`เริ่ม ${repoPath} / ${item.workflow}`);
+              task.status = 'running';
+              task.startedAt = new Date().toISOString();
+              task.detail = 'กำลังเรียก workflow';
+              core.info('เริ่ม ' + repoPath + ' / ' + item.workflow);
+              await publishStatus();
+
               let dispatch;
               try {
                 dispatch = await github.request(
@@ -67,19 +113,31 @@ jobs:
                   },
                 );
               } catch (error) {
-                results.push({ ...item, status: `สั่งงานหรือยืนยันผลตอบกลับไม่ได้: ${error.message}` });
-                markNotStarted(queue.slice(index + 1), 'หยุดคิวเพื่อป้องกันงานซ้อน');
-                core.error(`${repoPath}: ${error.message}`);
+                task.status = 'failure';
+                task.completedAt = new Date().toISOString();
+                task.detail = 'สั่งงานหรือยืนยันผลตอบกลับไม่ได้: ' + error.message;
+                for (const pending of dashboard.tasks.slice(index + 1)) pending.detail = 'หยุดคิวเพื่อป้องกันงานซ้อน';
+                await publishStatus();
+                core.error(repoPath + ': ' + error.message);
                 break;
               }
 
               const runId = dispatch.data?.workflow_run_id;
               const runUrl = dispatch.data?.html_url;
               if (!runId) {
-                results.push({ ...item, status: 'ยืนยัน run ID ไม่ได้; หยุดคิวเพื่อป้องกันงานซ้อน', url: runUrl });
-                markNotStarted(queue.slice(index + 1), 'หยุดคิวเพื่อป้องกันงานซ้อน');
+                task.status = 'failure';
+                task.completedAt = new Date().toISOString();
+                task.detail = 'ยืนยัน run ID ไม่ได้; หยุดคิวเพื่อป้องกันงานซ้อน';
+                task.runUrl = runUrl;
+                for (const pending of dashboard.tasks.slice(index + 1)) pending.detail = 'หยุดคิวเพื่อป้องกันงานซ้อน';
+                await publishStatus();
                 break;
               }
+
+              task.runId = runId;
+              task.runUrl = runUrl;
+              task.detail = 'workflow เริ่มแล้ว กำลังรอผล';
+              await publishStatus();
 
               let finished = false;
               while (Date.now() < deadline) {
@@ -89,36 +147,45 @@ jobs:
                     owner, repo: item.repo, run_id: runId,
                   });
                   if (run.status === 'completed') {
-                    const status = run.conclusion === 'success' ? 'สำเร็จ' : `ล้มเหลว (${run.conclusion || 'ไม่ทราบผล'})`;
-                    results.push({ ...item, status, url: run.html_url || runUrl });
-                    core.info(`${repoPath}: ${status}`);
+                    task.status = run.conclusion === 'success' ? 'success' : 'failure';
+                    task.completedAt = run.updated_at || new Date().toISOString();
+                    task.detail = run.conclusion === 'success' ? 'workflow สำเร็จ' : 'workflow จบด้วยสถานะ ' + (run.conclusion || 'ไม่ทราบผล');
+                    task.runUrl = run.html_url || runUrl;
+                    core.info(repoPath + ': ' + task.detail);
                     finished = true;
+                    await publishStatus();
                     break;
                   }
                 } catch (error) {
-                  core.warning(`ตรวจสถานะ ${repoPath} ไม่สำเร็จชั่วคราว จะลองใหม่: ${error.message}`);
+                  core.warning('ตรวจสถานะ ' + repoPath + ' ไม่สำเร็จชั่วคราว จะลองใหม่: ' + error.message);
                 }
               }
 
               if (!finished) {
-                results.push({ ...item, status: 'เกินเวลารอ; หยุดคิวเพื่อไม่ให้งานซ้อนกัน', url: runUrl });
-                markNotStarted(queue.slice(index + 1), 'งานก่อนหน้าเกินเวลารอ');
+                task.status = 'failure';
+                task.completedAt = new Date().toISOString();
+                task.detail = 'เกินเวลารอ; หยุดคิวเพื่อไม่ให้งานซ้อนกัน';
+                for (const pending of dashboard.tasks.slice(index + 1)) pending.detail = 'ไม่ได้เริ่ม: งานก่อนหน้าเกินเวลารอ';
+                await publishStatus();
                 break;
               }
             }
+
+            const hasFailure = dashboard.tasks.some((task) => task.status === 'failure');
+            dashboard.status = hasFailure ? 'failure' : 'success';
+            dashboard.completedAt = new Date().toISOString();
+            await publishStatus();
 
             await core.summary
               .addHeading('สรุปการอัปเดตข้อมูลรายวัน')
               .addTable([
                 [{ data: 'Repo', header: true }, { data: 'งาน', header: true }, { data: 'สถานะ', header: true }],
-                ...results.map((result) => [
-                  result.url ? `[${result.repo}](${result.url})` : result.repo,
-                  result.label,
-                  result.status,
+                ...dashboard.tasks.map((task) => [
+                  task.runUrl ? '[' + task.repo + '](' + task.runUrl + ')' : task.repo,
+                  task.label,
+                  task.status === 'success' ? 'สำเร็จ' : task.status === 'skipped' ? 'ข้ามแล้ว' : task.status === 'queued' ? 'ไม่ได้เริ่ม' : 'ล้มเหลว',
                 ]),
               ])
               .write();
 
-            if (results.some((result) => !result.status.startsWith('สำเร็จ'))) {
-              core.setFailed('มีงานล้มเหลวหรือไม่ได้เริ่ม ดูตารางสรุปด้านบน');
-            }
+            if (hasFailure) core.setFailed('มีงานล้มเหลวหรือไม่ได้เริ่ม ดูตารางสรุปด้านบน');
