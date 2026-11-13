@@ -4,7 +4,7 @@
   "runId": 43400278443,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43400278443",
   "startedAt": "2026-11-13T09:19:03.601Z",
-  "updatedAt": "2026-11-13T09:20:13.489Z",
+  "updatedAt": "2026-11-13T09:20:14.804Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -35,7 +35,9 @@
       "workflow": "earthquake_cron.yml",
       "label": "อัปเดตข้อมูลแผ่นดินไหว",
       "icon": "🌏",
-      "status": "queued"
+      "status": "running",
+      "startedAt": "2026-11-13T09:20:14.804Z",
+      "detail": "กำลังเรียก workflow"
     },
     {
       "repo": "WeatherForecastDaily",
