@@ -29,8 +29,6 @@ jobs:
         with:
           github-token: ${{ secrets.CROSS_REPO_TOKEN }}
           script: |
-            const { getOctokit } = await import('@actions/github');
-            const statusGithub = getOctokit(process.env.GITHUB_TOKEN);
             const owner = 'nawakonnakhonchai-wq';
             const controlRepo = 'rid-geojson-bot';
             const statusPath = 'agent-dashboard/status.json';
@@ -54,30 +52,52 @@ jobs:
               tasks: queue.map((item) => ({ ...item, status: 'queued' })),
             };
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            // The status file is written with this repository's own GITHUB_TOKEN through plain
+            // fetch: github-script bundles its dependencies, so '@actions/github' cannot be imported.
+            const statusApi = async (method, body) => {
+              const response = await fetch(
+                'https://api.github.com/repos/' + owner + '/' + controlRepo + '/contents/' + statusPath + (method === 'GET' ? '?ref=main' : ''),
+                {
+                  method,
+                  headers: {
+                    Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+                    Accept: 'application/vnd.github+json',
+                    'X-GitHub-Api-Version': '2022-11-28',
+                    'Content-Type': 'application/json',
+                  },
+                  body: body ? JSON.stringify(body) : undefined,
+                },
+              );
+              if (method === 'GET' && response.status === 404) return null;
+              if (!response.ok) {
+                const error = new Error('HTTP ' + response.status + ' ' + (await response.text()).slice(0, 200));
+                error.status = response.status;
+                throw error;
+              }
+              return response.json();
+            };
             const publishStatus = async () => {
               dashboard.updatedAt = new Date().toISOString();
               try {
-                let sha;
-                try {
-                  const current = await statusGithub.rest.repos.getContent({
-                    owner, repo: controlRepo, path: statusPath, ref: 'main',
-                  });
-                  sha = current.data.sha;
-                } catch (error) {
-                  if (error.status !== 404) throw error;
+                // Another workflow may commit to main between the read and the write; retry on a stale sha.
+                for (let attempt = 1; ; attempt++) {
+                  const current = await statusApi('GET');
+                  const payload = {
+                    message: 'Update agent dashboard status',
+                    content: Buffer.from(JSON.stringify(dashboard, null, 2)).toString('base64'),
+                    branch: 'main',
+                  };
+                  if (current && current.sha) payload.sha = current.sha;
+                  try {
+                    await statusApi('PUT', payload);
+                    break;
+                  } catch (error) {
+                    if (attempt >= 3 || (error.status !== 409 && error.status !== 422)) throw error;
+                    await sleep(2000);
+                  }
                 }
-                const payload = {
-                  owner,
-                  repo: controlRepo,
-                  path: statusPath,
-                  message: 'Update agent dashboard status',
-                  content: Buffer.from(JSON.stringify(dashboard, null, 2)).toString('base64'),
-                  branch: 'main',
-                };
-                if (sha) payload.sha = sha;
-                await statusGithub.rest.repos.createOrUpdateFileContents(payload);
               } catch (error) {
-                core.warning('แดชบอร์ดอัปเดตสถานะไม่ได้: ' + error.message + ' (ตรวจสิทธิ์ Contents: write ของ CROSS_REPO_TOKEN)');
+                core.warning('แดชบอร์ดอัปเดตสถานะไม่ได้: ' + error.message + ' (ตรวจสิทธิ์ contents: write ของ GITHUB_TOKEN ใน workflow นี้)');
               }
             };
 
