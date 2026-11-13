@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "status": "running",
+  "status": "failure",
   "runId": 43400278443,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43400278443",
   "startedAt": "2026-11-13T09:19:03.601Z",
-  "updatedAt": "2026-11-13T09:26:59.641Z",
+  "updatedAt": "2026-11-13T09:27:00.870Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -90,5 +90,6 @@
       "runUrl": "https://github.com/nawakonnakhonchai-wq/hii-flood-alert/actions/runs/43401335901",
       "completedAt": "2026-11-13T09:26:47Z"
     }
-  ]
+  ],
+  "completedAt": "2026-11-13T09:27:00.870Z"
 }
