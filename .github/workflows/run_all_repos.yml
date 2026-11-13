@@ -32,30 +32,44 @@ jobs:
             const results = [];
             const deadline = Date.now() + 5 * 60 * 60 * 1000;
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const markNotStarted = (items, reason) => {
+              for (const item of items) results.push({ ...item, status: `ไม่ได้เริ่ม: ${reason}` });
+            };
 
             for (let index = 0; index < queue.length; index++) {
               const item = queue[index];
               const repoPath = `${owner}/${item.repo}`;
               if (Date.now() >= deadline) {
-                results.push({ ...item, status: 'ไม่ได้เริ่ม: ถึงเวลาสูงสุดของชุดงาน' });
-                for (const pending of queue.slice(index + 1)) {
-                  results.push({ ...pending, status: 'ไม่ได้เริ่ม: ชุดงานหยุดก่อนถึงคิว' });
-                }
+                markNotStarted(queue.slice(index), 'ถึงเวลาสูงสุดของชุดงาน');
                 break;
               }
 
               core.info(`เริ่ม ${repoPath} / ${item.workflow}`);
+              let dispatch;
               try {
-                const dispatch = await github.request(
+                dispatch = await github.request(
                   'POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches?return_run_details=true',
                   { owner, repo: item.repo, workflow_id: item.workflow, ref: 'main' },
                 );
-                const runId = dispatch.data?.workflow_run_id;
-                if (!runId) throw new Error('GitHub ไม่ได้ส่ง workflow_run_id กลับมา');
-                const runUrl = dispatch.data.html_url;
-                let finished = false;
-                while (Date.now() < deadline) {
-                  await sleep(15000);
+              } catch (error) {
+                results.push({ ...item, status: `สั่งงานหรือยืนยันผลตอบกลับไม่ได้: ${error.message}` });
+                markNotStarted(queue.slice(index + 1), 'หยุดคิวเพื่อป้องกันงานซ้อน');
+                core.error(`${repoPath}: ${error.message}`);
+                break;
+              }
+
+              const runId = dispatch.data?.workflow_run_id;
+              const runUrl = dispatch.data?.html_url;
+              if (!runId) {
+                results.push({ ...item, status: 'ยืนยัน run ID ไม่ได้; หยุดคิวเพื่อป้องกันงานซ้อน', url: runUrl });
+                markNotStarted(queue.slice(index + 1), 'หยุดคิวเพื่อป้องกันงานซ้อน');
+                break;
+              }
+
+              let finished = false;
+              while (Date.now() < deadline) {
+                await sleep(15000);
+                try {
                   const { data: run } = await github.rest.actions.getWorkflowRun({
                     owner, repo: item.repo, run_id: runId,
                   });
@@ -66,17 +80,15 @@ jobs:
                     finished = true;
                     break;
                   }
+                } catch (error) {
+                  core.warning(`ตรวจสถานะ ${repoPath} ไม่สำเร็จชั่วคราว จะลองใหม่: ${error.message}`);
                 }
-                if (!finished) {
-                  results.push({ ...item, status: 'เกินเวลารอ; หยุดชุดงานเพื่อไม่ให้คิวซ้อนกัน', url: runUrl });
-                  for (const pending of queue.slice(index + 1)) {
-                    results.push({ ...pending, status: 'ไม่ได้เริ่ม: งานก่อนหน้าเกินเวลารอ' });
-                  }
-                  break;
-                }
-              } catch (error) {
-                results.push({ ...item, status: `เรียกงานไม่สำเร็จ: ${error.message}` });
-                core.error(`${repoPath}: ${error.message}`);
+              }
+
+              if (!finished) {
+                results.push({ ...item, status: 'เกินเวลารอ; หยุดคิวเพื่อไม่ให้งานซ้อนกัน', url: runUrl });
+                markNotStarted(queue.slice(index + 1), 'งานก่อนหน้าเกินเวลารอ');
+                break;
               }
             }
 
