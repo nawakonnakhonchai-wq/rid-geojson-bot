@@ -34,7 +34,7 @@ const failed=tasks.some(t=>["failure","cancelled"].includes(t.status));
 const finished=["success","failure","cancelled"].includes(d.status);
 document.getElementById("grid").innerHTML=tasks.map(function(t,i){
 const state=t.status, badge=state==="success"?"success":state==="running"?"running":["failure","cancelled"].includes(state)?"failure":state==="skipped"?"skipped":"";
-const detail=state==="running"?"เริ่ม "+date(t.startedAt):state==="success"?"เสร็จ "+date(t.completedAt):state==="failure"?"จบ "+date(t.completedAt):state==="skipped"?(t.detail||"ข้ามตามที่เลือก"):"ลำดับ "+(i+1)+" · รอเริ่ม";
+const detail=state==="running"?"เริ่ม "+date(t.startedAt):state==="success"?(t.completedAt?"เสร็จ "+date(t.completedAt):(t.detail||"สำเร็จจากรอบก่อน")):state==="failure"?"จบ "+date(t.completedAt):state==="skipped"?(t.detail||"ข้ามตามที่เลือก"):"ลำดับ "+(i+1)+" · รอเริ่ม";
 const url=t.runUrl||("https://github.com/"+owner+"/"+t.repo+"/actions/workflows/"+encodeURIComponent(t.workflow));
 return '<article class="card '+(state==="running"?"running":"")+'"><div class="card-head"><div class="identity"><span class="avatar">'+esc(t.icon)+'</span><span><h3>'+esc(t.label)+'</h3><span class="repo">'+esc(t.repo)+" · "+esc(t.workflow)+'</span></span></div><span class="badge '+badge+'">'+(labels[state]||esc(state))+'</span></div><div class="track"><i style="width:'+(["success","skipped","failure"].includes(state)?"100":"0")+'%"></i></div><div class="foot"><span>'+esc(detail)+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener">เปิด workflow ↗</a></div></article>'
 }).join("");
