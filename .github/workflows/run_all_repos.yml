@@ -171,7 +171,7 @@ jobs:
               }
             }
 
-            const hasFailure = dashboard.tasks.some((task) => task.status === 'failure');
+            const hasFailure = dashboard.tasks.some((task) => task.status === 'failure' || task.status === 'queued');
             dashboard.status = hasFailure ? 'failure' : 'success';
             dashboard.completedAt = new Date().toISOString();
             await publishStatus();
