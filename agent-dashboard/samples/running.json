@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "sample": true,
+  "status": "running",
+  "runId": 0,
+  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml",
+  "startedAt": "2026-11-13T01:00:00Z",
+  "updatedAt": "2026-11-13T01:04:00Z",
+  "tasks": [
+    {
+      "repo": "Dam_Daily",
+      "workflow": "update_data.yml",
+      "label": "อัปเดตข้อมูลเขื่อน",
+      "icon": "🏞️",
+      "status": "skipped",
+      "detail": "ข้ามตามตัวเลือกในรอบนี้"
+    },
+    {
+      "repo": "rid-geojson-bot",
+      "workflow": "realtime_tracker.yml",
+      "label": "อัปเดตข้อมูลระดับน้ำ",
+      "icon": "🌊",
+      "status": "success",
+      "startedAt": "2026-11-13T01:00:06Z",
+      "completedAt": "2026-11-13T01:00:54Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "tmd-earthquake-geojson",
+      "workflow": "earthquake_cron.yml",
+      "label": "อัปเดตข้อมูลแผ่นดินไหว",
+      "icon": "🌏",
+      "status": "success",
+      "startedAt": "2026-11-13T01:00:54Z",
+      "completedAt": "2026-11-13T01:01:30Z",
+      "detail": "workflow สำเร็จ"
+    },
+    {
+      "repo": "WeatherForecastDaily",
+      "workflow": "openmeteo_update.yml",
+      "label": "อัปเดตพยากรณ์ Open-Meteo",
+      "icon": "🌤️",
+      "status": "running",
+      "startedAt": "2026-11-13T01:01:30Z",
+      "detail": "workflow เริ่มแล้ว กำลังรอผล"
+    },
+    {
+      "repo": "WeatherForecastDaily",
+      "workflow": "weather_update.yml",
+      "label": "อัปเดตพยากรณ์กรมอุตุฯ",
+      "icon": "🌦️",
+      "status": "queued"
+    },
+    {
+      "repo": "WeatherWarningNews",
+      "workflow": "update_data.yml",
+      "label": "อัปเดตข่าวเตือนภัยอากาศ",
+      "icon": "⛈️",
+      "status": "queued"
+    },
+    {
+      "repo": "hii-flood-alert",
+      "workflow": "auto_update.yml",
+      "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
+      "icon": "🚨",
+      "status": "queued"
+    }
+  ]
+}
