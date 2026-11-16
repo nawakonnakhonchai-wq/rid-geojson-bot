@@ -365,6 +365,13 @@ body{background:#f1f1ed;color:#292b27}
  .scene-foot{position:static}.office{border-radius:13px}
 }
 
+
+/* Keep queue cards at their natural content height inside the scroll area. */
+.grid>.card{flex:0 0 auto;min-height:124px}
+.card .detail{flex:none}
+.card .foot{flex:none}
+@media(max-width:1000px){.grid>.card{min-height:124px}}
+
 </style>
 </head>
 <body>
