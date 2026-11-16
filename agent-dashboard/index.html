@@ -505,6 +505,54 @@ h1,h2,h3,strong,b{font-weight:600}
   .step-text b{font-size:13.5px}
   .step-text small{font-size:11.5px;white-space:normal}
 }
+/* ---------- workflow queue cards ---------- */
+.grid{gap:10px;padding:2px 6px 6px 2px}
+.grid>.card.qcard{min-height:0}
+.qcard{display:flex;flex-direction:column;gap:10px;padding:13px 14px 12px;border-radius:16px;background:#fff;border:1px solid #e8e9e3;
+  box-shadow:0 1px 2px #2528200a;transition:border-color .2s,box-shadow .2s,transform .2s}
+.qcard:hover{transform:translateY(-1px);border-color:#d3d5cc;box-shadow:0 8px 22px -10px #25282033}
+.qcard:after{display:none}
+.qcard[data-s=running]{border-color:#c9ef7a;background:linear-gradient(180deg,#fbfff2,#fff 60%);box-shadow:0 0 0 3px #b5fa2433}
+.qcard[data-s=failure]{border-color:#f2caca;background:linear-gradient(180deg,#fff7f7,#fff 60%)}
+.qcard[data-s=skipped],.qcard[data-s=notstarted]{background:#fbfbf9}
+.qcard[data-s=skipped] .q-name h3,.qcard[data-s=notstarted] .q-name h3{color:#6a6d64}
+.q-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px}
+.q-icon{position:relative;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:22px;
+  background:#f6f7f3;border:1px solid #ecece7}
+.q-icon em{position:absolute;right:-5px;bottom:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;font-style:normal;
+  font-size:11px;font-weight:600;line-height:17px;text-align:center;background:#30342d;color:#fff;border:2px solid #fff}
+.qcard[data-s=success] .q-icon em{background:#72c900}
+.qcard[data-s=running] .q-icon{background:#f3fdd9;border-color:#d9f59a}
+.qcard[data-s=running] .q-icon em{background:#b5fa24;color:#272a25}
+.qcard[data-s=failure] .q-icon{background:#fff0f0;border-color:#f6d3d3}
+.qcard[data-s=failure] .q-icon em{background:#d84c4c}
+.qcard[data-s=skipped] .q-icon em,.qcard[data-s=notstarted] .q-icon em,.qcard[data-s=queued] .q-icon em{background:#b7bab0}
+.q-name{min-width:0}
+.q-name h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.35;color:#292b27}
+.q-name .repo{display:block;margin-top:1px;font-size:12px;color:#8d9087;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qcard .badge{align-self:start;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px 3px 8px;border-radius:99px;border:0}
+.qcard .badge i{display:block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:none}
+.qcard[data-s=success] .badge{background:#eefbd6;color:#4b7f00}
+.qcard[data-s=running] .badge{background:#b5fa24;color:#2a3510}
+.qcard[data-s=running] .badge i{animation:blink 1.2s infinite}
+.qcard[data-s=failure] .badge{background:#ffe9e9;color:#b83434}
+.qcard[data-s=queued] .badge{background:#fff4dc;color:#9a6700}
+.qcard[data-s=skipped] .badge,.qcard[data-s=notstarted] .badge,.qcard[data-s=unknown] .badge{background:#f0f1ed;color:#71746c}
+.q-note{margin:0;padding:7px 10px;border-radius:10px;font-size:13px;line-height:1.5;background:#fdeeee;color:#a83232}
+.qcard[data-s=running] .q-note{background:#f3fbe2;color:#4f6e10}
+.q-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:9px;border-top:1px dashed #e6e7e1;font-size:12.5px;color:#7a7d74}
+.q-meta>span{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.q-meta svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.q-meta a{display:inline-flex;align-items:center;gap:3px;flex:none;padding:4px 8px 4px 10px;border-radius:9px;color:#3b3e36;font-weight:500;background:#f3f4ef;transition:background .2s,color .2s}
+.q-meta a:hover{background:#30342d;color:#fff}
+.qcard[data-s=running] .q-meta{position:relative}
+.qcard[data-s=running] .q-meta:before{content:"";position:absolute;left:0;top:-1px;height:2px;width:35%;border-radius:2px;background:linear-gradient(90deg,transparent,#8bcf12,transparent);animation:qscan 1.8s ease-in-out infinite}
+@keyframes qscan{0%{left:0}50%{left:65%}100%{left:0}}
+@media(max-width:600px){
+  .q-main{grid-template-columns:auto minmax(0,1fr);row-gap:6px}
+  .q-icon{grid-row:1/3;align-self:start}
+  .qcard .badge{grid-column:2;justify-self:start}
+}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -708,18 +756,27 @@ function render(d){
   focusScene(focus);
 
   // --- cards ---
+  // compact queue cards: icon with queue number, name, status; one meta line with the run link
+  const CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+  const ARROW='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg>';
   $("grid").innerHTML=tasks.map(function(t,i){
     const s=states[i], took=t.startedAt&&t.completedAt?duration(t.startedAt,t.completedAt):"";
-    let detail, when="";
-    if(s==="running"){detail=t.detail||"กำลังทำงาน";when="เริ่ม "+date(t.startedAt)}
-    else if(s==="success"){detail=t.completedAt?"เสร็จ "+date(t.completedAt)+(took?" · ใช้เวลา "+took:""):(t.detail||"สำเร็จ");when=""}
-    else if(s==="failure"){detail=t.detail||(t.status==="cancelled"?"ถูกยกเลิก":"workflow ไม่สำเร็จ");when=t.completedAt?"จบ "+date(t.completedAt):""}
-    else if(s==="skipped"){detail=t.detail||"ข้ามตามที่เลือก"}
-    else if(s==="notstarted"){detail=t.detail||"ไม่ได้เริ่มในรอบนี้"}
-    else if(s==="unknown"){detail="อ่านสถานะไม่ได้"}
-    else{detail="รอเริ่มตามคิว"}
+    let meta, note="";
+    if(s==="running"){meta="เริ่ม "+hm(t.startedAt)+" · กำลังรอผล";note=t.detail&&t.detail!=="workflow เริ่มแล้ว กำลังรอผล"?t.detail:""}
+    else if(s==="success"){meta=t.completedAt?"เสร็จ "+hm(t.completedAt)+(took?" · "+took:""):(t.detail||"สำเร็จ")}
+    else if(s==="failure"){meta=t.completedAt?"จบ "+hm(t.completedAt)+(took?" · "+took:""):"ไม่สำเร็จ";note=t.detail||(t.status==="cancelled"?"ถูกยกเลิก":"workflow ไม่สำเร็จ")}
+    else if(s==="skipped"){meta=t.detail||"ข้ามตามที่เลือก"}
+    else if(s==="notstarted"){meta=t.detail||"ไม่ได้เริ่มในรอบนี้"}
+    else if(s==="unknown"){meta="อ่านสถานะไม่ได้"}
+    else{meta="รอเริ่มตามคิว"}
     const url=safeUrl(t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(t.repo)+"/actions/workflows/"+encodeURIComponent(t.workflow));
-    return '<article class="card" id="task-'+(i+1)+'" data-s="'+s+'"><div class="card-top"><span class="num">'+(i<9?"0":"")+(i+1)+'</span><span class="badge"><i></i>'+(t.status==="cancelled"?labels.cancelled:labels[s])+'</span></div><div class="identity"><span class="avatar" aria-hidden="true">'+esc(t.icon)+'</span><span><h3>'+esc(t.label)+'</h3><span class="repo">'+esc(t.repo)+" · "+esc(t.workflow)+'</span></span></div><p class="detail">'+esc(detail)+'</p><div class="foot">'+(when?"<span>"+esc(when)+"</span>":"")+'<a href="'+esc(url)+'" target="_blank" rel="noopener">'+(t.runUrl?"เปิดผลการรัน":"เปิด workflow")+' ↗</a></div></article>';
+    return '<article class="card qcard" id="task-'+(i+1)+'" data-s="'+s+'">'
+      +'<div class="q-main"><span class="q-icon" aria-hidden="true">'+esc(t.icon)+'<em>'+(i+1)+'</em></span>'
+      +'<div class="q-name"><h3>'+esc(t.label)+'</h3><span class="repo" title="'+esc(t.repo)+' · '+esc(t.workflow)+'">'+esc(t.repo)+' · '+esc(t.workflow)+'</span></div>'
+      +'<span class="badge"><i></i>'+(t.status==="cancelled"?labels.cancelled:labels[s])+'</span></div>'
+      +(note?'<p class="q-note">'+esc(note)+'</p>':'')
+      +'<div class="q-meta"><span>'+(t.startedAt||t.completedAt?CLOCK:"")+esc(meta)+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener" aria-label="'+(t.runUrl?"เปิดผลการรัน ":"เปิด workflow ")+esc(t.label)+'">'+(t.runUrl?"ผลการรัน":"workflow")+ARROW+'</a></div>'
+      +'</article>';
   }).join("");
 
   // --- run timeline (fills the office panel) ---
