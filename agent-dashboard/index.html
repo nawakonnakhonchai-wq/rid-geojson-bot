@@ -633,6 +633,51 @@ a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22p
   .fe:last-child:before{display:none}
   .fe-card{border-top:1px solid #eeefea;border-left:3px solid var(--fl)}
 }
+/* ---------- header ---------- */
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;margin-bottom:14px;padding:10px 12px 10px 10px;
+  background:#fff;border:1px solid #ecece7;border-radius:18px;box-shadow:0 1px 2px #2528200a}
+.brand{gap:12px;min-width:0}
+.top .mark{flex:none;width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#3a3f35,#1f221c);color:#c6ff3d;display:grid;place-items:center;
+  box-shadow:inset 0 1px 0 #ffffff1f,0 6px 14px -6px #1f221c99}
+.mark svg,.rail-mark svg,.rail-link svg,.meta-chip svg,.icon-btn svg,.gh-btn svg{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mark svg{width:24px;height:24px}
+.brand-text{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.top .brand strong{font-size:18px;font-weight:700;letter-spacing:0;color:#25281f;white-space:nowrap}
+.top .brand small{font-size:12.5px;color:#7a7d74;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-meta{display:flex;justify-content:center;align-items:center;gap:8px;min-width:0}
+.meta-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:10px;background:#f6f7f3;border:1px solid #ecece7;font-size:13px;color:#55584f;white-space:nowrap}
+.meta-chip svg{width:16px;height:16px;color:#8d9087}
+.meta-chip.clock b{font-size:14px;font-weight:600;color:#25281f;font-variant-numeric:tabular-nums}
+.meta-chip.clock small{font-size:12px;color:#8d9087}
+.meta-chip.next b{font-weight:600;color:#25281f;font-variant-numeric:tabular-nums;display:inline-block;min-width:1.2em;text-align:right}
+.cd{width:16px;height:16px;border-radius:50%;flex:none;background:conic-gradient(#8bcf12 var(--p,0%),#e4e6df 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px))}
+.top .actions{gap:8px}
+.top .pill{padding:7px 13px;border-radius:10px;font-size:13px;font-weight:500}
+.top .pill.ok{background:#eefbd6;border-color:#d8f0a8;color:#3f6b00}
+.top .pill.ok .conn-dot{background:#72c900;box-shadow:0 0 0 3px #72c90033;animation:blink 1.8s infinite}
+.top .pill.bad{background:#fff4dc;border-color:#f3dba8;color:#8a5300}
+.top .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:13px;font-weight:500}
+.icon-btn svg,.gh-btn svg{width:16px;height:16px}
+.icon-btn:active svg{transform:rotate(-90deg);transition:transform .2s}
+.top .gh-btn{background:#30342d;border-color:#30342d;color:#fff}
+.top .gh-btn:hover{background:#1f221c}
+.gh-btn svg{fill:currentColor;stroke:none}
+/* rail icons */
+.rail-mark{background:linear-gradient(145deg,#3a3f35,#1f221c);border:0;color:#c6ff3d;border-radius:12px}
+.rail-mark svg{width:20px;height:20px}
+.rail-link svg{width:19px;height:19px}
+.rail-link.active{background:#eefbd6;color:#3f6b00}
+@media(max-width:1180px){.top-meta .meta-chip:first-child{display:none}}
+@media(max-width:900px){.top{grid-template-columns:minmax(0,1fr) auto}.top-meta{display:none}.top .actions{justify-self:end}}
+@media(max-width:600px){
+  .top{padding:8px;gap:8px;border-radius:15px}
+  .top .mark{display:none}
+  .top .brand strong{font-size:14.5px;overflow:hidden;text-overflow:ellipsis}.top .brand small{display:none}
+  .top .pill{padding:6px 9px;font-size:12px}
+  .top .btn{padding:7px 9px}
+  .top .gh-btn{display:none}
+}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -642,16 +687,22 @@ a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22p
 </head>
 <body>
 <aside class="app-rail" aria-label="เมนูหลัก">
-  <a class="rail-mark" href="./" aria-label="Data Agent Control">◉</a>
-  <nav><a class="rail-link active" href="#grid" aria-label="รายการงาน" title="รายการงาน">▤</a><a class="rail-link" href="#office" aria-label="ภาพรวมสถานะ" title="ภาพรวมสถานะ">⌖</a><a class="rail-link" href="#activity" aria-label="กิจกรรมล่าสุด" title="กิจกรรมล่าสุด">◷</a></nav>
-  <a class="rail-link rail-bottom" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener" aria-label="เปิด GitHub" title="เปิด GitHub">↗</a>
+  <a class="rail-mark" href="./" aria-label="Data Agent Control"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15.5 8.5 11l3.5 3.5L20 6.5"/><path d="M15 6.5h5v5"/></svg></a>
+  <nav><a class="rail-link active" href="#grid" aria-label="รายการงาน" title="รายการงาน"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></a><a class="rail-link" href="#office" aria-label="ภาพรวมสถานะ" title="ภาพรวมสถานะ"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></a><a class="rail-link" href="#activity" aria-label="กิจกรรมล่าสุด" title="กิจกรรมล่าสุด"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></a></nav>
+  <a class="rail-link rail-bottom" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener" aria-label="เปิด GitHub" title="เปิด GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg></a>
 </aside>
 <main class="shell">
 <header class="top">
-  <a class="brand" href="./"><span class="mark" aria-hidden="true">✦</span><span><strong>DATA AGENT CONTROL</strong><small>ศูนย์ควบคุมงานอัปเดตรายวัน</small></span></a>
+  <a class="brand" href="./"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15.5 8.5 11l3.5 3.5L20 6.5"/><path d="M15 6.5h5v5"/></svg></span><span class="brand-text"><strong>Data Agent Control</strong><small>ศูนย์ควบคุมงานอัปเดตข้อมูลรายวัน · 6 ทีม · 7 workflow</small></span></a>
+  <div class="top-meta" aria-label="เวลาและการรีเฟรช">
+    <span class="meta-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg><span id="now-date">—</span></span>
+    <span class="meta-chip clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><b id="now-time">--:--</b><small>น.</small></span>
+    <span class="meta-chip next" title="รีเฟรชสถานะอัตโนมัติ"><i class="cd" id="cd" aria-hidden="true"></i><span>รีเฟรชใน <b id="cd-s">20</b> วิ</span></span>
+  </div>
   <div class="actions">
     <span class="pill" id="conn"><i class="conn-dot"></i><span id="connection">กำลังเชื่อมต่อ</span></span>
-    <button class="btn" id="refresh" type="button" aria-label="รีเฟรชสถานะ">↻ <span class="desktop">รีเฟรช</span></button>
+    <button class="btn icon-btn" id="refresh" type="button" aria-label="รีเฟรชสถานะ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg><span class="desktop">รีเฟรช</span></button>
+    <a class="btn gh-btn" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions" target="_blank" rel="noopener" aria-label="เปิด GitHub Actions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 0 0-2.7 16.6c.4.1.6-.2.6-.4v-1.6c-2.4.5-2.9-1-2.9-1-.4-1-1-1.3-1-1.3-.8-.5.1-.5.1-.5.9.1 1.3.9 1.3.9.8 1.3 2 .9 2.5.7.1-.6.3-.9.6-1.1-1.9-.2-3.9-1-3.9-4.2 0-.9.3-1.7.9-2.3-.1-.2-.4-1.1.1-2.3 0 0 .7-.2 2.3.9a8 8 0 0 1 4.2 0c1.6-1.1 2.3-.9 2.3-.9.5 1.2.2 2.1.1 2.3.5.6.9 1.4.9 2.3 0 3.3-2 4-3.9 4.2.3.3.6.8.6 1.6v2.4c0 .2.2.5.6.4A8.5 8.5 0 0 0 12 3.5z"/></svg><span class="desktop">GitHub</span></a>
   </div>
 </header>
 
@@ -979,7 +1030,9 @@ async function fromFile(){
   if(!r.ok)throw new Error("HTTP "+r.status);
   return r.json();
 }
+let lastTick=Date.now();
 async function refresh(force){
+  lastTick=Date.now();
   const now=Date.now();
   const useApi=!sample&&now>=apiBlockedUntil&&(force===true||now-lastApi>=(live||now<watchUntil?TICK-1000:API_IDLE));
   try{
@@ -1006,6 +1059,16 @@ $("refresh").addEventListener("click",function(){refresh(true);const t=$("toast"
 $("start").addEventListener("click",function(){watchUntil=Date.now()+WATCH_MS});
 document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh()});
 refresh(true);setInterval(function(){if(!document.hidden)refresh()},TICK);
+// header clock and countdown to the next automatic refresh
+(function tickHeader(){
+  const n=new Date();
+  $("now-date").textContent=new Intl.DateTimeFormat("th-TH",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Bangkok"}).format(n);
+  $("now-time").textContent=new Intl.DateTimeFormat("th-TH",{hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:"Asia/Bangkok"}).format(n);
+  const left=Math.max(0,TICK-(Date.now()-lastTick));
+  $("cd-s").textContent=Math.ceil(left/1000);
+  $("cd").style.setProperty("--p",(100-left/TICK*100).toFixed(1)+"%");
+  setTimeout(tickHeader,1000-(Date.now()%1000));
+})();
 })();
 </script>
 </body>
