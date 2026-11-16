@@ -372,6 +372,14 @@ body{background:#f1f1ed;color:#292b27}
 .card .foot{flex:none}
 @media(max-width:1000px){.grid>.card{min-height:124px}}
 
+
+/* Compact activity into a responsive timeline grid. */
+.activity{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+.event{min-width:0;align-items:flex-start;padding:10px}
+.event>span:last-child{min-width:0}
+@media(max-width:1050px){.activity{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.activity{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -444,7 +452,7 @@ body{background:#f1f1ed;color:#292b27}
 <div class="section-head"><div><h2>รายละเอียด workflow</h2><p>ทั้ง 7 งาน เรียงตามลำดับคิว</p></div></div>
 <section class="grid" id="grid" aria-live="polite"></section>
 
-<section class="panel" id="activity"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></section>
+<section class="panel"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></section>
 <footer class="footer"><span>รีเฟรชสถานะอัตโนมัติทุก 20 วินาที · เวลาไทย</span><span>ข้อมูลจาก <a href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener">rid-geojson-bot</a></span></footer>
 </main>
 <div class="toast" id="toast" role="status">กำลังรีเฟรชสถานะ</div>
