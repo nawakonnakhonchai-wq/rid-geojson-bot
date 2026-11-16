@@ -4,7 +4,7 @@
   "runId": 43800616732,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43800616732",
   "startedAt": "2026-11-16T03:51:35.769Z",
-  "updatedAt": "2026-11-16T03:51:36.869Z",
+  "updatedAt": "2026-11-16T03:51:39.126Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -13,7 +13,9 @@
       "icon": "🏞️",
       "status": "running",
       "startedAt": "2026-11-16T03:51:36.869Z",
-      "detail": "กำลังเรียก workflow"
+      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "runId": 43800628773,
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/Dam_Daily/actions/runs/43800628773"
     },
     {
       "repo": "rid-geojson-bot",
