@@ -4,7 +4,7 @@
   "runId": 43800616732,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43800616732",
   "startedAt": "2026-11-16T03:51:35.769Z",
-  "updatedAt": "2026-11-16T03:52:57.557Z",
+  "updatedAt": "2026-11-16T03:53:00.234Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -25,7 +25,9 @@
       "icon": "🌊",
       "status": "running",
       "startedAt": "2026-11-16T03:52:57.557Z",
-      "detail": "กำลังเรียก workflow"
+      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "runId": 43800754620,
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43800754620"
     },
     {
       "repo": "tmd-earthquake-geojson",
