@@ -276,9 +276,103 @@ a{color:inherit;text-decoration:none}
 }
 /* a stale "running" snapshot must not look alive */
 .stale *,.stale *:before,.stale *:after{animation:none!important}
+
+/* ---------- calm logistics dashboard theme ---------- */
+:root{--bg:#f1f1ed;--panel:#fff;--line:#e7e7e2;--line-2:#c8c9c1;--text:#262923;--muted:#73766f;--navy:#272a25;--blue:#333631;--sky:#b5fa24;--cyan:#b5fa24;--green:#72c900;--amber:#d99200;--red:#d84c4c;--slate:#85877f;--shadow:0 2px 10px #2428200c,0 14px 34px -22px #24282030}
+body{background:#f1f1ed;color:#292b27}
+.app-rail{position:fixed;z-index:20;left:0;top:0;bottom:0;width:68px;background:#fff;border-right:1px solid #e5e6e0;display:flex;align-items:center;flex-direction:column;padding:16px 10px;gap:25px}
+.app-rail nav{display:flex;flex-direction:column;align-items:center;gap:10px}
+.rail-mark,.rail-link{display:grid;place-items:center;color:#53574e}
+.rail-mark{height:38px;width:38px;border-radius:50%;background:#f0f1ed;border:1px solid #e3e4de;font-size:20px}
+.rail-link{height:38px;width:38px;border-radius:11px;font-size:19px;transition:background .2s,color .2s}
+.rail-link:hover,.rail-link.active{background:#f0f1ed;color:#252820}
+.rail-bottom{margin-top:auto}
+.shell{max-width:1540px;width:calc(100% - 68px);margin:0 0 0 68px;padding:14px clamp(14px,2vw,28px) 24px;display:grid;grid-template-columns:minmax(300px,370px) minmax(0,1fr);gap:12px 18px}
+.top,.process,.summary,.notice,.panel,.footer{grid-column:1/-1}
+.top{padding:7px 4px 12px;background:transparent;border:0;border-bottom:1px solid #dedfd8;border-radius:0;box-shadow:none;backdrop-filter:none}
+.mark{background:#30342d;color:#d7ff74;border-radius:50%;box-shadow:none}
+.brand strong{color:#292b27;letter-spacing:.025em}
+.pill,.btn{border-color:#e6e7e1;color:#353831;background:#fff;border-radius:10px}
+.pill{border-radius:99px;background:#fff}
+.process{padding:10px 20px;background:#fff;border:1px solid #ecece7;border-radius:15px;box-shadow:none}
+.step-icon{border-color:#dedfd8;color:#8b8e85}
+.step.done .step-icon{border-color:#30342d;color:#30342d;background:#f1f2ee}
+.step.done:not(:last-child):after{border-top-color:#8bcf12}
+.step.active{color:#40443a}
+.step.active .step-icon{border-color:#b5fa24;background:#b5fa24;color:#272a25;box-shadow:0 0 0 4px #b5fa2430}
+.summary{grid-template-columns:minmax(0,1fr) auto;padding:16px 20px;border-radius:16px;color:#292b27;background:#fff;border:1px solid #ecece7;box-shadow:none}
+.summary .wave{display:none}
+.eyebrow{color:#777b70;font-size:11px;letter-spacing:.06em}
+.summary h1{font-size:clamp(23px,2.5vw,32px);color:#292b27;margin:3px 0 4px}
+.summary p{color:#777b70;font-size:14px}
+.summary .btn{background:#fff;border-color:#dedfd8;color:#363932}
+.summary .btn.primary{background:#b5fa24;border-color:#b5fa24;color:#252820;box-shadow:none}
+.summary .btn.primary:hover{background:#a7e91d}
+.meter{background:#f5f6f2;border:1px solid #ecece7;backdrop-filter:none;padding:10px 14px;border-radius:14px}
+.ring:before{background:conic-gradient(var(--ring-color,#9ada22) var(--progress,0%),#e4e6df 0);filter:none}
+.ring strong{color:#292b27}.ring span,.meter-copy p{color:#777b70}.meter-copy strong{font-size:16px;color:#292b27}
+.notice.show{background:#fff8e9}
+.office{grid-column:2;grid-row:4 / span 2;align-self:stretch;min-height:510px;height:100%;border:1px solid #e1e2dc;border-radius:16px;background:#e8e9e3;color:#292b27;box-shadow:var(--shadow)}
+.stage{aspect-ratio:auto;height:calc(100% - 48px);min-height:462px;min-width:0}
+.stage img{filter:grayscale(.92) brightness(1.3) contrast(.8)}
+.vignette{background:linear-gradient(180deg,#f5f5f0b5 0,transparent 18%,transparent 76%,#f0f1ebeb 100%)}
+.tag{background:#ffffffed;border:1px solid color-mix(in srgb,var(--c) 45%,#e6e7df);box-shadow:0 3px 12px #25282020;color:#292b27;backdrop-filter:blur(8px)}
+.tag .row{color:#777b70}.tag .row em{color:#3a3d35}.tag:after{background:linear-gradient(var(--c),transparent)}
+.tag:hover{background:#fff}
+.h-tint[data-state=success]{opacity:.28}.h-glow[data-state=success]{opacity:.12}
+.h-tint[data-state=failure]{opacity:.34}.h-glow[data-state=failure]{opacity:.12}
+.h-glow[data-state=running]{opacity:.2}
+.links{mix-blend-mode:multiply;opacity:.55}.links line{stroke:#6e8b39;filter:none}
+.scene-foot{background:#fff;color:#777b70;border-top:1px solid #e8e9e3;padding:8px 14px}
+.scene-foot strong{color:#34372f}.legend{gap:5px 11px}.legend i{box-shadow:none}
+.section-head{grid-column:1;grid-row:4;margin:2px 2px 0}
+.section-head h2{font-size:20px;color:#292b27}
+.section-head p{font-size:13px}
+.grid{grid-column:1;grid-row:5;display:flex;flex-direction:column;gap:8px;max-height:760px;overflow-y:auto;padding:1px 4px 4px 1px;scrollbar-color:#d5d7cf transparent}
+.card{min-height:0;padding:12px 13px;border-radius:13px;box-shadow:none;border-color:#e9eae5;background:#fff}
+.card:before{display:none}.card:hover{transform:none;box-shadow:0 5px 18px #25282014;border-color:#cfd1c7}
+.card-top{margin-bottom:8px}.identity{gap:10px}.avatar{height:38px;width:38px;border-radius:11px;font-size:20px;box-shadow:none}
+.identity h3{font-size:15px;color:#292b27}.repo{font-size:10.5px}
+.num{font-size:11px;background:#f6f7f3;border-color:#ecece7;padding:2px 8px}
+.badge{font-size:11px;padding:2px 9px;border:0;background:#f0f1ed;color:#55584f}
+.card[data-s=success] .badge{background:#b5fa24;color:#26311a}
+.card[data-s=running] .badge{background:#effbd7;color:#526f17}
+.card[data-s=failure] .badge{background:#ffeded;color:#ae2c2c}
+.card[data-s=skipped] .badge,.card[data-s=notstarted] .badge,.card[data-s=unknown] .badge{background:#f0f1ed;color:#71746c}
+.badge i{display:none}
+.detail{margin:8px 0 0;padding:0;background:transparent;color:#777b70;font-size:12px;min-height:0}
+.card[data-s=failure] .detail,.card[data-s=running] .detail{background:transparent}
+.foot{padding-top:7px;font-size:11px}.foot a{padding:4px 9px;font-size:11px;background:#f1f2ed;color:#3b3e36}
+.foot a:hover{background:#30342d;color:#fff}
+.panel{padding:13px 16px;border-radius:14px;box-shadow:none}
+.panel h2{font-size:17px;color:#292b27}
+.event{background:#f7f8f5;border-color:#eeefea;border-radius:11px}
+.event strong{color:#292b27}.event-icon{border-radius:50%;box-shadow:none}
+.footer{margin-top:2px}
+.toast{background:#30342d}
+@media(max-width:1000px){
+ .shell{display:flex;flex-direction:column;gap:12px}
+ .app-rail{width:56px}.shell{width:calc(100% - 56px);margin-left:56px}
+ .office,.section-head,.grid{grid-column:auto;grid-row:auto}
+ .office{height:auto;min-height:0}.stage{aspect-ratio:2720/1536;height:auto;min-height:0;min-width:720px}
+ .grid{max-height:none}
+}
+@media(max-width:600px){
+ .app-rail{width:48px;padding:12px 5px}.rail-mark,.rail-link{width:36px;height:36px}
+ .shell{width:calc(100% - 48px);margin-left:48px;padding:9px 9px 18px}
+ .top{padding:6px 0 10px}.brand strong{font-size:12px}.brand small{display:none}
+ .summary{padding:14px;gap:12px}.summary h1{font-size:22px}.meter{width:auto}.ring{width:74px;height:74px}
+ .scene-foot{position:static}.office{border-radius:13px}
+}
+
 </style>
 </head>
 <body>
+<aside class="app-rail" aria-label="เมนูหลัก">
+  <a class="rail-mark" href="./" aria-label="Data Agent Control">◉</a>
+  <nav><a class="rail-link active" href="#grid" aria-label="รายการงาน" title="รายการงาน">▤</a><a class="rail-link" href="#office" aria-label="ภาพรวมสถานะ" title="ภาพรวมสถานะ">⌖</a><a class="rail-link" href="#activity" aria-label="กิจกรรมล่าสุด" title="กิจกรรมล่าสุด">◷</a></nav>
+  <a class="rail-link rail-bottom" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener" aria-label="เปิด GitHub" title="เปิด GitHub">↗</a>
+</aside>
 <main class="shell">
 <header class="top">
   <a class="brand" href="./"><span class="mark" aria-hidden="true">✦</span><span><strong>DATA AGENT CONTROL</strong><small>ศูนย์ควบคุมงานอัปเดตรายวัน</small></span></a>
@@ -317,7 +411,7 @@ a{color:inherit;text-decoration:none}
 
 <div class="notice" id="notice" role="status"></div>
 
-<section class="office" aria-label="ภาพออฟฟิศศูนย์ปฏิบัติการข้อมูล แสดงสถานะของทีมทั้งหกตาม GitHub Actions">
+<section class="office" id="office" aria-label="ภาพออฟฟิศศูนย์ปฏิบัติการข้อมูล แสดงสถานะของทีมทั้งหกตาม GitHub Actions">
   <div class="scene-scroll" id="scroll">
     <div class="stage" id="stage">
       <picture>
@@ -343,7 +437,7 @@ a{color:inherit;text-decoration:none}
 <div class="section-head"><div><h2>รายละเอียด workflow</h2><p>ทั้ง 7 งาน เรียงตามลำดับคิว</p></div></div>
 <section class="grid" id="grid" aria-live="polite"></section>
 
-<section class="panel"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></section>
+<section class="panel" id="activity"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></section>
 <footer class="footer"><span>รีเฟรชสถานะอัตโนมัติทุก 20 วินาที · เวลาไทย</span><span>ข้อมูลจาก <a href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener">rid-geojson-bot</a></span></footer>
 </main>
 <div class="toast" id="toast" role="status">กำลังรีเฟรชสถานะ</div>
