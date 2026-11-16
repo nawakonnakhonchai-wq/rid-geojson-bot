@@ -405,6 +405,39 @@ h1,h2,h3,strong,b{font-weight:600}
 .vignette{background:linear-gradient(180deg,rgba(245,245,240,.22) 0,transparent 18%)}
 .office{background:#fff}
 
+/* Office panel: keep the artwork at its true ratio (labels stay on their desks) and fill the
+   height the queue column gives it with a timeline of the current run. */
+.office{display:flex;flex-direction:column}
+.office .scene-scroll{flex:none}
+.office .stage{aspect-ratio:2720/1536;height:auto;min-height:0}
+.office .scene-foot{position:static;order:3}
+.timeline{flex:1;display:flex;flex-direction:column;gap:12px;padding:14px 16px 12px;border-top:1px solid #e8e9e3;min-height:0}
+.tl-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tl-stat{padding:9px 12px;border-radius:12px;background:#f6f7f3;border:1px solid #ecece7;min-width:0}
+.tl-stat span{display:block;font-size:12px;color:#777b70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-stat strong{display:block;font-size:20px;line-height:1.3;color:#292b27}
+.tl-stat[data-s] strong{color:color-mix(in srgb,var(--rc) 75%,#292b27)}
+.tl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tl-head h3{margin:0;font-size:15px;color:#292b27}
+.tl-head span{font-size:12px;color:#777b70}
+.tl-rows{display:flex;flex-direction:column;justify-content:space-around;gap:7px;flex:1}
+.tl-row{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 78px;align-items:center;gap:12px;font-size:13px;color:#53574e}
+.tl-row a{display:flex;align-items:center;gap:7px;min-width:0;color:#353831}
+.tl-row a span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-row a:hover span{text-decoration:underline}
+.tl-track{position:relative;height:12px;border-radius:99px;background:repeating-linear-gradient(90deg,#f1f2ed 0 calc(25% - 1px),#e4e5df calc(25% - 1px) 25%)}
+.tl-bar{position:absolute;top:0;bottom:0;min-width:6px;border-radius:99px;background:var(--rc)}
+.tl-row[data-s=running] .tl-bar{background:linear-gradient(90deg,#8bcf12,#b5fa24,#8bcf12);background-size:200% 100%;animation:tlflow 1.4s linear infinite}
+.tl-row[data-s=skipped] .tl-track,.tl-row[data-s=notstarted] .tl-track{background:repeating-linear-gradient(135deg,#f1f2ed 0 6px,#e7e8e2 6px 12px)}
+.tl-time{text-align:right;font-size:12px;color:#777b70;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-row[data-s=failure] .tl-time{color:#ae2c2c}
+@keyframes tlflow{to{background-position:-200% 0}}
+@media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
+@media(max-width:600px){
+  .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tl-row{grid-template-columns:minmax(0,1fr) 64px;gap:4px 10px}
+  .tl-track{grid-column:1/-1;grid-row:2}
+}
 </style>
 </head>
 <body>
@@ -465,6 +498,11 @@ h1,h2,h3,strong,b{font-weight:600}
       <div class="vignette"></div>
       <nav id="tags" aria-label="สถานะรายสถานี"></nav>
     </div>
+  </div>
+  <div class="timeline" aria-label="ไทม์ไลน์รอบนี้">
+    <div class="tl-stats" id="tl-stats"></div>
+    <div class="tl-head"><h3>ไทม์ไลน์รอบนี้</h3><span id="tl-span">—</span></div>
+    <div class="tl-rows" id="tl-rows"></div>
   </div>
   <div class="scene-foot">
     <span><strong>ศูนย์ปฏิบัติการข้อมูล</strong> · 6 ทีม · 7 workflow<span class="pan-hint"> · เลื่อนซ้าย–ขวาเพื่อดูทั้งห้อง</span></span>
@@ -603,6 +641,25 @@ function render(d){
     const url=safeUrl(t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(t.repo)+"/actions/workflows/"+encodeURIComponent(t.workflow));
     return '<article class="card" id="task-'+(i+1)+'" data-s="'+s+'"><div class="card-top"><span class="num">'+(i<9?"0":"")+(i+1)+'</span><span class="badge"><i></i>'+(t.status==="cancelled"?labels.cancelled:labels[s])+'</span></div><div class="identity"><span class="avatar" aria-hidden="true">'+esc(t.icon)+'</span><span><h3>'+esc(t.label)+'</h3><span class="repo">'+esc(t.repo)+" · "+esc(t.workflow)+'</span></span></div><p class="detail">'+esc(detail)+'</p><div class="foot">'+(when?"<span>"+esc(when)+"</span>":"")+'<a href="'+esc(url)+'" target="_blank" rel="noopener">'+(t.runUrl?"เปิดผลการรัน":"เปิด workflow")+' ↗</a></div></article>';
   }).join("");
+
+  // --- run timeline (fills the office panel) ---
+  const t0=Date.parse(d.startedAt)||0;
+  // "now" for a live run; a sample or stale snapshot is frozen at its last update
+  const nowRef=sample||stale?Date.parse(d.updatedAt)||Date.now():Date.now();
+  const tEnd=Math.max(t0+60000,Date.parse(d.completedAt)||0,running?nowRef:Date.parse(d.updatedAt)||0,
+    ...tasks.map(function(t){return Date.parse(t.completedAt)||0}));
+  const span=tEnd-t0;
+  function clock(ms){const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+  $("tl-rows").innerHTML=tasks.map(function(t,i){
+    const s=states[i], a=Date.parse(t.startedAt), b=s==="running"?nowRef:Date.parse(t.completedAt);
+    let bar="", time=s==="skipped"?"ข้าม":s==="notstarted"?"ไม่ได้เริ่ม":s==="queued"?"รอคิว":"—";
+    if(t0&&a){const end=b||a;bar='<i class="tl-bar" style="left:'+((a-t0)/span*100).toFixed(2)+'%;width:'+(Math.max(0,end-a)/span*100).toFixed(2)+'%"></i>';if(b)time=clock(b-a)}
+    const url=safeUrl(t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(t.repo)+"/actions/workflows/"+encodeURIComponent(t.workflow));
+    return '<div class="tl-row" data-s="'+s+'"><a href="'+esc(url)+'" target="_blank" rel="noopener" title="'+esc(t.label)+'"><b aria-hidden="true">'+esc(t.icon)+'</b><span>'+esc(t.label.replace(/^อัปเดต/,""))+'</span></a><div class="tl-track">'+bar+'</div><span class="tl-time">'+time+'</span></div>';
+  }).join("");
+  $("tl-span").textContent=t0?(running||between?"ผ่านไป ":"ใช้เวลารวม ")+clock(tEnd-t0)+" นาที":"ยังไม่มีข้อมูลรอบการทำงาน";
+  $("tl-stats").innerHTML=[["success","สำเร็จ",passed],["failure","ไม่สำเร็จ",failedN],["skipped","ข้าม / ไม่ได้เริ่ม",skipped+missedN],[null,"รอคิว / กำลังทำ",states.filter(function(v){return v==="queued"||v==="running"}).length]]
+    .map(function(x){return '<div class="tl-stat"'+(x[0]?' data-s="'+x[0]+'"':'')+'><span>'+x[1]+'</span><strong>'+x[2]+'</strong></div>'}).join("");
 
   // --- summary ---
   const headline=unknown?"อ่านสถานะไม่ได้":stale?"สถานะอาจค้างอยู่":running||between?"กำลังทำงาน":failedN||missedN?"มีงานต้องตรวจสอบ":d.status==="success"?"ชุดงานเสร็จแล้ว":"พร้อมเริ่มชุดงาน";
