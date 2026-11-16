@@ -553,11 +553,53 @@ h1,h2,h3,strong,b{font-weight:600}
   .q-icon{grid-row:1/3;align-self:start}
   .qcard .badge{grid-column:2;justify-self:start}
 }
+/* ---------- run timeline (refined) ---------- */
+.timeline{gap:14px;padding:16px 18px 14px}
+.tl-stats{gap:10px}
+.tl-stat{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid #ecece7}
+.tl-stat .tl-si{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--sb);color:var(--sc)}
+.tl-si svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.tl-stat .tl-sv{display:flex;flex-direction:column;font-size:inherit;color:inherit;min-width:0;line-height:1.2}
+.tl-sv strong{font-size:22px;font-weight:700;color:#25281f;font-variant-numeric:tabular-nums}
+.tl-sv small{font-size:12px;color:#7a7d74;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-stat[data-k=success]{--sb:#eefbd6;--sc:#4b7f00}
+.tl-stat[data-k=failure]{--sb:#ffe9e9;--sc:#c43c3c}
+.tl-stat[data-k=skipped]{--sb:#f0f1ed;--sc:#6f7268}
+.tl-stat[data-k=queued]{--sb:#fff4dc;--sc:#9a6700}
+.tl-stat[data-zero]{background:#fafaf8}.tl-stat[data-zero] .tl-si{filter:grayscale(1);opacity:.55}.tl-stat[data-zero] strong{color:#a5a89e}
+.tl-head h3{font-size:16px}
+.tl-body{position:relative;flex:1;display:flex;flex-direction:column;--nw:168px;--gp:14px}
+.tl-grid{position:absolute;top:0;bottom:0;left:calc(var(--nw) + var(--gp));right:0;pointer-events:none}
+.tl-grid i{position:absolute;top:18px;bottom:0;width:1px;background:#ecede7}
+.tl-axis{position:relative;height:18px;margin-left:calc(var(--nw) + var(--gp));font-size:11px;color:#9a9d93;font-variant-numeric:tabular-nums}
+.tl-axis span{position:absolute;top:0;transform:translateX(-50%)}
+.tl-axis span:first-child{transform:none}.tl-axis span:last-child{transform:translateX(-100%)}
+.tl-rows{position:relative;gap:4px}
+.tl-row{grid-template-columns:var(--nw) minmax(0,1fr);gap:var(--gp);padding:3px 0;border-radius:8px}
+.tl-row:hover{background:#f7f8f4}
+.tl-row a{font-size:13.5px;padding-left:2px}
+.tl-track{height:24px;border-radius:7px;background:none}
+.tl-bar{top:5px;bottom:5px;border-radius:6px;min-width:8px;background:#b7bab0}
+.tl-row[data-s=success] .tl-bar{background:linear-gradient(90deg,#9be22b,#72c900)}
+.tl-row[data-s=failure] .tl-bar{background:linear-gradient(90deg,#f07a7c,#d84c4c)}
+.tl-row[data-s=running] .tl-bar{box-shadow:0 0 0 3px #b5fa2440}
+.tl-row[data-s=skipped] .tl-track,.tl-row[data-s=notstarted] .tl-track{top:5px;background:repeating-linear-gradient(135deg,#f3f4ef 0 6px,#e9eae4 6px 12px);height:14px;margin:5px 0;border-radius:6px}
+.tl-row[data-s=queued] .tl-track{height:14px;margin:5px 0;border:1px dashed #dcddd6;border-radius:6px}
+.tl-dur{position:absolute;top:50%;transform:translate(7px,-50%);font-size:12px;font-weight:600;color:#55584f;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-dur.before{transform:translate(-7px,-50%)}
+.tl-dur.tl-idle{left:8px;transform:translateY(-50%);font-weight:400;color:#8d9087;font-size:11.5px}
+.tl-row[data-s=failure] .tl-dur{color:#c43c3c}
+.tl-row[data-s=running] .tl-dur{color:#4f7a00}
+.tl-row[data-s=skipped] .tl-dur,.tl-row[data-s=notstarted] .tl-dur{background:#fff;padding:0 6px;border-radius:4px}
+@media(max-width:600px){
+  .tl-body{--nw:0px;--gp:0px}
+  .tl-row{grid-template-columns:1fr;gap:2px}
+  .tl-grid i{top:18px}
+}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .tl-row{grid-template-columns:minmax(0,1fr) 64px;gap:4px 10px}
-  .tl-track{grid-column:1/-1;grid-row:2}
+  .tl-track{grid-column:1/-1}
 }
 </style>
 </head>
@@ -630,7 +672,7 @@ h1,h2,h3,strong,b{font-weight:600}
   <div class="timeline" aria-label="ไทม์ไลน์รอบนี้">
     <div class="tl-stats" id="tl-stats"></div>
     <div class="tl-head"><h3>ไทม์ไลน์รอบนี้</h3><span id="tl-span">—</span></div>
-    <div class="tl-rows" id="tl-rows"></div>
+    <div class="tl-body"><div class="tl-grid" id="tl-grid" aria-hidden="true"></div><div class="tl-axis" id="tl-axis" aria-hidden="true"></div><div class="tl-rows" id="tl-rows"></div></div>
   </div>
   <div class="scene-foot">
     <span><strong>ศูนย์ปฏิบัติการข้อมูล</strong> · 6 ทีม · 7 workflow<span class="pan-hint"> · เลื่อนซ้าย–ขวาเพื่อดูทั้งห้อง</span></span>
@@ -787,16 +829,27 @@ function render(d){
     ...tasks.map(function(t){return Date.parse(t.completedAt)||0}));
   const span=tEnd-t0;
   function clock(ms){const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+  // time axis: pick a tick step that gives at most six ticks across the run
+  const step=[15,30,60,120,300,600,900,1800,3600].map(function(x){return x*1000}).find(function(x){return span/x<=6})||3600000;
+  const ticks=[];for(let x=0;x<=span+1;x+=step)ticks.push(x);
+  $("tl-axis").innerHTML=ticks.map(function(x){return '<span style="left:'+(x/span*100).toFixed(2)+'%">'+clock(x)+'</span>'}).join("");
+  $("tl-grid").innerHTML=ticks.map(function(x){return '<i style="left:'+(x/span*100).toFixed(2)+'%"></i>'}).join("");
   $("tl-rows").innerHTML=tasks.map(function(t,i){
     const s=states[i], a=Date.parse(t.startedAt), b=s==="running"?nowRef:Date.parse(t.completedAt);
-    let bar="", time=s==="skipped"?"ข้าม":s==="notstarted"?"ไม่ได้เริ่ม":s==="queued"?"รอคิว":"—";
-    if(t0&&a){const end=b||a;bar='<i class="tl-bar" style="left:'+((a-t0)/span*100).toFixed(2)+'%;width:'+(Math.max(0,end-a)/span*100).toFixed(2)+'%"></i>';if(b)time=clock(b-a)}
+    let bar="", tag='<span class="tl-dur tl-idle">'+(s==="skipped"?"ข้ามในรอบนี้":s==="notstarted"?"ไม่ได้เริ่ม":s==="queued"?"รอคิว":s==="unknown"?"ไม่ทราบสถานะ":"—")+'</span>';
+    if(t0&&a){
+      const end=b||a, L=(a-t0)/span*100, E=(end-t0)/span*100;
+      bar='<i class="tl-bar" style="left:'+L.toFixed(2)+'%;width:'+Math.max(0,E-L).toFixed(2)+'%"></i>';
+      const txt=b?clock(b-a)+(s==="running"?" · กำลังทำ":""):"";
+      tag=txt?(E>72?'<span class="tl-dur before" style="right:'+(100-L).toFixed(2)+'%">'+txt+'</span>':'<span class="tl-dur" style="left:'+E.toFixed(2)+'%">'+txt+'</span>'):"";
+    }
     const url=safeUrl(t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(t.repo)+"/actions/workflows/"+encodeURIComponent(t.workflow));
-    return '<div class="tl-row" data-s="'+s+'"><a href="'+esc(url)+'" target="_blank" rel="noopener" title="'+esc(t.label)+'"><b aria-hidden="true">'+esc(t.icon)+'</b><span>'+esc(t.label.replace(/^อัปเดต/,""))+'</span></a><div class="tl-track">'+bar+'</div><span class="tl-time">'+time+'</span></div>';
+    return '<div class="tl-row" data-s="'+s+'"><a href="'+esc(url)+'" target="_blank" rel="noopener" title="'+esc(t.label)+'"><b aria-hidden="true">'+esc(t.icon)+'</b><span>'+esc(t.label.replace(/^อัปเดต/,""))+'</span></a><div class="tl-track">'+bar+tag+'</div></div>';
   }).join("");
   $("tl-span").textContent=t0?(running||between?"ผ่านไป ":"ใช้เวลารวม ")+clock(tEnd-t0)+" นาที":"ยังไม่มีข้อมูลรอบการทำงาน";
-  $("tl-stats").innerHTML=[["success","สำเร็จ",passed],["failure","ไม่สำเร็จ",failedN],["skipped","ข้าม / ไม่ได้เริ่ม",skipped+missedN],[null,"รอคิว / กำลังทำ",states.filter(function(v){return v==="queued"||v==="running"}).length]]
-    .map(function(x){return '<div class="tl-stat"'+(x[0]?' data-s="'+x[0]+'"':'')+'><span>'+x[1]+'</span><strong>'+x[2]+'</strong></div>'}).join("");
+  const SI={success:'<path d="m6 12.5 4 4 8-8.5"/>',failure:'<path d="M12 7v6M12 17h.01"/>',skipped:'<path d="M5 12h11M12 7l5 5-5 5"/>',queued:'<circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 1.5"/>'};
+  $("tl-stats").innerHTML=[["success","สำเร็จ",passed],["failure","ไม่สำเร็จ",failedN],["skipped","ข้าม / ไม่ได้เริ่ม",skipped+missedN],["queued","รอคิว / กำลังทำ",states.filter(function(v){return v==="queued"||v==="running"}).length]]
+    .map(function(x){return '<div class="tl-stat" data-k="'+x[0]+'"'+(x[2]?'':' data-zero')+'><span class="tl-si"><svg viewBox="0 0 24 24" aria-hidden="true">'+SI[x[0]]+'</svg></span><span class="tl-sv"><strong>'+x[2]+'</strong><small>'+x[1]+'</small></span></div>'}).join("");
 
   // --- summary ---
   const headline=unknown?"อ่านสถานะไม่ได้":stale?"สถานะอาจค้างอยู่":running||between?"กำลังทำงาน":failedN||missedN?"มีงานต้องตรวจสอบ":d.status==="success"?"ชุดงานเสร็จแล้ว":"พร้อมเริ่มชุดงาน";
