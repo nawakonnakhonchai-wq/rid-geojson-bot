@@ -381,10 +381,7 @@ body{background:#f1f1ed;color:#292b27}
 @media(max-width:600px){.activity{grid-template-columns:1fr}}
 
 
-/* Explicitly lay out activity items side by side at larger widths. */
-#activity{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
-@media(max-width:1050px){#activity{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(max-width:600px){#activity{grid-template-columns:1fr!important}}
+
 
 
 /* Clear Thai typography inspired by the supplied reference. */
@@ -596,6 +593,46 @@ h1,h2,h3,strong,b{font-weight:600}
   .tl-row{grid-template-columns:1fr;gap:2px}
   .tl-grid i{top:18px}
 }
+/* ---------- recent activity feed ---------- */
+.feed-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.feed-head h2{margin:0}
+.feed-head a{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:#3b3e36;padding:5px 10px 5px 12px;border-radius:9px;background:#f3f4ef;transition:background .2s,color .2s}
+.feed-head a:hover{background:#30342d;color:#fff}
+.feed-head svg,.fe-dot svg{fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.feed-head svg{width:15px;height:15px}
+.feed{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 14px}
+.fe{position:relative;display:flex;flex-direction:column;gap:10px;min-width:0}
+.fe:before{content:"";position:absolute;top:15px;left:0;right:-14px;height:2px;background:#ecede7}
+.fe:last-child:before{right:0;background:linear-gradient(90deg,#ecede7,transparent)}
+.fe-dot{position:relative;z-index:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--fb);color:var(--fc);box-shadow:0 0 0 4px #fff}
+.fe-dot svg{width:16px;height:16px}
+.fe[data-s=success]{--fb:#eefbd6;--fc:#4b7f00;--fl:#72c900}
+.fe[data-s=failure]{--fb:#ffe9e9;--fc:#c43c3c;--fl:#e0585b}
+.fe[data-s=running]{--fb:#b5fa24;--fc:#2a3510;--fl:#b5fa24}
+.fe[data-s=unknown]{--fb:#f0f1ed;--fc:#6f7268;--fl:#c3c6bc}
+.fe[data-s=running] .fe-dot svg{animation:spin 1.6s linear infinite}
+.fe[data-s=running] .fe-dot{box-shadow:0 0 0 4px #fff,0 0 0 7px #b5fa2440}
+.fe-card{flex:1;display:flex;flex-direction:column;gap:9px;padding:11px 13px;border-radius:14px;background:#fafbf8;border:1px solid #eeefea;border-top:3px solid var(--fl);
+  color:inherit;transition:background .2s,border-color .2s,transform .2s,box-shadow .2s}
+a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22px -12px #25282040}
+.fe-time{display:flex;align-items:baseline;gap:8px}
+.fe-time b{font-size:18px;font-weight:700;color:#25281f;font-variant-numeric:tabular-nums}
+.fe-time small{font-size:12px;color:#8d9087}
+.fe-body{display:flex;align-items:center;gap:10px;min-width:0}
+.fe-emoji{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:18px;background:#fff;border:1px solid #ecece7}
+.fe-txt{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.fe-txt strong{font-size:14px;font-weight:600;color:#292b27;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fe-txt small{font-size:12.5px;color:var(--fc)}
+.fe[data-s=success] .fe-txt small{color:#5d8a12}
+.fe-empty{grid-column:1/-1}
+@media(max-width:1050px){.feed{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.fe:before{display:none}}
+@media(max-width:600px){
+  .feed{grid-template-columns:1fr;gap:10px}
+  .fe{flex-direction:row;align-items:flex-start;gap:12px}
+  .fe:before{display:block;top:32px;bottom:-10px;left:15px;right:auto;width:2px;height:auto}
+  .fe:last-child:before{display:none}
+  .fe-card{border-top:1px solid #eeefea;border-left:3px solid var(--fl)}
+}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -685,7 +722,7 @@ h1,h2,h3,strong,b{font-weight:600}
 <div class="section-head"><div><h2>รายละเอียด workflow</h2><p>ทั้ง 7 งาน เรียงตามลำดับคิว</p></div></div>
 <section class="grid" id="grid" aria-live="polite"></section>
 
-<section class="panel"><h2>กิจกรรมล่าสุด</h2><div class="activity" id="activity"></div></section>
+<section class="panel feed-panel"><div class="feed-head"><h2>กิจกรรมล่าสุด</h2><a id="feed-all" href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/workflows/run_all_repos.yml" target="_blank" rel="noopener">ดูรอบนี้บน GitHub<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg></a></div><ol class="feed" id="activity"></ol></section>
 <footer class="footer"><span>รีเฟรชสถานะอัตโนมัติทุก 20 วินาที · เวลาไทย</span><span>ข้อมูลจาก <a href="https://github.com/nawakonnakhonchai-wq/rid-geojson-bot" target="_blank" rel="noopener">rid-geojson-bot</a></span></footer>
 </main>
 <div class="toast" id="toast" role="status">กำลังรีเฟรชสถานะ</div>
@@ -900,13 +937,23 @@ function render(d){
       +'<div class="step '+s[2]+'"><span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24">'+icon+'</svg></span><span class="step-text"><b>'+s[0]+'</b><small>'+esc(s[3])+'</small></span></div>';
   }).join("");
 
+  // --- recent activity: newest first, as a small timeline ---
+  const FI={success:'<path d="m6 12.5 4 4 8-8.5"/>',failure:'<path d="M12 7v6M12 17h.01"/>',running:'<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/>',unknown:'<circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 1.5"/>'};
+  function ago(v){const m=Math.round((nowRef-Date.parse(v))/60000);if(!(m>=0))return "";return m<1?"เมื่อสักครู่":m<60?m+" นาทีที่แล้ว":m<1440?Math.floor(m/60)+" ชั่วโมงที่แล้ว":Math.floor(m/1440)+" วันที่แล้ว"}
+  function clockOnly(v){const t=v?new Date(v):null;return t&&!isNaN(t)?new Intl.DateTimeFormat("th-TH",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Bangkok"}).format(t):"—"}
   const events=[];
-  if(running)events.push(["⟳","running","<strong>"+esc(running.label||running.repo)+"</strong> กำลังทำงาน",date(running.startedAt)]);
-  tasks.map(function(t,i){return [t,states[i]]}).filter(function(p){return p[0].completedAt}).sort(function(a,b){return new Date(b[0].completedAt)-new Date(a[0].completedAt)}).slice(0,4).forEach(function(p){
-    events.push([p[1]==="success"?"✓":"!",p[1],"<strong>"+esc(p[0].label)+"</strong> "+(p[0].status==="cancelled"?labels.cancelled:labels[p[1]]),date(p[0].completedAt)]);
+  if(running)events.push({s:"running",t:running,at:running.startedAt,text:"เริ่มทำงาน · กำลังรอผล"});
+  tasks.map(function(t,i){return [t,states[i]]}).filter(function(p){return p[0].completedAt}).sort(function(a,b){return new Date(b[0].completedAt)-new Date(a[0].completedAt)}).slice(0,running?3:4).forEach(function(p){
+    const t=p[0], took=t.startedAt?duration(t.startedAt,t.completedAt):"";
+    events.push({s:p[1]==="success"?"success":"failure",t:t,at:t.completedAt,text:(t.status==="cancelled"?labels.cancelled:labels[p[1]])+(took?" · ใช้เวลา "+took:"")});
   });
-  if(!events.length)events.push(["◷","unknown",unknown?"<strong>ยังไม่มีข้อมูล</strong> อ่านไฟล์สถานะไม่ได้":"<strong>ยังไม่มีกิจกรรมในรอบนี้</strong>",date(d.updatedAt)]);
-  $("activity").innerHTML=events.map(function(e){return '<div class="event" data-s="'+e[1]+'"><span class="event-icon" aria-hidden="true">'+e[0]+'</span><span>'+e[2]+'<br>'+esc(e[3])+'</span></div>'}).join("");
+  $("feed-all").href=safeUrl(d.runUrl,controllerUrl);
+  $("activity").innerHTML=events.length?events.map(function(e){
+    const url=safeUrl(e.t.runUrl,"https://github.com/"+owner+"/"+encodeURIComponent(e.t.repo)+"/actions/workflows/"+encodeURIComponent(e.t.workflow));
+    return '<li class="fe" data-s="'+e.s+'"><span class="fe-dot" aria-hidden="true"><svg viewBox="0 0 24 24">'+FI[e.s]+'</svg></span>'
+      +'<a class="fe-card" href="'+esc(url)+'" target="_blank" rel="noopener"><span class="fe-time"><b>'+clockOnly(e.at)+'</b><small>'+esc(ago(e.at))+'</small></span>'
+      +'<span class="fe-body"><span class="fe-emoji" aria-hidden="true">'+esc(e.t.icon)+'</span><span class="fe-txt"><strong>'+esc(e.t.label)+'</strong><small>'+esc(e.text)+'</small></span></span></a></li>';
+  }).join(""):'<li class="fe fe-empty" data-s="unknown"><span class="fe-dot" aria-hidden="true"><svg viewBox="0 0 24 24">'+FI.unknown+'</svg></span><div class="fe-card"><span class="fe-txt"><strong>'+(unknown?"ยังไม่มีข้อมูล":"ยังไม่มีกิจกรรมในรอบนี้")+'</strong><small>'+(unknown?"อ่านไฟล์สถานะไม่ได้ ระบบจะลองใหม่อัตโนมัติ":"กิจกรรมจะปรากฏเมื่อชุดงานเริ่มทำงาน")+'</small></span></div></li>';
   document.title=(running?"กำลังทำงาน: "+running.repo:queueBad?"ต้องตรวจสอบ":finished?"รอบล่าสุดเสร็จแล้ว":"พร้อมใช้งาน")+" · Data Agent Control";
 }
 
