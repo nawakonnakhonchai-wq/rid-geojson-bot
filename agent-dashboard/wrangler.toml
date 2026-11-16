@@ -1,0 +1,7 @@
+name = "rid-geojson-bot-dispatch"
+main = "dispatch-worker.js"
+compatibility_date = "2026-11-16"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://nawakonnakhonchai-wq.github.io"
