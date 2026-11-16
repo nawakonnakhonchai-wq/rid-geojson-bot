@@ -380,6 +380,12 @@ body{background:#f1f1ed;color:#292b27}
 @media(max-width:1050px){.activity{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.activity{grid-template-columns:1fr}}
 
+
+/* Explicitly lay out activity items side by side at larger widths. */
+#activity{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+@media(max-width:1050px){#activity{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:600px){#activity{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 <body>
