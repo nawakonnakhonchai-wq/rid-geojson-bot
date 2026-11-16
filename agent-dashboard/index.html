@@ -432,6 +432,43 @@ h1,h2,h3,strong,b{font-weight:600}
 .tl-time{text-align:right;font-size:12px;color:#777b70;white-space:nowrap;font-variant-numeric:tabular-nums}
 .tl-row[data-s=failure] .tl-time{color:#ae2c2c}
 @keyframes tlflow{to{background-position:-200% 0}}
+/* ---------- progress meter ---------- */
+.meter{gap:20px;padding:16px 22px 16px 16px;background:linear-gradient(180deg,#fafbf8,#f3f4ef);border:1px solid #e7e8e2;border-radius:18px;min-width:min(100%,400px)}
+.gauge{position:relative;width:118px;height:118px;flex:none}
+.gauge svg{width:100%;height:100%;display:block}
+.gauge circle{fill:none;stroke-width:11;stroke-linecap:butt}
+.gauge .seg{stroke:#e4e6df;transition:stroke .4s}
+.gauge .seg[data-s=success]{stroke:#72c900}
+.gauge .seg[data-s=failure]{stroke:#e0585b}
+.gauge .seg[data-s=running]{stroke:#b5fa24;animation:blink 1.2s infinite}
+.gauge .seg[data-s=skipped],.gauge .seg[data-s=notstarted]{stroke:#c3c6bc}
+.gauge .seg[data-s=queued]{stroke:#e4e6df}
+.gauge-mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.gauge-mid strong{font-size:34px;font-weight:700;line-height:1;color:#25281f;font-variant-numeric:tabular-nums}
+.gauge-mid small{font-size:17px;font-weight:500;color:#9a9d93;margin-left:1px}
+.gauge-mid>span{font-size:12px;color:#777b70;margin-top:4px}
+.meter-copy{display:flex;flex-direction:column;align-items:flex-start;gap:9px;min-width:0}
+.state-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 10px;border-radius:99px;font-size:15px;
+  background:color-mix(in srgb,var(--rc,#85877f) 13%,#fff);color:color-mix(in srgb,var(--rc,#85877f) 80%,#1d1f1a);border:1px solid color-mix(in srgb,var(--rc,#85877f) 28%,transparent)}
+.state-pill b{font-weight:600}
+.state-pill i{width:8px;height:8px;border-radius:50%;background:var(--rc,#85877f);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#85877f) 22%,transparent)}
+.state-pill[data-s=running] i{animation:blink 1.2s infinite}
+.state-pill[data-s=success]{--rc:#5aa300}.state-pill[data-s=running]{--rc:#5f8f00}.state-pill[data-s=running] i{background:#8bd400}.state-pill[data-s=failure]{--rc:#d84c4c}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:8px;font-size:12.5px;background:#fff;border:1px solid #e7e8e2;color:#55584f;white-space:nowrap}
+.chip i{width:7px;height:7px;border-radius:2px;background:var(--cc)}
+.chip b{font-weight:600;color:#292b27}
+.times{display:grid;grid-template-columns:auto 1fr;gap:2px 0;margin:0;font-size:13px}
+.times div{display:contents}
+.times dt{color:#8d9087;padding-right:12px}
+.times dd{margin:0;color:#40433b;font-variant-numeric:tabular-nums}
+@media(max-width:600px){
+  .meter{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 14px}
+  .meter-copy{display:contents}.gauge{grid-row:1/3}
+  .state-pill{align-self:end;justify-self:start;font-size:14px}.chips{align-self:start}
+  .times{grid-column:1/-1;margin-top:4px;padding-top:8px;border-top:1px solid #e7e8e2}
+}
+@media(max-width:600px){.meter{min-width:0;padding:12px}.gauge{width:92px;height:92px}.gauge-mid strong{font-size:26px}.gauge-mid small{font-size:14px}}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -477,8 +514,15 @@ h1,h2,h3,strong,b{font-weight:600}
     </div>
   </div>
   <div class="meter">
-    <div class="ring" id="ring"><div><strong id="count">–/7</strong><span>งานสำเร็จ</span></div></div>
-    <div class="meter-copy"><strong id="overall">กำลังโหลด</strong><p id="time">—</p><p id="active">กำลังอ่านข้อมูลจาก GitHub…</p></div>
+    <div class="gauge" id="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><g id="gauge-seg" transform="rotate(-90 60 60)"></g></svg>
+      <div class="gauge-mid"><strong><span id="count">–</span><small>/7</small></strong><span>งานสำเร็จ</span></div>
+    </div>
+    <div class="meter-copy">
+      <span class="state-pill" id="overall-pill"><i></i><b id="overall">กำลังโหลด</b></span>
+      <div class="chips" id="chips"></div>
+      <dl class="times"><div><dt>เริ่มรอบ</dt><dd id="time">—</dd></div><div><dt>อัปเดตล่าสุด</dt><dd id="active">—</dd></div></dl>
+    </div>
   </div>
 </section>
 
@@ -670,12 +714,19 @@ function render(d){
     :failedN||missedN?(failedN?failedN+" งานไม่สำเร็จ":"")+(failedN&&missedN?" และ ":"")+(missedN?missedN+" งานไม่ได้เริ่ม":"")+" ดูรายละเอียดในการ์ดด้านล่างหรือเปิดผลการรันบน GitHub"
     :finished?"ดูผลแยกตาม workflow และเปิดรายละเอียดบน GitHub ได้จากแต่ละการ์ด"
     :"ติดตามตัวแทนทั้ง 6 repo จากหน้าจอเดียว ระบบจะทำงานตามคิวและรอให้งานปัจจุบันเสร็จก่อนเริ่มงานถัดไป";
-  $("count").textContent=(unknown?"–":passed)+"/7";
-  $("ring").style.setProperty("--progress",Math.round(done/7*100)+"%");
-  $("ring").style.setProperty("--ring-color",failedN?"var(--red)":running?"var(--cyan)":"var(--green)");
+  $("count").textContent=unknown?"–":passed;
+  // one arc per task, coloured by its state, with a small gap between arcs
+  const R=50, C=2*Math.PI*R, n=states.length, gap=3.2, arc=C/n-gap;
+  $("gauge-seg").innerHTML=states.map(function(st,i){
+    return '<circle class="seg" data-s="'+st+'" cx="60" cy="60" r="'+R+'" stroke-dasharray="'+arc.toFixed(2)+' '+(C-arc).toFixed(2)+'" stroke-dashoffset="'+(-(i*C/n+gap/2)).toFixed(2)+'"/>';
+  }).join("");
+  $("ring").setAttribute("aria-label","สำเร็จ "+passed+" จาก 7 งาน");
   $("overall").textContent=headline;
-  $("time").textContent=d.startedAt?"เริ่มรอบนี้ "+date(d.startedAt):"ยังไม่มีข้อมูลรอบการทำงาน";
-  $("active").textContent=(skipped?"ข้าม "+skipped+" งาน · ":"")+"อัปเดตล่าสุด "+date(d.updatedAt);
+  $("overall-pill").dataset.s=unknown||stale?"unknown":running||between?"running":failedN||missedN?"failure":d.status==="success"?"success":"queued";
+  $("chips").innerHTML=[["#72c900","สำเร็จ",passed],["#e0585b","ไม่สำเร็จ",failedN],["#c3c6bc","ข้าม",skipped],["#c3c6bc","ไม่ได้เริ่ม",missedN],["#b5fa24","กำลังทำ",running?1:0]]
+    .filter(function(c){return c[2]>0}).map(function(c){return '<span class="chip" style="--cc:'+c[0]+'"><i></i>'+c[1]+' <b>'+c[2]+'</b></span>'}).join("");
+  $("time").textContent=d.startedAt?date(d.startedAt):"ยังไม่มีข้อมูล";
+  $("active").textContent=date(d.updatedAt);
   $("latest").href=safeUrl(d.runUrl,controllerUrl);
 
   const queueBad=failedN>0||missedN>0;
