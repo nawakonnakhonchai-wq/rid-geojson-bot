@@ -50,7 +50,21 @@ jobs:
 
           if [ -f rid_realtime.geojson ]; then
             git add rid_realtime.geojson history data
-            git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update realtime data: $(date)" && git push)
+            if git diff --staged --quiet; then
+              echo "ไม่มีข้อมูลเปลี่ยนแปลง"
+              exit 0
+            fi
+            git commit -m "Auto-update realtime data: $(date)"
+            # The daily batch commits agent-dashboard/status.json to main while this job runs,
+            # so rebase onto the latest main and retry instead of failing on a non-fast-forward.
+            for attempt in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && exit 0
+              git rebase --abort 2>/dev/null || true
+              echo "push ไม่สำเร็จ (ครั้งที่ $attempt) จะลองใหม่"
+              sleep $((attempt * 5))
+            done
+            echo "push ไม่สำเร็จหลังลอง 5 ครั้ง"
+            exit 1
           else
             echo "ไม่พบไฟล์ rid_realtime.geojson ระบบอาจดึงข้อมูลจาก API ไม่สำเร็จ"
             exit 1
