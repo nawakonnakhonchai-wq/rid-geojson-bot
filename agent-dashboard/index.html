@@ -469,6 +469,42 @@ h1,h2,h3,strong,b{font-weight:600}
   .times{grid-column:1/-1;margin-top:4px;padding-top:8px;border-top:1px solid #e7e8e2}
 }
 @media(max-width:600px){.meter{min-width:0;padding:12px}.gauge{width:92px;height:92px}.gauge-mid strong{font-size:26px}.gauge-mid small{font-size:14px}}
+/* ---------- process strip ---------- */
+.process{padding:14px 22px}
+.steps{display:flex;align-items:center;gap:0}
+.steps .step{flex:none;display:flex;flex-direction:row;align-items:center;gap:11px;text-align:left;color:#8b8e85;font-weight:400}
+.steps .step:after{display:none!important}
+.steps .step-icon{width:40px;height:40px;border-radius:12px;border:1.5px solid #e1e2dc;background:#f7f8f4;color:#9a9d93;box-shadow:none;animation:none}
+.step-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.step-text{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.step-text b{font-size:14.5px;font-weight:600;color:#55584f}
+.step-text small{font-size:12.5px;color:#8d9087;white-space:nowrap}
+.steps .step.done .step-icon{background:#30342d;border-color:#30342d;color:#d7ff74}
+.steps .step.done b{color:#292b27}
+.steps .step.active .step-icon{background:#b5fa24;border-color:#b5fa24;color:#272a25;box-shadow:0 0 0 0 #b5fa2466;animation:steppulse 1.6s ease-out infinite}
+.steps .step.active b{color:#292b27}.steps .step.active small{color:#5f8f00}
+.steps .step.bad .step-icon{background:#fdecec;border-color:#f3c4c4;color:#d84c4c}
+.steps .step.bad b{color:#292b27}.steps .step.bad small{color:#c24141}
+.step-link{flex:1;height:4px;margin:0 16px;border-radius:99px;background:#ecede8;position:relative;overflow:hidden;min-width:24px}
+.step-link.on{background:#8bcf12}
+.step-link.bad{background:linear-gradient(90deg,#8bcf12,#e98a8a)}
+.step-link.live{background:linear-gradient(90deg,#8bcf12 0,#8bcf12 40%,#ecede8 40%)}
+.step-link.live:after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-30%;background:linear-gradient(90deg,transparent,#b5fa24,transparent);animation:linkflow 1.4s linear infinite}
+@keyframes steppulse{0%{box-shadow:0 0 0 0 #b5fa2499}100%{box-shadow:0 0 0 10px #b5fa2400}}
+@keyframes linkflow{to{left:100%}}
+@media(max-width:900px){
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+  .step-link{display:none}
+  .process{padding:12px 14px}
+}
+@media(max-width:600px){
+  .steps{gap:12px 10px}
+  .steps .step{gap:9px;align-items:flex-start}
+  .steps .step-icon{width:34px;height:34px;border-radius:10px}
+  .step-icon svg{width:17px;height:17px}
+  .step-text b{font-size:13.5px}
+  .step-text small{font-size:11.5px;white-space:normal}
+}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -730,8 +766,29 @@ function render(d){
   $("latest").href=safeUrl(d.runUrl,controllerUrl);
 
   const queueBad=failedN>0||missedN>0;
-  const steps=[["เริ่มชุดงาน","▶",d.startedAt?"done":""],["ทำงานตามคิว","⚙",running||between?"active":finished?(queueBad?"bad":"done"):""],["ตรวจผลลัพธ์","✓",finished?(queueBad?"bad":"done"):""],["เสร็จสมบูรณ์","✦",d.status==="success"&&!queueBad?"done":""]];
-  $("steps").innerHTML=steps.map(function(s){return '<div class="step '+s[2]+'"><span class="step-icon" aria-hidden="true">'+s[1]+'</span><span>'+s[0]+'</span></div>'}).join("");
+  // --- process strip: four stages, each with its own sub-line ---
+  function hm(v){const t=v?new Date(v):null;return t&&!isNaN(t)?new Intl.DateTimeFormat("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Bangkok"}).format(t):""}
+  const ICON={
+    start:'<path d="M9 6.5v11l9-5.5z" fill="currentColor" stroke="none"/>',
+    queue:'<path d="M5 7h14M5 12h14M5 17h9"/>',
+    check:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
+    flag:'<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
+    ok:'<path d="m5.5 12.5 4 4 9-9"/>',
+    bad:'<path d="M12 7v6M12 17h.01"/>'};
+  const runIdx=running?tasks.indexOf(running)+1:0;
+  const stQueue=running||between?"active":finished?(missedN?"bad":"done"):"";
+  const stCheck=finished?(queueBad?"bad":"done"):"";
+  const stDone=finished&&!queueBad&&d.status==="success"?"done":"";
+  const steps=[
+    ["เริ่มชุดงาน","start",d.startedAt?"done":"",d.startedAt?hm(d.startedAt):"ยังไม่เริ่ม"],
+    ["ทำงานตามคิว","queue",stQueue,running?"กำลังทำงานที่ "+runIdx+" จาก 7":between?"กำลังเตรียมงานถัดไป":finished?(missedN?"หยุดก่อน "+missedN+" งาน":"ครบทั้ง 7 งาน"):"รอคิว"],
+    ["ตรวจผลลัพธ์","check",stCheck,finished?(queueBad?[failedN?"ไม่สำเร็จ\u00a0"+failedN:"",missedN?"ไม่ได้เริ่ม\u00a0"+missedN:""].filter(Boolean).join(" · "):"ผ่านทุกงาน"):"รอผล"],
+    ["เสร็จสมบูรณ์","flag",stDone,stDone?hm(d.completedAt||d.updatedAt):finished?"ยังไม่สมบูรณ์":"—"]];
+  $("steps").innerHTML=steps.map(function(s,i){
+    const icon=s[2]==="done"&&i>0?ICON.ok:s[2]==="bad"?ICON.bad:ICON[s[1]];
+    return (i?'<span class="step-link'+(s[2]==="done"?" on":s[2]==="bad"?" bad":s[2]==="active"?" live":"")+'" aria-hidden="true"></span>':"")
+      +'<div class="step '+s[2]+'"><span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24">'+icon+'</svg></span><span class="step-text"><b>'+s[0]+'</b><small>'+esc(s[3])+'</small></span></div>';
+  }).join("");
 
   const events=[];
   if(running)events.push(["⟳","running","<strong>"+esc(running.label||running.repo)+"</strong> กำลังทำงาน",date(running.startedAt)]);
