@@ -678,6 +678,46 @@ a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22p
   .top .btn{padding:7px 9px}
   .top .gh-btn{display:none}
 }
+/* ---------- office scene (refined) ---------- */
+.office{background:#fff}
+.scene-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px 10px}
+.sh-title{display:flex;align-items:center;gap:10px;min-width:0}
+.sh-title>span:last-child{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.sh-title b{font-size:16px;font-weight:600;color:#25281f}
+.sh-title small{font-size:12px;color:#8d9087;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-icon{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;background:#f3f4ef;color:#4b4e45}
+.sh-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linejoin:round}
+.sh-live{display:inline-flex;align-items:center;gap:8px;max-width:50%;padding:6px 12px 6px 10px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap;
+  background:#f0f1ed;color:#5b5e55}
+.sh-live span{overflow:hidden;text-overflow:ellipsis}
+.sh-live i{width:8px;height:8px;flex:none;border-radius:50%;background:currentColor}
+.sh-live[data-s=running]{background:#b5fa24;color:#2a3510}
+.sh-live[data-s=running] i{animation:blink 1.1s infinite}
+.sh-live[data-s=success]{background:#eefbd6;color:#3f6b00}
+.sh-live[data-s=failure]{background:#ffe9e9;color:#b83434}
+.office .scene-scroll{margin:0 12px;border-radius:14px;box-shadow:inset 0 0 0 1px #00000014}
+.office .stage img{filter:saturate(.9) contrast(1.04) brightness(1.04)}
+.office .vignette{background:radial-gradient(ellipse 85% 75% at 50% 45%,transparent 60%,rgba(8,12,10,.45) 100%),linear-gradient(180deg,rgba(8,12,10,.25) 0,transparent 16%)}
+.office .tag{background:rgba(16,20,15,.78);color:#fff;border:1px solid color-mix(in srgb,var(--c) 60%,transparent);border-radius:.85em;
+  box-shadow:0 8px 20px rgba(0,0,0,.35),0 0 0 3px color-mix(in srgb,var(--c) 14%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.office .tag:hover{background:rgba(16,20,15,.92);transform:translate(-50%,-100%) scale(1.04)}
+.office .tag{transition:transform .2s,background .2s,box-shadow .3s}
+.office .tag b{font-weight:600;letter-spacing:.01em}
+.office .tag .row{color:#cfd5c8}
+.office .tag .row em{color:var(--rc);font-weight:600}
+.office .tag:after{width:2px;height:1em;background:linear-gradient(var(--c),transparent)}
+.office .tag[data-state=running]{box-shadow:0 8px 20px rgba(0,0,0,.35),0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent),0 0 24px color-mix(in srgb,var(--c) 45%,transparent)}
+.office .h-tint[data-state=success]{opacity:.7}.office .h-glow[data-state=success]{opacity:.18}
+.office .h-tint[data-state=failure]{opacity:.8}.office .h-glow[data-state=failure]{opacity:.24}
+.office .h-glow[data-state=running]{opacity:.55}
+.office .links{mix-blend-mode:screen;opacity:1}.office .links line{stroke:var(--cyan);filter:drop-shadow(0 0 .6px var(--cyan))}
+.scene-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 8px;padding:10px 14px 0;font-size:12px;color:#6f7268}
+.scene-legend span{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:99px;background:#f6f7f3;border:1px solid #ecece7}
+.scene-legend i{width:8px;height:8px;border-radius:50%;box-shadow:none}
+.scene-legend [data-s=queued] i{background:#e0a020}.scene-legend [data-s=running] i{background:#38bdf8}
+.scene-legend [data-s=success] i{background:#34d399}.scene-legend [data-s=failure] i{background:#f05a6e}
+.scene-legend [data-s=skipped] i{background:#9aa5b1}
+@media(max-width:600px){.scene-head{padding:10px 10px 8px}.sh-title small,.sh-icon{display:none}.sh-title b{white-space:nowrap;font-size:15px}.sh-live{font-size:12px;max-width:55%}.office .scene-scroll{margin:0 8px}}
 @media(max-width:1000px){.timeline{flex:none}.summary{grid-template-columns:1fr}.meter{justify-self:start}}
 @media(max-width:600px){
   .tl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -743,6 +783,11 @@ a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22p
 <div class="notice" id="notice" role="status"></div>
 
 <section class="office" id="office" aria-label="ภาพออฟฟิศศูนย์ปฏิบัติการข้อมูล แสดงสถานะของทีมทั้งหกตาม GitHub Actions">
+  <div class="scene-head">
+    <div class="sh-title"><span class="sh-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span>
+      <span><b>ศูนย์ปฏิบัติการข้อมูล</b><small>6 ทีม · 7 workflow · กดป้ายสถานีเพื่อดูการ์ดงาน<span class="pan-hint"> · เลื่อนภาพซ้าย–ขวาได้</span></small></span></div>
+    <span class="sh-live" id="scene-live" data-s="unknown"><i></i><span id="scene-live-t">กำลังโหลด</span></span>
+  </div>
   <div class="scene-scroll" id="scroll">
     <div class="stage" id="stage">
       <picture>
@@ -757,16 +802,13 @@ a.fe-card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 22p
       <nav id="tags" aria-label="สถานะรายสถานี"></nav>
     </div>
   </div>
+  <div class="legend scene-legend" aria-label="คำอธิบายสี">
+    <span data-s="queued"><i></i>รอคิว</span><span data-s="running"><i></i>กำลังทำงาน</span><span data-s="success"><i></i>สำเร็จ</span><span data-s="failure"><i></i>ไม่สำเร็จ</span><span data-s="skipped"><i></i>ข้าม / ไม่ได้เริ่ม</span>
+  </div>
   <div class="timeline" aria-label="ไทม์ไลน์รอบนี้">
     <div class="tl-stats" id="tl-stats"></div>
     <div class="tl-head"><h3>ไทม์ไลน์รอบนี้</h3><span id="tl-span">—</span></div>
     <div class="tl-body"><div class="tl-grid" id="tl-grid" aria-hidden="true"></div><div class="tl-axis" id="tl-axis" aria-hidden="true"></div><div class="tl-rows" id="tl-rows"></div></div>
-  </div>
-  <div class="scene-foot">
-    <span><strong>ศูนย์ปฏิบัติการข้อมูล</strong> · 6 ทีม · 7 workflow<span class="pan-hint"> · เลื่อนซ้าย–ขวาเพื่อดูทั้งห้อง</span></span>
-    <span class="legend" aria-label="คำอธิบายสี">
-      <span data-s="queued"><i></i>รอคิว</span><span data-s="running"><i></i>กำลังทำงาน</span><span data-s="success"><i></i>สำเร็จ</span><span data-s="failure"><i></i>ไม่สำเร็จ</span><span data-s="skipped"><i></i>ข้าม / ไม่ได้เริ่ม</span>
-    </span>
   </div>
 </section>
 
@@ -956,6 +998,9 @@ function render(d){
   }).join("");
   $("ring").setAttribute("aria-label","สำเร็จ "+passed+" จาก 7 งาน");
   $("overall").textContent=headline;
+  const liveS=unknown||stale?"unknown":running||between?"running":failedN||missedN?"failure":d.status==="success"?"success":"queued";
+  $("scene-live").dataset.s=liveS;
+  $("scene-live-t").textContent=running?"กำลังทำ: "+(running.label||running.repo).replace(/^อัปเดต/,""):headline;
   $("overall-pill").dataset.s=unknown||stale?"unknown":running||between?"running":failedN||missedN?"failure":d.status==="success"?"success":"queued";
   $("chips").innerHTML=[["#72c900","สำเร็จ",passed],["#e0585b","ไม่สำเร็จ",failedN],["#c3c6bc","ข้าม",skipped],["#c3c6bc","ไม่ได้เริ่ม",missedN],["#b5fa24","กำลังทำ",running?1:0]]
     .filter(function(c){return c[2]>0}).map(function(c){return '<span class="chip" style="--cc:'+c[0]+'"><i></i>'+c[1]+' <b>'+c[2]+'</b></span>'}).join("");
