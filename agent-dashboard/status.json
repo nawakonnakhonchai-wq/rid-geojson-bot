@@ -4,7 +4,7 @@
   "runId": 43998342217,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/43998342217",
   "startedAt": "2026-11-17T01:48:34.248Z",
-  "updatedAt": "2026-11-17T01:50:56.640Z",
+  "updatedAt": "2026-11-17T01:50:59.290Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -61,7 +61,9 @@
       "icon": "🌦️",
       "status": "running",
       "startedAt": "2026-11-17T01:50:56.640Z",
-      "detail": "กำลังเรียก workflow"
+      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "runId": 43998646019,
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherForecastDaily/actions/runs/43998646019"
     },
     {
       "repo": "WeatherWarningNews",
