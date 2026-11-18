@@ -389,3 +389,8 @@ footer a { color: var(--text); }
 .seg.est-km[hidden] { display: none; }
 .est-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .est-empty .riv-btn { margin-top: 4px; }
+/* ปุ่มธีม: มุมขวาบนของแถบหัวข้อเสมอ (จอกว้าง); จอแคบใช้ลำดับเดิม (อยู่ข้างหัวข้อ) */
+@media (min-width: 761px) {
+  #overview.top { position: relative; padding-right: 104px; }
+  #overview > .theme-seg { position: absolute; top: 0; right: 0; }
+}
