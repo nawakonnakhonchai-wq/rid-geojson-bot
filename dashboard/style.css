@@ -368,7 +368,12 @@ footer a { color: var(--text); }
 .riv-btn { white-space: nowrap; }
 #mapcard .tbl-ctrl { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
 /* นิคมที่ใกล้สถานีที่สุด (การ์ดสถานี + รายการเฝ้าระวัง) */
-.now .near-est { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--tile); font-size: 13px; color: var(--muted); cursor: pointer; text-align: left; max-width: 100%; }
+.now .now-top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.now .now-top .badge-st { margin-left: auto; }
+/* การ์ดแคบ: ชิป + สถานะอยู่บรรทัดแรก นิคมฯ ลงบรรทัดถัดไป (วัดจากความกว้างการ์ด ไม่ใช่จอ) */
+.now { container-type: inline-size; }
+@container (max-width: 480px) { .now-top .near-est { order: 3; } }
+.now .near-est { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--tile); font-size: 13px; color: var(--muted); cursor: pointer; text-align: left; max-width: 100%; }
 .now .near-est:hover { border-color: var(--ind); }
 .now .near-est b { color: var(--text); font-weight: 600; }
 .now .near-est .km { color: var(--ind); font-weight: 600; }
