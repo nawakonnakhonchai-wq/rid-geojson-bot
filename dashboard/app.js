@@ -307,9 +307,9 @@
   }
 
   /* ---------- ชั้นพื้นที่น้ำท่วม (เฉพาะแผนที่สถานีวัดน้ำ) ---------- */
-  // ไฟล์ใหญ่ (~5 MB) จึงโหลดเมื่อผู้ใช้เปิดชั้นนี้ครั้งแรกเท่านั้น
+  // ปิดไว้เสมอเมื่อเข้าเว็บ (ไม่จำค่าจากครั้งก่อน) และโหลดไฟล์เมื่อผู้ใช้กดเปิดเท่านั้น เพื่อให้หน้าเว็บโหลดเร็ว
   // เก็บเป็น TopoJSON (เล็กกว่า GeoJSON ~30%) แล้วแปลงกลับด้วย topojson-client ซึ่งโหลดพร้อมกันเมื่อเปิดชั้นนี้
-  const FLD = { data: null, on: store.get("rid-flood") === "1", busy: null, file: "data/flood_2569.topojson", bust: "" };
+  const FLD = { data: null, on: false, busy: null, file: "data/flood_2569.topojson", bust: "" };
   const TOPOJSON_JS = { src: "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js",
     integrity: "sha512-4UKI/XKm3xrvJ6pZS5oTRvIQGIzZFoXR71rRBb1y2N+PbwAsKa5tPl2J6WvbEvwN3TxQCm8hMzsl/pO+82iRlg==" };
   const loadTopojson = () => window.topojson ? Promise.resolve() : new Promise((ok, fail) => {
@@ -348,12 +348,12 @@
     }
     return FLD.busy;
   }
-  async function setFlood(on, user = true) {
-    FLD.on = on; store.set("rid-flood", on ? "1" : "0");
-    if (on && !(await loadFlood())) { FLD.on = false; store.set("rid-flood", "0"); }
+  async function setFlood(on) {
+    FLD.on = on;
+    if (on && !(await loadFlood())) FLD.on = false;
     maps.forEach(m => { if (m._fld) FLD.on ? m._fld.addTo(m) : m._fld.remove(); });
     // ผู้ใช้กดเปิดเอง: ซูมไปที่พื้นที่น้ำท่วม (ที่ซูมทั้งประเทศ จุดสถานีจะบังพื้นที่จนมองไม่เห็น)
-    if (FLD.on && user && S.map && S.map._fld) S.map.flyToBounds(S.map._fld.getBounds(), { padding: [16, 16], maxZoom: 9, duration: .8 });
+    if (FLD.on && S.map && S.map._fld) S.map.flyToBounds(S.map._fld.getBounds(), { padding: [16, 16], maxZoom: 9, duration: .8 });
     syncFloodUi();
   }
 
@@ -1406,7 +1406,6 @@
   loadRivers(bust);
   loadInd(bust);
   FLD.bust = bust; syncFloodUi();
-  if (FLD.on) setFlood(true, false);   // เปิดค้างไว้จากครั้งก่อน
   loadStations(bust).catch(err => { console.error(err); $("nowcard").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลสถานีไม่สำเร็จ")); });
   loadDams(bust).catch(err => { console.error(err); $("damNow").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลเขื่อนไม่สำเร็จ")); });
 })();
