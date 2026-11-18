@@ -341,7 +341,9 @@ footer a { color: var(--text); }
 .ind-row b { min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
 .ind-hint { margin-top: 6px; font-size: 11px; color: var(--muted); }
 
-.pop-open .map-legend, .pop-open .leaflet-control-zoom { visibility: hidden; }
+.pop-open .map-legend { visibility: hidden; }
+/* ปุ่มซูมซ่อนเฉพาะจอแคบ (การ์ดอาจบัง) บนจอกว้างยังซูมได้ขณะเปิดการ์ด */
+@media (max-width: 600px) { .pop-open .leaflet-control-zoom { visibility: hidden; } }
 
 /* แนวโน้มรายวัน: โหมดใกล้นิคมฯ */
 .tr-watch { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
