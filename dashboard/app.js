@@ -300,7 +300,13 @@
       IND.data = await fetch("data/ieat_estates.geojson" + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
       document.querySelectorAll("[data-ind]").forEach(b => { b.hidden = false; b.classList.toggle("on", IND.on); });
       maps.forEach(indLayer);
-      nearEst = null; if (S.sel) { renderNow(); renderList(); }
+      nearEst = null;
+      const names = IND.data.features.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "th"));
+      $("fEst").replaceChildren(el("option", { value: "" }, "ทุกนิคม"), ...names.map(n => el("option", { value: n }, "นิคมฯ " + n)));
+      $("estBox").hidden = false;
+      if (EST.name && !names.includes(EST.name)) { EST.name = ""; store.set("rid-est", ""); }
+      syncEstUi();
+      if (S.all.length) { if (EST.name) applyStations({ nearEst: true }); else { renderNow(); renderList(); } }
       if (S.hist && TR.scope === "ind") renderTrend();
       if (S.all.length) legend($("mapLegend"), [...ST, NA]);
       if (D.all.length) legend($("damLegend"), [...DST, NA]);
@@ -533,15 +539,52 @@
     }).catch(() => { $("trendChart").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลย้อนหลังไม่สำเร็จ")); });
   }
 
-  function applyStations() {
-    const prov = $("fProv").value, basin = $("fBasin").value, st = $("fStatus").value, tr = $("fTrend").value;
+  /* ---------- ตัวกรองรายนิคม: สถานีในรัศมี EST.km กม. รอบนิคมที่เลือก ---------- */
+  const EST_KMS = [5, 10, 20, 30];
+  const EST = { name: store.get("rid-est") || "", km: EST_KMS.includes(+store.get("rid-est-km")) ? +store.get("rid-est-km") : 10 };
+  // จุดที่ตั้งนิคมที่เลือก (null = ไม่ได้เลือก หรือยังโหลดข้อมูลนิคมไม่เสร็จ)
+  function estPt() {
+    if (!EST.name || !IND.data) return null;
+    const f = IND.data.features.find(f => f.properties.name === EST.name);
+    return f ? { name: EST.name, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] } : null;
+  }
+  // ตัวกรองพื้นที่ร่วม (จังหวัด / ลุ่มน้ำ / รัศมีรอบนิคม) ใช้ทั้งรายการสถานีและตัวเลขภาพรวม
+  function areaFilter() {
+    const prov = $("fProv").value, basin = $("fBasin").value, ep = estPt();
+    return s => (!prov || s.prov === prov) && (!basin || s.basin === basin)
+      && (!ep || (s.lat != null && s.lon != null && kmBetween(ep, s) <= EST.km));
+  }
+  function syncEstUi() {
+    $("fEst").value = EST.name;
+    $("estKm").hidden = !EST.name;
+    document.querySelectorAll("[data-est-km]").forEach(b => b.classList.toggle("on", +b.dataset.estKm === EST.km));
+  }
+  function setEst(name, km) {
+    const changed = name !== EST.name;
+    EST.name = name; if (km) EST.km = km;
+    store.set("rid-est", EST.name); store.set("rid-est-km", String(EST.km));
+    // นิคมกับจังหวัด/ลุ่มน้ำใช้พร้อมกันไม่ได้ (รัศมีอาจคร่อมหลายจังหวัด)
+    if (EST.name) { $("fProv").value = ""; $("fBasin").value = ""; store.set("rid-prov", ""); store.set("rid-basin", ""); }
+    if (EST.name && !IND.on) setInd(true);
+    syncEstUi();
+    applyStations({ nearEst: changed || !!km });
+  }
+  // ล้างตัวกรองสถานีทั้งหมด (ใช้เมื่อผู้ใช้เลือกสถานีที่อยู่นอกตัวกรอง)
+  function clearStFilters() {
+    $("fProv").value = ""; $("fBasin").value = ""; $("fStatus").value = ""; $("fTrend").value = "";
+    store.set("rid-prov", ""); EST.name = ""; store.set("rid-est", ""); syncEstUi();
+  }
+
+  function applyStations(opt = {}) {
+    const st = $("fStatus").value, tr = $("fTrend").value, inArea = areaFilter(), ep = estPt();
     const q = $("fSearch").value.trim().toLowerCase();
-    const base = S.all.filter(s => (!prov || s.prov === prov) && (!basin || s.basin === basin) && (!st || stStatus(s.pct).key === st) && (!tr || s.trend === tr));
+    const base = S.all.filter(s => inArea(s) && (!st || stStatus(s.pct).key === st) && (!tr || s.trend === tr));
     S.list = base;
     S.tableRows = q ? base.filter(s => s.name.toLowerCase().includes(q) || (s.code || "").toLowerCase().includes(q)) : base;
     S.shown = 50;
-    // เลือกสถานีที่ % ตลิ่งสูงสุดเมื่อสถานีเดิมไม่อยู่ในตัวกรอง
-    if (!S.sel || !base.includes(S.sel)) S.sel = sortRows(base.filter(s => s.pct != null), "pct", false)[0] || null;
+    // เลือกนิคม: แสดงสถานีที่ใกล้นิคมที่สุด / อื่นๆ: สถานีที่ % ตลิ่งสูงสุดเมื่อสถานีเดิมไม่อยู่ในตัวกรอง
+    if (ep && (opt.nearEst || !S.sel || !base.includes(S.sel))) S.sel = nearOf(base, ep, 1).map(x => x.r)[0] || null;
+    else if (!S.sel || !base.includes(S.sel)) S.sel = sortRows(base.filter(s => s.pct != null), "pct", false)[0] || null;
     renderNow(); renderKpis(); renderList(); renderMap(true); renderTable(); renderHist();
     if (S.hist) renderTrend();
   }
@@ -576,9 +619,28 @@
     setTimeout(() => mk.openPopup(), 700);
   }
 
+  // ไม่มีสถานีในรัศมีรอบนิคม: บอกระยะสถานีที่ใกล้ที่สุด และปุ่มขยายรัศมี
+  function estEmpty() {
+    const ep = estPt(), near = nearOf(S.all, ep, 1)[0];
+    const box = el("div", { class: "msg est-empty" },
+      el("div", {}, `ไม่มีสถานีวัดน้ำในรัศมี ${EST.km} กม. ของนิคมฯ ${ep.name}`),
+      near ? el("div", { class: "muted" }, `สถานีที่ใกล้ที่สุดคือ ${near.r.name} ห่าง ${fmtKm(near.km)}`) : null);
+    const fit = near && EST_KMS.find(k => k >= near.km);
+    if (fit) {
+      const b = el("button", { type: "button", class: "riv-btn on" }, `ขยายรัศมีเป็น ${fit} กม.`);
+      b.addEventListener("click", () => setEst(EST.name, fit));
+      box.append(b);
+    } else if (near) {
+      const b = el("button", { type: "button", class: "riv-btn on" }, `ดูสถานี ${near.r.name}`);
+      b.addEventListener("click", () => { clearStFilters(); applyStations(); selectStation(near.r, { fly: true }); });
+      box.append(b);
+    }
+    return box;
+  }
+
   function renderNow() {
     const box = $("nowcard"), s = S.sel;
-    if (!s) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีสถานีตามตัวกรอง")); return; }
+    if (!s) { box.replaceChildren(estPt() ? estEmpty() : el("div", { class: "msg" }, "ไม่มีสถานีตามตัวกรอง")); return; }
     const st = stStatus(s.pct);
     const chip = el("div", { class: "chip" }); chip.append(svgIcon("station"), `${s.prov} · ${s.code}`);
     const badge = el("div", { class: "badge-st" }, dotEl(color(st)), st.label);
@@ -605,8 +667,8 @@
   // ภาพรวม: ตัวเลขรวม → แถบสัดส่วนสถานะ → การ์ดสถานะ (กดเพื่อกรอง) → แนวโน้ม (กดเพื่อกรอง)
   // ตัวเลขแต่ละส่วนไม่นับตัวกรองของตัวเอง เพื่อให้ยังเห็นภาพรวมขณะเลือกกรองอยู่
   function renderKpis() {
-    const prov = $("fProv").value, basin = $("fBasin").value, stSel = $("fStatus").value, trSel = $("fTrend").value;
-    const inProv = S.all.filter(s => (!prov || s.prov === prov) && (!basin || s.basin === basin));
+    const prov = $("fProv").value, basin = $("fBasin").value, stSel = $("fStatus").value, trSel = $("fTrend").value, ep = estPt();
+    const inProv = S.all.filter(areaFilter());
     const forStatus = inProv.filter(s => !trSel || s.trend === trSel);
     const forTrend = inProv.filter(s => !stSel || stStatus(s.pct).key === stSel);
     const n = forStatus.length;
@@ -616,7 +678,7 @@
     // 1) ตัวเลขรวม
     const head = el("div", { class: "ov-head" },
       el("div", {}, el("div", { class: "ov-big" }, nf(n), el("small", {}, " สถานี")),
-        el("div", { class: "muted" }, ([prov, basin && "ลุ่มน้ำ" + basin].filter(Boolean).join(" · ") || "ทั้งประเทศ") + (trSel ? ` · แนวโน้ม${trSel}` : ""))),
+        el("div", { class: "muted" }, ([ep && `นิคมฯ ${ep.name} รัศมี ${EST.km} กม.`, prov, basin && "ลุ่มน้ำ" + basin].filter(Boolean).join(" · ") || "ทั้งประเทศ") + (trSel ? ` · แนวโน้ม${trSel}` : ""))),
       el("div", { class: "ov-side muted" }, `มีค่า % ตลิ่ง ${nf(forStatus.filter(s => s.pct != null).length)} สถานี`));
 
     // 2) แถบสัดส่วน
@@ -698,7 +760,11 @@
       S.markers.set(s.code, m);
     }
     $("mapCount").textContent = `${nf(pts.length)} จุด`;
-    if (fit && pts.length) S.map.fitBounds(L.latLngBounds(pts.map(s => [s.lat, s.lon])), { padding: [20, 20], maxZoom: 11 });
+    const ep = estPt();
+    if (ep) {
+      const ring = L.circle([ep.lat, ep.lon], { radius: EST.km * 1000, color: cssVar("--ind"), weight: 1.5, dashArray: "6 6", fillColor: cssVar("--ind"), fillOpacity: .06, interactive: false }).addTo(S.layer);
+      if (fit) S.map.fitBounds(ring.getBounds(), { padding: [20, 20] });
+    } else if (fit && pts.length) S.map.fitBounds(L.latLngBounds(pts.map(s => [s.lat, s.lon])), { padding: [20, 20], maxZoom: 11 });
   }
 
   function renderTable() {
@@ -1271,8 +1337,7 @@
     choose: s => {
       // ถ้าสถานีที่เลือกไม่อยู่ในตัวกรองปัจจุบัน ล้างตัวกรองก่อน
       if (!S.list.includes(s)) {
-        $("fProv").value = ""; $("fBasin").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; store.set("rid-prov", "");
-        applyStations();
+        clearStFilters(); applyStations();
       }
       selectStation(s, { fly: true });
       $("nowcard").scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1306,7 +1371,7 @@
 
   // เลือกโดยไม่ซูมแผนที่ไปที่จุดเดียว (จะ fit ให้เห็นทั้งผู้ใช้และสถานีรอบๆ แทน)
   const pickStationNear = s => {
-    if (!S.list.includes(s)) { $("fProv").value = ""; $("fBasin").value = ""; $("fStatus").value = ""; $("fTrend").value = ""; applyStations(); }
+    if (!S.list.includes(s)) { clearStFilters(); applyStations(); }
     selectStation(s);
   };
   const pickDamNear = d => {
@@ -1369,8 +1434,12 @@
     D.size = b.dataset.size; syncSeg("data-size", D.size); applyDams();
   }));
 
-  $("fProv").addEventListener("change", () => { store.set("rid-prov", $("fProv").value); applyStations(); $("fProv").blur(); });
-  $("fBasin").addEventListener("change", () => { store.set("rid-basin", $("fBasin").value); applyStations(); $("fBasin").blur(); });
+  // เลือกจังหวัด/ลุ่มน้ำ จะยกเลิกตัวกรองนิคม
+  const dropEst = () => { if (EST.name) { EST.name = ""; store.set("rid-est", ""); syncEstUi(); } };
+  $("fProv").addEventListener("change", () => { store.set("rid-prov", $("fProv").value); if ($("fProv").value) dropEst(); applyStations(); $("fProv").blur(); });
+  $("fBasin").addEventListener("change", () => { store.set("rid-basin", $("fBasin").value); if ($("fBasin").value) dropEst(); applyStations(); $("fBasin").blur(); });
+  $("fEst").addEventListener("change", () => { setEst($("fEst").value); $("fEst").blur(); });
+  document.querySelectorAll("[data-est-km]").forEach(b => b.addEventListener("click", () => setEst(EST.name, +b.dataset.estKm)));
   ["fStatus", "fTrend"].forEach(id => $(id).addEventListener("change", () => applyStations()));
   $("lSort").addEventListener("change", renderList);
   let deb1, deb2;
