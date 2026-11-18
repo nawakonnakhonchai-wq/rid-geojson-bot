@@ -363,3 +363,5 @@ footer a { color: var(--text); }
 .map-legend .fld-key { cursor: pointer; }
 .legend-row .fld-key.off { opacity: .4; text-decoration: line-through; }
 .fld-note { margin: -4px 0 10px; text-align: left; color: var(--flood-area); }
+.riv-btn { white-space: nowrap; }
+#mapcard .tbl-ctrl { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }

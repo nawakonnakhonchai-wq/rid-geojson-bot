@@ -327,7 +327,7 @@
     document.querySelectorAll("[data-flood]").forEach(b => { b.classList.toggle("on", FLD.on); b.classList.toggle("busy", !!FLD.busy); b.setAttribute("aria-pressed", FLD.on); });
     document.querySelectorAll(".fld-key").forEach(k => { k.classList.toggle("off", !FLD.on); const r = k.querySelector(".lg-r"); if (r) r.textContent = FLD.on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"; });
     const note = $("floodNote");
-    if (note) { note.hidden = !(FLD.on && p); if (p) note.textContent = `พื้นที่น้ำท่วม ณ ${thDateLong(p.date)} · ${p.detail}`; }
+    if (note) { note.hidden = !(FLD.on && p); if (p) note.textContent = p.detail; }
   }
   async function loadFlood() {
     if (FLD.data) return true;
