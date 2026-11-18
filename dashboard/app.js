@@ -308,7 +308,15 @@
 
   /* ---------- ชั้นพื้นที่น้ำท่วม (เฉพาะแผนที่สถานีวัดน้ำ) ---------- */
   // ไฟล์ใหญ่ (~5 MB) จึงโหลดเมื่อผู้ใช้เปิดชั้นนี้ครั้งแรกเท่านั้น
-  const FLD = { data: null, on: store.get("rid-flood") === "1", busy: null, file: "data/flood_2569.geojson", bust: "" };
+  // เก็บเป็น TopoJSON (เล็กกว่า GeoJSON ~30%) แล้วแปลงกลับด้วย topojson-client ซึ่งโหลดพร้อมกันเมื่อเปิดชั้นนี้
+  const FLD = { data: null, on: store.get("rid-flood") === "1", busy: null, file: "data/flood_2569.topojson", bust: "" };
+  const TOPOJSON_JS = { src: "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js",
+    integrity: "sha512-4UKI/XKm3xrvJ6pZS5oTRvIQGIzZFoXR71rRBb1y2N+PbwAsKa5tPl2J6WvbEvwN3TxQCm8hMzsl/pO+82iRlg==" };
+  const loadTopojson = () => window.topojson ? Promise.resolve() : new Promise((ok, fail) => {
+    const sc = document.createElement("script");
+    Object.assign(sc, { src: TOPOJSON_JS.src, integrity: TOPOJSON_JS.integrity, crossOrigin: "anonymous", referrerPolicy: "no-referrer", onload: ok, onerror: fail });
+    document.head.append(sc);
+  });
   const fldInfo = () => FLD.data && FLD.data.features[0] ? FLD.data.features[0].properties : null;
   function floodLayer(m) {
     if (!FLD.data || !m || m.getContainer().id !== "map") return;
@@ -332,8 +340,8 @@
   async function loadFlood() {
     if (FLD.data) return true;
     if (!FLD.busy) {
-      FLD.busy = fetch(FLD.file + FLD.bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(gj => { FLD.data = gj; maps.forEach(floodLayer); if (S.all.length) legend($("mapLegend"), [...ST, NA]); return true; })
+      FLD.busy = Promise.all([fetch(FLD.file + FLD.bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), loadTopojson()])
+        .then(([topo]) => { FLD.data = topojson.feature(topo, topo.objects.flood); maps.forEach(floodLayer); if (S.all.length) legend($("mapLegend"), [...ST, NA]); return true; })
         .catch(e => { console.error(e); return false; })
         .finally(() => { FLD.busy = null; syncFloodUi(); });
       syncFloodUi();
