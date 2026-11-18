@@ -103,7 +103,7 @@
   function makeMap(id) {
     if (typeof L === "undefined") { $(id).replaceChildren(el("div", { class: "msg" }, "โหลดแผนที่ไม่สำเร็จ")); return null; }
     const m = L.map(id, { scrollWheelZoom: false, zoomSnap: 0.5, preferCanvas: true }).setView([13.2, 100.9], 6);
-    m._tiles = []; maps.push(m); setTiles(m); riverLayer(m); indLayer(m);
+    m._tiles = []; maps.push(m); setTiles(m); floodLayer(m); riverLayer(m); indLayer(m);
     // ซ่อนกล่องคำอธิบายสัญลักษณ์ระหว่างเปิดป๊อปอัป ไม่ให้บังกัน (สำคัญบนมือถือ)
     m.on("popupopen", () => m.getContainer().classList.add("pop-open"));
     m.on("popupclose", () => m.getContainer().classList.remove("pop-open"));
@@ -175,6 +175,18 @@
         { label: `จุดสีมุมไอคอน = มีสถานีน้ำมาก/ล้นตลิ่งในรัศมี ${IND.radius} กม.`, value: "" },
         { label: "แตะไอคอนนิคมเพื่อดูสถานี/เขื่อนใกล้เคียง", value: "" }]);
       box.append(ik);
+    }
+    if (FLD.data && box.id === "mapLegend") {
+      const k = el("i", { class: "fk" });
+      const fk = el("span", { class: "fld-key lg-item" + (FLD.on ? "" : " off"), role: "button", tabindex: "0" }, k, el("span", { class: "lg-l" }, "พื้นที่น้ำท่วม"),
+        el("span", { class: "lg-r" }, FLD.on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"));
+      fk.addEventListener("click", e => { setFlood(!FLD.on); e.stopPropagation(); });
+      fk.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setFlood(!FLD.on); } });
+      tipFor(fk, "พื้นที่น้ำท่วม", () => { const p = fldInfo(); return [
+        { label: `ข้อมูล ณ ${thDateLong(p.date)}`, value: "" },
+        { label: `ประมาณ ${nf(p.rai)} ไร่ (ภาคกลางและภาคตะวันออก)`, value: "" },
+        { label: "เป็นภาพ ณ วันเดียว ไม่ใช่เวลาเดียวกับระดับน้ำที่สถานี", value: "" }]; });
+      box.append(fk);
     }
   }
   document.addEventListener("click", hideTip);
@@ -292,6 +304,49 @@
       if (S.all.length) legend($("mapLegend"), [...ST, NA]);
       if (D.all.length) legend($("damLegend"), [...DST, NA]);
     } catch (e) { /* ยังไม่มีไฟล์นิคม */ }
+  }
+
+  /* ---------- ชั้นพื้นที่น้ำท่วม (เฉพาะแผนที่สถานีวัดน้ำ) ---------- */
+  // ไฟล์ใหญ่ (~5 MB) จึงโหลดเมื่อผู้ใช้เปิดชั้นนี้ครั้งแรกเท่านั้น
+  const FLD = { data: null, on: store.get("rid-flood") === "1", busy: null, file: "data/flood_2569.geojson", bust: "" };
+  const fldInfo = () => FLD.data && FLD.data.features[0] ? FLD.data.features[0].properties : null;
+  function floodLayer(m) {
+    if (!FLD.data || !m || m.getContainer().id !== "map") return;
+    // อยู่ใต้เส้นแม่น้ำ (390) และจุดสถานี (400) เพื่อไม่บังและไม่รบกวนการแตะ
+    if (!m.getPane("flood")) { const p = m.createPane("flood"); p.style.zIndex = 380; p.style.pointerEvents = "none"; }
+    if (m._fld) m._fld.remove();
+    const c = cssVar("--flood-area");
+    m._fld = L.geoJSON(FLD.data, {
+      pane: "flood", renderer: L.canvas({ pane: "flood", padding: 0.5 }), interactive: false,
+      style: () => ({ color: c, weight: 0.8, opacity: .95, fillColor: c, fillOpacity: .5 }),
+    });
+    if (FLD.on) m._fld.addTo(m);
+  }
+  function syncFloodUi() {
+    const p = fldInfo();
+    document.querySelectorAll("[data-flood]").forEach(b => { b.classList.toggle("on", FLD.on); b.classList.toggle("busy", !!FLD.busy); b.setAttribute("aria-pressed", FLD.on); });
+    document.querySelectorAll(".fld-key").forEach(k => { k.classList.toggle("off", !FLD.on); const r = k.querySelector(".lg-r"); if (r) r.textContent = FLD.on ? "แตะเพื่อปิด" : "แตะเพื่อเปิด"; });
+    const note = $("floodNote");
+    if (note) { note.hidden = !(FLD.on && p); if (p) note.textContent = p.detail; }
+  }
+  async function loadFlood() {
+    if (FLD.data) return true;
+    if (!FLD.busy) {
+      FLD.busy = fetch(FLD.file + FLD.bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(gj => { FLD.data = gj; maps.forEach(floodLayer); if (S.all.length) legend($("mapLegend"), [...ST, NA]); return true; })
+        .catch(e => { console.error(e); return false; })
+        .finally(() => { FLD.busy = null; syncFloodUi(); });
+      syncFloodUi();
+    }
+    return FLD.busy;
+  }
+  async function setFlood(on, user = true) {
+    FLD.on = on; store.set("rid-flood", on ? "1" : "0");
+    if (on && !(await loadFlood())) { FLD.on = false; store.set("rid-flood", "0"); }
+    maps.forEach(m => { if (m._fld) FLD.on ? m._fld.addTo(m) : m._fld.remove(); });
+    // ผู้ใช้กดเปิดเอง: ซูมไปที่พื้นที่น้ำท่วม (ที่ซูมทั้งประเทศ จุดสถานีจะบังพื้นที่จนมองไม่เห็น)
+    if (FLD.on && user && S.map && S.map._fld) S.map.flyToBounds(S.map._fld.getBounds(), { padding: [16, 16], maxZoom: 9, duration: .8 });
+    syncFloodUi();
   }
 
   /* ---------- การ์ด pop-up บนแผนที่ ---------- */
@@ -1272,11 +1327,12 @@
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.addEventListener("click", () => {
     document.documentElement.dataset.theme = b.dataset.themeBtn; store.set("rid-theme", b.dataset.themeBtn);
     syncSeg("data-theme-btn", b.dataset.themeBtn);
-    maps.forEach(setTiles); maps.forEach(riverLayer); maps.forEach(indLayer); if (ME.pos) showMe(); redrawAll();
+    maps.forEach(setTiles); maps.forEach(floodLayer); maps.forEach(riverLayer); maps.forEach(indLayer); if (ME.pos) showMe(); redrawAll();
   }));
   syncSeg("data-theme-btn", document.documentElement.dataset.theme);
   document.querySelectorAll("[data-rivers]").forEach(b => b.addEventListener("click", () => setRivers(!RIV.on)));
   document.querySelectorAll("[data-ind]").forEach(b => b.addEventListener("click", () => setInd(!IND.on)));
+  document.querySelectorAll("[data-flood]").forEach(b => b.addEventListener("click", () => setFlood(!FLD.on)));
   document.querySelectorAll("[data-size]").forEach(b => b.addEventListener("click", () => {
     D.size = b.dataset.size; syncSeg("data-size", D.size); applyDams();
   }));
@@ -1341,6 +1397,8 @@
   const bust = "?t=" + Math.floor(Date.now() / 300000); // cache 5 นาที
   loadRivers(bust);
   loadInd(bust);
+  FLD.bust = bust; syncFloodUi();
+  if (FLD.on) setFlood(true, false);   // เปิดค้างไว้จากครั้งก่อน
   loadStations(bust).catch(err => { console.error(err); $("nowcard").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลสถานีไม่สำเร็จ")); });
   loadDams(bust).catch(err => { console.error(err); $("damNow").replaceChildren(el("div", { class: "msg" }, "โหลดข้อมูลเขื่อนไม่สำเร็จ")); });
 })();

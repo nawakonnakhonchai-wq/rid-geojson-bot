@@ -8,6 +8,7 @@
      ผ่านการตรวจช่วงความสว่าง/ความอิ่มสี/การแยกสีสำหรับผู้ตาบอดสี ทั้งสองธีม */
   --s-low: #2f9e57; --s-normal: #3f86e8; --s-high: #c4861f; --s-flood: #e5486a; --s-na: #5b5b63;
   --river: #67c3e6;
+  --flood-area: #22b8f0; /* พื้นที่น้ำท่วม: ฟ้าน้ำทะเล เป็นพื้นโปร่งแสง (ต่างจากจุดสถานีและม่วงของนิคมฯ) */
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -16,6 +17,7 @@
   --blue: #2563eb; --shadow: 0 1px 2px rgba(16,24,40,.06);
   --s-low: #2fa75a; --s-normal: #3b82e6; --s-high: #e0a127; --s-flood: #e5405f; --s-na: #c3c2b7;
   --river: #38a8d6;
+  --flood-area: #0a8fd0;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -353,3 +355,13 @@ footer a { color: var(--text); }
 .tr-w .e { grid-column: 2; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tr-w b { grid-row: 1 / 3; grid-column: 3; font-size: 17px; font-variant-numeric: tabular-nums; color: var(--c); }
 .tr-none { color: var(--muted); font-size: 14px; }
+/* ชั้นพื้นที่น้ำท่วม */
+.fld-btn svg { color: var(--flood-area); }
+.riv-btn.fld-btn.on { border-color: var(--flood-area); }
+.riv-btn.fld-btn.busy { opacity: .6; cursor: progress; }
+.legend-row .fk { width: 14px; height: 10px; border-radius: 3px; display: inline-block; background: color-mix(in srgb, var(--flood-area) 45%, transparent); border: 1px solid var(--flood-area); }
+.map-legend .fld-key { cursor: pointer; }
+.legend-row .fld-key.off { opacity: .4; text-decoration: line-through; }
+.fld-note { margin: -4px 0 10px; text-align: left; color: var(--flood-area); }
+.riv-btn { white-space: nowrap; }
+#mapcard .tbl-ctrl { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
