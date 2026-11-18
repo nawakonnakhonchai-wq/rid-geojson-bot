@@ -4,18 +4,19 @@
   "runId": 44217349774,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/44217349774",
   "startedAt": "2026-11-18T01:38:37.827Z",
-  "updatedAt": "2026-11-18T01:38:41.549Z",
+  "updatedAt": "2026-11-18T01:39:28.352Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
       "workflow": "update_data.yml",
       "label": "อัปเดตข้อมูลเขื่อน",
       "icon": "🏞️",
-      "status": "running",
+      "status": "success",
       "startedAt": "2026-11-18T01:38:39.120Z",
-      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "detail": "workflow สำเร็จ",
       "runId": 44217366676,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/Dam_Daily/actions/runs/44217366676"
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/Dam_Daily/actions/runs/44217366676",
+      "completedAt": "2026-11-18T01:39:15Z"
     },
     {
       "repo": "rid-geojson-bot",
