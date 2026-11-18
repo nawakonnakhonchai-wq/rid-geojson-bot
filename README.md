@@ -23,17 +23,18 @@
 
 `ระดับตลิ่ง (ม.รทก.)` อ่านจาก `brae_level` (API ไม่มี `bank_values` แล้ว)
 
-## ชั้นพื้นที่น้ำท่วม (`data/flood_2569.geojson`)
+## ชั้นพื้นที่น้ำท่วม (`data/flood_2569.topojson`)
 
-ปุ่ม **น้ำท่วม** บนแผนที่สถานีวัดน้ำ ไฟล์จะโหลดเมื่อผู้ใช้กดเปิดเท่านั้น
+ปุ่ม **น้ำท่วมปี 2569** บนแผนที่สถานีวัดน้ำ ไฟล์ (และไลบรารี topojson-client) จะโหลดเมื่อผู้ใช้กดเปิดเท่านั้น
 
 - ต้นฉบับ: `พื้นที่น้ำท่วมปี_2569.geojson` (107 MB, ข้อมูล ณ 4 ต.ค. 2569, ~4,164,262 ไร่)
-- ลดรายละเอียดด้วย [mapshaper](https://github.com/mbloch/mapshaper) ให้เหลือ ~5.6 MB (พื้นที่คงเหลือ ~98%):
+- ลดรายละเอียดด้วย [mapshaper](https://github.com/mbloch/mapshaper) (พื้นที่คงเหลือ ~98%) แล้วบันทึกเป็น TopoJSON
+  ได้ไฟล์ 2.9 MB (ดาวน์โหลดจริงหลังบีบอัด ~0.8 MB):
 
 ```
-mapshaper-xl 4gb -i flood.geojson -simplify 10% keep-shapes planar -filter-islands min-area=20000 -clean \
+mapshaper-xl 4gb -i flood.geojson name=flood -simplify 10% keep-shapes planar -filter-islands min-area=20000 -clean \
   -each 'date="2026-10-04", detail="...", rai=4164262, delete FID, delete Id, delete Date, delete Detail' \
-  -o data/flood_2569.geojson precision=0.0001
+  -o data/flood_2569.topojson format=topojson quantization=100000
 ```
 
-ถ้ามีข้อมูลน้ำท่วมชุดใหม่ ให้ทำขั้นตอนเดียวกันแล้วแก้ `FLD.file` ใน `dashboard/app.js`
+ถ้ามีข้อมูลน้ำท่วมชุดใหม่ ให้ทำขั้นตอนเดียวกัน (ชื่อชั้นต้องเป็น `flood`) แล้วแก้ `FLD.file` ใน `dashboard/app.js`
