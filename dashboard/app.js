@@ -585,12 +585,13 @@
     const left = el("div", {},
       el("div", { class: "name" }, s.name),
       el("div", { class: "date" }, s.time ? "ข้อมูลเวลา " + s.time.toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }) + " น." : ""),
-      estLink(s),
       gauge(s.pct, st, "ตลิ่ง"));
     const big = el("div", { class: "big" }, s.pct == null ? "–" : fmt(s.pct, 1)); big.append(el("small", {}, "%"));
     const right = el("div", { class: "right" }, big, el("div", { class: "sub" }, "ระดับน้ำ " + fmt(s.wl) + " ม.รทก."));
     const diffTxt = s.diff == null ? "–" : s.diff >= 0 ? `สูงกว่าตลิ่ง ${fmt(s.diff)} ม.` : `ต่ำกว่าตลิ่ง ${fmt(-s.diff)} ม.`;
-    box.replaceChildren(chip, badge, left, right,
+    // แถวบน: ชิปจังหวัด/รหัส + นิคมใกล้สุด (ซ้าย) · สถานะ (ขวา)
+    const top = el("div", { class: "now-top" }, chip, estLink(s), badge);
+    box.replaceChildren(top, left, right,
       el("div", { class: "left-bottom" },
         [s.basin && `ลุ่มน้ำ${s.basin}`, s.river, s.q != null && `อัตราการไหล ${fmt(s.q, 1)} ลบ.ม./วิ`].filter(Boolean).join(" · ") || "เทียบกับระดับตลิ่ง"),
       el("div", { class: "desc" }, el("b", {}, "แนวโน้ม" + (s.trend || "–")), el("span", {}, diffTxt)));
