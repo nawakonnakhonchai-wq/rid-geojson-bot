@@ -300,6 +300,7 @@
       IND.data = await fetch("data/ieat_estates.geojson" + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
       document.querySelectorAll("[data-ind]").forEach(b => { b.hidden = false; b.classList.toggle("on", IND.on); });
       maps.forEach(indLayer);
+      nearEst = null; if (S.sel) { renderNow(); renderList(); }
       if (S.hist && TR.scope === "ind") renderTrend();
       if (S.all.length) legend($("mapLegend"), [...ST, NA]);
       if (D.all.length) legend($("damLegend"), [...DST, NA]);
@@ -555,6 +556,26 @@
     if (opts.top) $("overview").scrollIntoView({ behavior: "smooth" });
   }
 
+  // นิคมที่ใกล้สถานีที่สุด (null ถ้ายังโหลดข้อมูลนิคมไม่เสร็จ)
+  const estOf = s => { const ne = stationEstates(); return ne ? ne.get(s.code) || null : null; };
+  // ปุ่ม "นิคมฯ ใกล้สุด" ในการ์ดสถานี: แตะเพื่อเลื่อนไปดูนิคมนั้นบนแผนที่
+  function estLink(s) {
+    const n = estOf(s); if (!n) return null;
+    const ic = el("span", { class: "ind-ic xs" }); ic.append(factoryEl());
+    const b = el("button", { type: "button", class: "near-est", title: "ดูนิคมนี้บนแผนที่" }, ic,
+      el("span", {}, "นิคมฯ ใกล้สุด"), el("span", { class: "nw" }, el("b", {}, n.est), " ", el("span", { class: "km" }, "ห่าง " + fmtKm(n.km))));
+    b.addEventListener("click", () => showEstate(n.est));
+    return b;
+  }
+  function showEstate(name) {
+    const m = S.map; if (!m || !m._ind) return;
+    if (!IND.on) setInd(true);
+    const mk = m._ind.getLayers().find(l => l.options.title === name); if (!mk) return;
+    $("mapcard").scrollIntoView({ behavior: "smooth" });
+    m.flyTo(mk.getLatLng(), Math.max(m.getZoom(), 11), { duration: .6 });
+    setTimeout(() => mk.openPopup(), 700);
+  }
+
   function renderNow() {
     const box = $("nowcard"), s = S.sel;
     if (!s) { box.replaceChildren(el("div", { class: "msg" }, "ไม่มีสถานีตามตัวกรอง")); return; }
@@ -564,6 +585,7 @@
     const left = el("div", {},
       el("div", { class: "name" }, s.name),
       el("div", { class: "date" }, s.time ? "ข้อมูลเวลา " + s.time.toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }) + " น." : ""),
+      estLink(s),
       gauge(s.pct, st, "ตลิ่ง"));
     const big = el("div", { class: "big" }, s.pct == null ? "–" : fmt(s.pct, 1)); big.append(el("small", {}, "%"));
     const right = el("div", { class: "right" }, big, el("div", { class: "sub" }, "ระดับน้ำ " + fmt(s.wl) + " ม.รทก."));
@@ -645,7 +667,7 @@
     box.replaceChildren(...rows.slice(0, 40).map(s => {
       const st = stStatus(s.pct);
       const b = el("button", { class: "pitem" + (S.sel === s ? " on" : ""), type: "button" },
-        el("div", {}, el("div", { class: "rg" }, s.prov), el("div", { class: "nm" }, s.name),
+        el("div", {}, el("div", { class: "rg" }, s.prov, (n => n ? el("span", { class: "est" }, ` · นิคมฯ ${n.est} ${fmtKm(n.km)}`) : null)(estOf(s))), el("div", { class: "nm" }, s.name),
           el("div", { class: "ds" }, dotEl(color(st)), `${st.label} · ${s.trend}`)),
         el("div", { class: "tp" }, fmt(s.pct, 1) + "%", el("small", {}, s.diff == null ? "" : (s.diff >= 0 ? "+" : "") + fmt(s.diff) + " ม.")));
       b.addEventListener("click", () => selectStation(s, { fly: true, top: innerWidth <= 1180 }));
@@ -667,7 +689,8 @@
           name: s.name, sub: [s.prov, s.basin && "ลุ่มน้ำ" + s.basin].filter(Boolean).join(" · "),
           st, pct: s.pct, unit: "ของตลิ่ง", ref: "ตลิ่ง", trend: s.trend,
           facts: [["ระดับน้ำ", fmt(s.wl) + " ม.รทก."],
-            s.diff != null && [s.diff >= 0 ? "สูงกว่าตลิ่ง" : "ต่ำกว่าตลิ่ง", fmt(Math.abs(s.diff)) + " ม."]],
+            s.diff != null && [s.diff >= 0 ? "สูงกว่าตลิ่ง" : "ต่ำกว่าตลิ่ง", fmt(Math.abs(s.diff)) + " ม."],
+            (n => n && ["นิคมฯ ใกล้สุด", `${n.est} · ${fmtKm(n.km)}`])(estOf(s))],
         }), TIP_OPT)
         .on("click", () => selectStation(s))
         .addTo(S.layer);
