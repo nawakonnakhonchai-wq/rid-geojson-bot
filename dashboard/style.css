@@ -394,3 +394,19 @@ footer a { color: var(--text); }
   #overview.top { position: relative; padding-right: 104px; }
   #overview > .theme-seg { position: absolute; top: 0; right: 0; }
 }
+
+/* แถบไฮไลต์เลื่อนตามเมาส์ (dashboard/slide-hl.js): เมนูซ้ายและปุ่มแบบกลุ่ม (.seg) */
+.hl-on { isolation: isolate; }
+.seg.hl-on { position: relative; }
+.shl { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 0; pointer-events: none; opacity: 0;
+  transition: transform .32s cubic-bezier(.3, 1.25, .5, 1), width .32s cubic-bezier(.3, 1.25, .5, 1), height .32s cubic-bezier(.3, 1.25, .5, 1), opacity .2s; }
+.nav .shl { border-radius: 14px; background: var(--tile); }
+.seg .shl { border-radius: 18px; background: var(--tile-hover); }
+.seg.sm .shl { border-radius: 15px; }
+.nav.hl-on > a, .nav.hl-on > .logo, .seg.hl-on > button { position: relative; z-index: 1; }
+.nav.hl-on > a, .seg.hl-on > button { transition: color .2s; }
+.nav.hl-on a, .nav.hl-on a:hover, .nav.hl-on a.on, .seg.hl-on button, .seg.hl-on button.on { background: transparent; }
+.nav.hl-on a:hover, .seg.hl-on button:hover { color: var(--text); }
+.nav.hl-on a.on svg { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .shl { transition: none; } }
+@media print { .shl { display: none; } }
