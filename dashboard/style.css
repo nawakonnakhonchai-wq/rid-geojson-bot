@@ -410,3 +410,17 @@ footer a { color: var(--text); }
 .nav.hl-on a.on svg { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .shl { transition: none; } }
 @media print { .shl { display: none; } }
+
+/* ===== scroll-reveal, chart entrance animations & top progress bar ===== */
+#scroll-prog { position: fixed; top: 0; left: 0; right: 0; height: 3.5px; z-index: 2500; pointer-events: none; background: transparent; }
+#scroll-prog i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #2f80ed, #7cc4ff); box-shadow: 0 0 8px rgba(47, 128, 237, .45); border-radius: 0 3px 3px 0; transition: width .08s linear; }
+.reveal-el { opacity: 0; transform: translateY(26px); transition: opacity .68s cubic-bezier(.22, 1, .36, 1) calc(var(--stagger, 0) * 80ms), transform .68s cubic-bezier(.22, 1, .36, 1) calc(var(--stagger, 0) * 80ms); }
+.reveal-el.reveal-in { opacity: 1; transform: translateY(0); }
+.reveal-el .chart svg { opacity: 0; transform: translateY(12px) scale(.985); transition: opacity .65s ease .12s, transform .7s cubic-bezier(.22, 1, .36, 1) .12s; }
+.reveal-el.reveal-in .chart svg { opacity: 1; transform: translateY(0) scale(1); }
+.reveal-el .bar i, .reveal-el .pbar i { transform-origin: left center; transform: scaleX(0); transition: transform .7s cubic-bezier(.22, 1, .36, 1) .14s; }
+.reveal-el.reveal-in .bar i, .reveal-el.reveal-in .pbar i { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce), print {
+  #scroll-prog { display: none !important; }
+  .reveal-el, .reveal-el .chart svg, .reveal-el .bar i, .reveal-el .pbar i { opacity: 1 !important; transform: none !important; transition: none !important; }
+}

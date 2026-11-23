@@ -12,7 +12,7 @@
   // ใช้ธีมที่ผู้ชมเลือกไว้ครั้งก่อน (ค่าเริ่มต้น: มืด)
   try { const t = localStorage.getItem("rid-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="stylesheet" href="dashboard/style.css">
+<link rel="stylesheet" href="dashboard/style.css?v=2">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -263,5 +263,43 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="dashboard/app.js"></script>
 <script src="dashboard/slide-hl.js"></script>
+<script>
+(function(){
+  var prog = document.createElement('div'); prog.id = 'scroll-prog'; prog.setAttribute('aria-hidden', 'true');
+  var pf = document.createElement('i'); prog.appendChild(pf); document.body.prepend(prog);
+  var raf = 0;
+  function updProg() { raf = 0; var h = document.documentElement.scrollHeight - window.innerHeight; pf.style.width = (h > 0 ? Math.min(100, Math.max(0, window.scrollY / h * 100)) : 0) + '%'; }
+  window.addEventListener('scroll', function(){ if (!raf) raf = requestAnimationFrame(updProg); }, { passive: true });
+  window.addEventListener('resize', updProg, { passive: true }); updProg();
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var started = false;
+  function setupReveal() {
+    if (started) return;
+    started = true;
+    var targets = document.querySelectorAll('.grid > .card');
+    if (!targets.length) return;
+    if (reduce || !('IntersectionObserver' in window)) {
+      targets.forEach(function(el){ el.classList.add('reveal-el', 'reveal-in'); }); return;
+    }
+    targets.forEach(function(el, i){
+      el.classList.add('reveal-el');
+      el.style.setProperty('--stagger', i % 3);
+    });
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('reveal-in'); io.unobserve(e.target); } });
+      }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+      targets.forEach(function(el){ io.observe(el); });
+    }); });
+    updProg();
+  }
+  var kpis = document.getElementById('kpis');
+  if (kpis) {
+    new MutationObserver(function(){ if (kpis.children.length) setupReveal(); }).observe(kpis, { childList: true });
+  }
+  setTimeout(setupReveal, 1000);
+})();
+</script>
 </body>
 </html>
