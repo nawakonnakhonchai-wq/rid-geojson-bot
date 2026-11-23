@@ -1479,8 +1479,8 @@
   });
 
   // ไฮไลต์เมนูตามส่วนที่กำลังดู
-  const navLinks = [...document.querySelectorAll(".nav a")];
-  const SECTIONS = navLinks.map(a => $(a.getAttribute("href").slice(1)));
+  const navLinks = [...document.querySelectorAll('.nav a[href^="#"]')];
+  const SECTIONS = navLinks.map(a => $(a.getAttribute("href").slice(1))).filter(Boolean);
   function syncNav() {
     let cur = SECTIONS[0];
     if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = SECTIONS[SECTIONS.length - 1];
