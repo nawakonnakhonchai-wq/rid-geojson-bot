@@ -319,5 +319,69 @@
   }
 })();
 </script>
+<style id="emcc-hub-css">
+.hub-wrap{position:relative;display:flex;flex-direction:column}
+.hub-btn{all:unset;box-sizing:border-box;cursor:pointer;display:flex!important;align-items:center;gap:13px;padding:11px 14px 11px 24px!important;border-radius:0 999px 999px 0!important;font-size:14.5px;font-weight:500;color:inherit;opacity:.82;white-space:nowrap;width:100%;transition:background .16s ease,opacity .16s ease}
+.hub-btn:hover,.hub-wrap.open .hub-btn{opacity:1;background:rgba(128,128,128,.1)}
+.hub-btn svg.h-ic-home{width:20px;height:20px;flex:none}
+.hub-btn .hub-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.hub-btn svg.hub-ch{width:14px;height:14px;flex:none;opacity:.6;transition:transform .2s ease}
+.hub-wrap.open .hub-btn svg.hub-ch{transform:rotate(180deg)}
+.hub-menu{display:none;flex-direction:column;gap:2px;margin:4px 8px 6px 20px;padding:6px;border-radius:12px;background:rgba(128,128,128,.07);border:1px solid rgba(128,128,128,.16)}
+.hub-wrap.open .hub-menu{display:flex}
+.hub-link{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;width:auto!important;height:auto!important;padding:7px 10px!important;border-radius:8px!important;font-size:13px!important;font-weight:500!important;text-decoration:none!important;color:inherit!important;opacity:.84;white-space:nowrap;background:transparent!important;box-shadow:none!important;transition:background .14s,opacity .14s}
+.hub-link::before,.hub-link::after{display:none!important}
+.hub-link:hover{opacity:1;background:rgba(128,128,128,.12)!important}
+.hub-link.cur{opacity:1;font-weight:700!important;background:rgba(128,128,128,.14)!important}
+.hub-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--dc,#3987e5)}
+.hub-link.main-l{border-bottom:1px solid rgba(128,128,128,.18);border-radius:8px 8px 0 0!important;margin-bottom:3px;padding-bottom:8px!important;font-weight:700!important}
+/* Collapsed sidebar: show menu as a clean floating popover to the right */
+.collapsed .hub-btn,.side-collapsed .hub-btn{justify-content:center!important;padding:11px!important;border-radius:12px!important}
+.collapsed .hub-lbl,.collapsed .hub-ch,.side-collapsed .hub-lbl,.side-collapsed .hub-ch{display:none!important}
+.collapsed .hub-wrap.open .hub-menu,.side-collapsed .hub-wrap.open .hub-menu{position:fixed;left:82px;top:76px;width:230px;margin:0;z-index:3000;background:var(--panel-soft,var(--card,var(--surface,var(--tm-el,#ffffff))));box-shadow:0 12px 32px -6px rgba(0,0,0,.22);border:1px solid rgba(128,128,128,.2)}
+@media (max-width:760px){.hub-menu{margin:4px 10px 8px 16px}}
+@media print{.hub-wrap{display:none!important}}
+</style>
+<script id="emcc-hub-js">
+(function(){
+  var LINKS=[
+    {t:'หน้าหลักรวม (Main)',u:'https://nawakonnakhonchai-wq.github.io/index.html',c:'#13233b',k:'main'},
+    {t:'สถิติอุบัติเหตุ (EMCCAlert)',u:'https://nawakonnakhonchai-wq.github.io/Emergency_dashboard/',c:'#19A293',k:'Emergency_dashboard'},
+    {t:'ผู้ประกอบการนิคมฯ (e-PP)',u:'https://nawakonnakhonchai-wq.github.io/epp_dashboard/#overview',c:'#16A37A',k:'epp_dashboard'},
+    {t:'การใช้น้ำ นิคมฯ (WaterDash)',u:'https://nawakonnakhonchai-wq.github.io/Water_used-dashboard/',c:'#0ea5e9',k:'Water_used-dashboard'},
+    {t:'สถานการณ์น้ำ (RIDWater)',u:'https://nawakonnakhonchai-wq.github.io/rid-geojson-bot/#overview',c:'#2f80ed',k:'rid-geojson-bot'},
+    {t:'สภาพอากาศ 77 จว. (Weather)',u:'https://nawakonnakhonchai-wq.github.io/WeatherForecastDaily/',c:'#f59e0b',k:'WeatherForecastDaily'},
+    {t:'แผ่นดินไหว (QuakeDash)',u:'https://tmd-earthquake.nawakonnakhonchai.workers.dev/',c:'#f97316',k:'tmd-earthquake'},
+    {t:'E-Monitoring สิ่งแวดล้อม',u:'https://nawakonnakhonchai-wq.github.io/E-Monitoring_Dashboard/',c:'#10b981',k:'E-Monitoring_Dashboard'}
+  ];
+  var anchor=document.querySelector('a.nav-home, a.ni-home, .wd-side a[href="https://nawakonnakhonchai-wq.github.io/index.html"]');
+  if(!anchor)return;
+  var wrap=document.createElement('div');wrap.className='hub-wrap';
+  var btn=document.createElement('button');btn.type='button';btn.className='hub-btn';btn.title='กลับหน้าหลัก / สลับ Dashboard';btn.setAttribute('aria-expanded','false');
+  btn.innerHTML='<svg class="h-ic-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg><span class="hub-lbl">กลับหน้าหลัก</span><svg class="hub-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  var menu=document.createElement('div');menu.className='hub-menu';
+  var here=location.href;
+  LINKS.forEach(function(item,idx){
+    var a=document.createElement('a');
+    var isCur=idx>0 && here.indexOf(item.k)>=0;
+    a.className='hub-link'+(idx===0?' main-l':'')+(isCur?' cur':'');
+    a.href=item.u;
+    a.innerHTML='<span class="hub-dot" style="--dc:'+item.c+'"></span><span>'+item.t+'</span>';
+    menu.appendChild(a);
+  });
+  wrap.appendChild(btn);wrap.appendChild(menu);
+  anchor.replaceWith(wrap);
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var on=wrap.classList.toggle('open');
+    btn.setAttribute('aria-expanded',on?'true':'false');
+  });
+  document.addEventListener('click',function(e){
+    if(wrap.classList.contains('open')&&!wrap.contains(e.target)){
+      wrap.classList.remove('open');btn.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
 </body>
 </html>
