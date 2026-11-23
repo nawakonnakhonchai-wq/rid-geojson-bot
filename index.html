@@ -386,5 +386,81 @@
   });
 })();
 </script>
+<style id="emcc-hub-mobile-css">
+/* EMCC dashboard switcher on phones (shared by every dashboard; desktop unchanged).
+   ≤760px: the switcher never unfolds inline; it opens a bottom sheet. In a bottom tab bar it is an icon-only button. */
+@media (max-width:760px){
+ .hub-wrap .hub-menu,.hub-wrap.open .hub-menu{display:none!important}
+ .hub-wrap.hub-in-bar{flex:none!important;width:auto!important;min-width:0!important}
+ .hub-wrap.hub-in-bar .hub-btn{width:auto!important;padding:10px 12px!important;border-radius:14px!important;justify-content:center!important;gap:0!important}
+ .hub-wrap.hub-in-bar .hub-lbl,.hub-wrap.hub-in-bar .hub-ch{display:none!important}
+ .hub-wrap.hub-in-bar .hub-btn svg.h-ic-home{width:22px;height:22px}
+}
+.hub-sheet{position:fixed;inset:0;z-index:9000;font:inherit}
+.hub-sheet[hidden]{display:none!important}
+.hub-sheet-bg{position:absolute;inset:0;background:rgba(10,12,16,.45);opacity:0;transition:opacity .2s ease}
+.hub-sheet-panel{position:absolute;left:0;right:0;bottom:0;max-height:82vh;max-height:82dvh;overflow:auto;overscroll-behavior:contain;
+ border-radius:22px 22px 0 0;padding:6px 12px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.25);
+ transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.hub-sheet.on .hub-sheet-bg{opacity:1}
+.hub-sheet.on .hub-sheet-panel{transform:none}
+.hub-grab{width:42px;height:5px;border-radius:9px;background:rgba(128,128,128,.45);margin:6px auto 10px}
+.hub-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 6px 8px;font-weight:700;font-size:16px}
+.hub-sheet-x{all:unset;cursor:pointer;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(128,128,128,.14);font-size:18px;line-height:1}
+.hub-sheet-list{display:flex;flex-direction:column;gap:2px}
+.hub-sheet-list a.hub-link{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:12px;font-size:15px;font-weight:500;text-decoration:none;color:inherit}
+.hub-sheet-list a.hub-link:active,.hub-sheet-list a.hub-link:hover{background:rgba(128,128,128,.12)}
+.hub-sheet-list a.hub-link.cur{background:rgba(128,128,128,.14);font-weight:700}
+.hub-sheet-list a.hub-link.main-l{border-bottom:1px solid rgba(128,128,128,.2);border-radius:12px 12px 0 0;margin-bottom:4px;font-weight:700}
+.hub-sheet-list .hub-dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--dc,#3987e5)}
+.hub-sheet-list a.hub-link>span:last-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.hub-lock,html.hub-lock body{overflow:hidden!important}
+@media (prefers-reduced-motion:reduce){.hub-sheet-bg,.hub-sheet-panel{transition:none}}
+@media print{.hub-sheet{display:none!important}}
+</style>
+<script id="emcc-hub-mobile-js">
+(function(){
+  var menu=document.querySelector('.hub-menu');if(!menu)return;
+  var wrap=menu.closest('.hub-wrap'),mq=window.matchMedia('(max-width:760px)');
+  var MAIN='https://nawakonnakhonchai-wq.github.io/index.html';
+  var sheet=document.createElement('div');sheet.className='hub-sheet';sheet.hidden=true;
+  sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-label','สลับ Dashboard');
+  sheet.innerHTML='<div class="hub-sheet-bg"></div><div class="hub-sheet-panel"><div class="hub-grab" aria-hidden="true"></div>'+
+    '<div class="hub-sheet-h"><span>สลับ Dashboard</span><button type="button" class="hub-sheet-x" aria-label="ปิด">✕</button></div><div class="hub-sheet-list"></div></div>';
+  var list=sheet.querySelector('.hub-sheet-list'),panel=sheet.querySelector('.hub-sheet-panel');
+  Array.prototype.forEach.call(menu.querySelectorAll('a.hub-link'),function(a){list.appendChild(a.cloneNode(true))});
+  document.body.appendChild(sheet);
+  /* colours follow the page and its current theme */
+  function paint(){var b=getComputedStyle(document.body),bg=b.backgroundColor;
+    if(!bg||bg==='transparent'||/rgba\(.*,\s*0\)$/.test(bg))bg=getComputedStyle(document.documentElement).backgroundColor;
+    if(!bg||bg==='transparent'||/rgba\(.*,\s*0\)$/.test(bg))bg='#ffffff';
+    panel.style.background=bg;panel.style.color=b.color}
+  var last=null;
+  function open(){last=document.activeElement;paint();sheet.hidden=false;document.documentElement.classList.add('hub-lock');
+    requestAnimationFrame(function(){sheet.classList.add('on')});
+    var f=list.querySelector('a.cur')||list.querySelector('a');if(f)f.focus({preventScroll:true})}
+  function close(){if(sheet.hidden)return;sheet.classList.remove('on');document.documentElement.classList.remove('hub-lock');
+    setTimeout(function(){sheet.hidden=true},230);if(last&&last.focus)last.focus({preventScroll:true})}
+  sheet.querySelector('.hub-sheet-bg').addEventListener('click',close);
+  sheet.querySelector('.hub-sheet-x').addEventListener('click',close);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+  /* drag the panel down to close */
+  var y0=null,dy=0;
+  panel.addEventListener('touchstart',function(e){if(panel.scrollTop>0)return;y0=e.touches[0].clientY;dy=0;panel.style.transition='none'},{passive:true});
+  panel.addEventListener('touchmove',function(e){if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);panel.style.transform='translateY('+dy+'px)'},{passive:true});
+  panel.addEventListener('touchend',function(){if(y0===null)return;panel.style.transition='';panel.style.transform='';if(dy>90)close();y0=null});
+  /* on phones the switcher button (and any visible "back to main" link) opens the sheet instead of unfolding */
+  if(wrap)wrap.addEventListener('click',function(e){if(!mq.matches)return;if(!e.target.closest('.hub-btn'))return;
+    e.preventDefault();e.stopPropagation();wrap.classList.remove('open');open()},true);
+  document.addEventListener('click',function(e){if(!mq.matches)return;var a=e.target.closest&&e.target.closest('a[href="'+MAIN+'"]');
+    if(!a||sheet.contains(a)||(wrap&&wrap.contains(a)))return;e.preventDefault();open()},true);
+  /* icon-only when the switcher sits in a bottom tab bar */
+  function mark(){if(!wrap)return;var n=wrap.parentElement,inBar=false;
+    while(n&&n!==document.body){var cs=getComputedStyle(n);if(cs.position==='fixed'){var r=n.getBoundingClientRect();inBar=r.top>window.innerHeight*0.6&&r.height<140;break}n=n.parentElement}
+    wrap.classList.toggle('hub-in-bar',mq.matches&&inBar)}
+  mark();window.addEventListener('resize',mark);if(mq.addEventListener)mq.addEventListener('change',function(){mark();if(!mq.matches)close()});
+})();
+</script>
+
 </body>
 </html>
