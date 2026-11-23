@@ -4,7 +4,7 @@
   "runId": 45096170198,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45096170198",
   "startedAt": "2026-11-23T01:43:40.987Z",
-  "updatedAt": "2026-11-23T01:46:25.411Z",
+  "updatedAt": "2026-11-23T01:46:41.479Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -83,11 +83,12 @@
       "workflow": "auto_update.yml",
       "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
       "icon": "🚨",
-      "status": "running",
+      "status": "success",
       "startedAt": "2026-11-23T01:46:23.279Z",
-      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "detail": "workflow สำเร็จ",
       "runId": 45096441492,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/hii-flood-alert/actions/runs/45096441492"
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/hii-flood-alert/actions/runs/45096441492",
+      "completedAt": "2026-11-23T01:46:39Z"
     }
   ]
 }
