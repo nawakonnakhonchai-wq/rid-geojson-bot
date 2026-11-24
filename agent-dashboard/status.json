@@ -4,7 +4,7 @@
   "runId": 45306264295,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45306264295",
   "startedAt": "2026-11-24T01:36:22.863Z",
-  "updatedAt": "2026-11-24T01:38:48.365Z",
+  "updatedAt": "2026-11-24T01:38:50.866Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -73,7 +73,9 @@
       "icon": "⛈️",
       "status": "running",
       "startedAt": "2026-11-24T01:38:48.365Z",
-      "detail": "กำลังเรียก workflow"
+      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "runId": 45306572674,
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherWarningNews/actions/runs/45306572674"
     },
     {
       "repo": "hii-flood-alert",
