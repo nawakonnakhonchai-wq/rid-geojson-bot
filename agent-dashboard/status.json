@@ -4,7 +4,7 @@
   "runId": 45527163011,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45527163011",
   "startedAt": "2026-11-25T01:38:01.330Z",
-  "updatedAt": "2026-11-25T01:41:22.980Z",
+  "updatedAt": "2026-11-25T01:41:24.145Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -83,7 +83,9 @@
       "workflow": "auto_update.yml",
       "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
       "icon": "🚨",
-      "status": "queued"
+      "status": "running",
+      "startedAt": "2026-11-25T01:41:24.145Z",
+      "detail": "กำลังเรียก workflow"
     }
   ]
 }
