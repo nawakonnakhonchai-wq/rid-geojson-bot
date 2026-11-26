@@ -4,7 +4,7 @@
   "runId": 45736458539,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45736458539",
   "startedAt": "2026-11-26T01:32:44.525Z",
-  "updatedAt": "2026-11-26T01:33:23.509Z",
+  "updatedAt": "2026-11-26T01:33:55.054Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -23,11 +23,12 @@
       "workflow": "realtime_tracker.yml",
       "label": "อัปเดตข้อมูลระดับน้ำ",
       "icon": "🌊",
-      "status": "running",
+      "status": "success",
       "startedAt": "2026-11-26T01:33:21.161Z",
-      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "detail": "workflow สำเร็จ",
       "runId": 45736548404,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45736548404"
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45736548404",
+      "completedAt": "2026-11-26T01:33:54Z"
     },
     {
       "repo": "tmd-earthquake-geojson",
