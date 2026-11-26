@@ -1,95 +1,59 @@
 {
   "version": 1,
-  "status": "success",
-  "runId": 45527163011,
-  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45527163011",
-  "startedAt": "2026-11-25T01:38:01.330Z",
-  "updatedAt": "2026-11-25T01:41:59.835Z",
+  "status": "running",
+  "runId": 45736458539,
+  "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45736458539",
+  "startedAt": "2026-11-26T01:32:44.525Z",
+  "updatedAt": "2026-11-26T01:32:44.719Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
       "workflow": "update_data.yml",
       "label": "อัปเดตข้อมูลเขื่อน",
       "icon": "🏞️",
-      "status": "success",
-      "startedAt": "2026-11-25T01:38:02.869Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527180476,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/Dam_Daily/actions/runs/45527180476",
-      "completedAt": "2026-11-25T01:38:46Z"
+      "status": "queued"
     },
     {
       "repo": "rid-geojson-bot",
       "workflow": "realtime_tracker.yml",
       "label": "อัปเดตข้อมูลระดับน้ำ",
       "icon": "🌊",
-      "status": "success",
-      "startedAt": "2026-11-25T01:38:54.004Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527280002,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45527280002",
-      "completedAt": "2026-11-25T01:39:30Z"
+      "status": "queued"
     },
     {
       "repo": "tmd-earthquake-geojson",
       "workflow": "earthquake_cron.yml",
       "label": "อัปเดตข้อมูลแผ่นดินไหว",
       "icon": "🌏",
-      "status": "success",
-      "startedAt": "2026-11-25T01:39:44.978Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527379625,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/tmd-earthquake-geojson/actions/runs/45527379625",
-      "completedAt": "2026-11-25T01:40:06Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherForecastDaily",
       "workflow": "openmeteo_update.yml",
       "label": "อัปเดตพยากรณ์ Open-Meteo",
       "icon": "🌤️",
-      "status": "success",
-      "startedAt": "2026-11-25T01:40:22.792Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527463011,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherForecastDaily/actions/runs/45527463011",
-      "completedAt": "2026-11-25T01:40:35Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherForecastDaily",
       "workflow": "weather_update.yml",
       "label": "อัปเดตพยากรณ์กรมอุตุฯ",
       "icon": "🌦️",
-      "status": "success",
-      "startedAt": "2026-11-25T01:40:43.192Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527502398,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherForecastDaily/actions/runs/45527502398",
-      "completedAt": "2026-11-25T01:41:00Z"
+      "status": "queued"
     },
     {
       "repo": "WeatherWarningNews",
       "workflow": "update_data.yml",
       "label": "อัปเดตข่าวเตือนภัยอากาศ",
       "icon": "⛈️",
-      "status": "success",
-      "startedAt": "2026-11-25T01:41:03.862Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527544216,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherWarningNews/actions/runs/45527544216",
-      "completedAt": "2026-11-25T01:41:22Z"
+      "status": "queued"
     },
     {
       "repo": "hii-flood-alert",
       "workflow": "auto_update.yml",
       "label": "อัปเดตพื้นที่เฝ้าระวังน้ำท่วม",
       "icon": "🚨",
-      "status": "success",
-      "startedAt": "2026-11-25T01:41:24.145Z",
-      "detail": "workflow สำเร็จ",
-      "runId": 45527585700,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/hii-flood-alert/actions/runs/45527585700",
-      "completedAt": "2026-11-25T01:41:43Z"
+      "status": "queued"
     }
-  ],
-  "completedAt": "2026-11-25T01:41:59.835Z"
+  ]
 }
