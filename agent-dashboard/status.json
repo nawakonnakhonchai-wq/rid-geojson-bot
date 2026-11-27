@@ -4,7 +4,7 @@
   "runId": 45923624620,
   "runUrl": "https://github.com/nawakonnakhonchai-wq/rid-geojson-bot/actions/runs/45923624620",
   "startedAt": "2026-11-27T01:37:38.500Z",
-  "updatedAt": "2026-11-27T01:39:43.517Z",
+  "updatedAt": "2026-11-27T01:39:59.654Z",
   "tasks": [
     {
       "repo": "Dam_Daily",
@@ -47,11 +47,12 @@
       "workflow": "openmeteo_update.yml",
       "label": "อัปเดตพยากรณ์ Open-Meteo",
       "icon": "🌤️",
-      "status": "running",
+      "status": "success",
       "startedAt": "2026-11-27T01:39:41.003Z",
-      "detail": "workflow เริ่มแล้ว กำลังรอผล",
+      "detail": "workflow สำเร็จ",
       "runId": 45923827290,
-      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherForecastDaily/actions/runs/45923827290"
+      "runUrl": "https://github.com/nawakonnakhonchai-wq/WeatherForecastDaily/actions/runs/45923827290",
+      "completedAt": "2026-11-27T01:39:54Z"
     },
     {
       "repo": "WeatherForecastDaily",
